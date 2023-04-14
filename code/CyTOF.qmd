@@ -1,0 +1,385 @@
+# CyTOF
+
+## Preamble
+
+### Dependencies 
+
+```{r}
+#| label: load-libs
+#| message: false
+#| warning: false
+library(dplyr)
+library(tidyr)
+library(diffcyt)
+library(scuttle)
+library(ggrepel)
+library(ggplot2)
+library(tidytext)
+library(CATALYST)
+library(patchwork)
+```
+
+```{r}
+#| label: load-utils
+#| cache: false
+#| echo: false
+source("utils.R") 
+```
+
+### Loading
+
+```{r}
+#| label: load-data
+#| code-fold: true
+#| message: false
+#| warning: false
+# download panel & metadata tables
+.rd <- tempfile(rd <- "PBMC8_panel_v3.xlsx")
+.md <- tempfile(md <- "PBMC8_metadata.xlsx")                     
+url <- "http://imlspenticton.uzh.ch/robinson_lab/cytofWorkflow"
+download.file(file.path(url, rd), destfile = .rd, mode = "wb", quiet = TRUE)
+download.file(file.path(url, md), destfile = .md, mode = "wb", quiet = TRUE)
+# load tables & measurement data
+rd <- readxl::read_excel(.rd)                  
+md <- readxl::read_excel(.md) 
+fs <- HDCytoData::Bodenmiller_BCR_XL_flowSet() 
+# fix sample & group ordering
+md$condition <- factor(md$condition, c("Ref", "BCRXL"))        
+md$sample_id <- factor(md$sample_id, md$sample_id[order(md$condition)])    
+# construct 'SingleCellExperiment'
+(sce <- prepData(fs, rd, md, features = rd$fcs_colname))
+```
+
+## Setup
+
+```{r}
+#| label: clustering
+set.seed(seed <- 7043)
+sce <- cluster(sce, 
+  xdim = 7, ydim = 7,
+  features = rownames(sce), 
+  seed = seed, verbose = FALSE)
+sce <- runDR(sce, features = rownames(sce), cells = 500)
+```
+
+```{r}
+#| label: entropy
+se <- .se(sce,  "cluster_id", "sample_id", "exprs", "median")
+se$condition <- sce$condition[match(se$sample_id, sce$sample_id)]
+```
+
+```{r}
+#| label: differential
+da <- .da(sce)
+ds <- .ds(sce)
+dx <- left_join(ds, da, 
+  by = "cluster_id", 
+  suffix = c(".ds", ".da"))
+res <- .score(se, da, ds)
+res$marker_class <- marker_classes(sce)[res$marker_id]
+```
+
+## Viz
+
+```{r}
+#| fig-width: 6
+#| fig-height: 4
+ggplot(se, aes(reorder(marker_id, entropy), entropy, col = condition)) +
+  guides(color = guide_legend(override.aes = list(size = 3))) +
+  geom_point() + labs(x = "marker") + theme_bw() + theme(
+    panel.grid.minor = element_blank(),
+    legend.key.size = unit(0.5, "lines"),
+    axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+ggplot(res, aes(state_score, type_score, label = marker_id, col = marker_class)) + 
+  geom_point() + geom_text_repel(size = 3, show.legend = FALSE) +
+  guides(color = guide_legend(override.aes = list(size = 3))) +
+  theme_bw() + theme(
+    panel.grid.minor = element_blank(),
+    legend.key.size = unit(0.5, "lines"))
+```
+
+```{r}
+#| fig-width: 6
+#| fig-height: 3
+med <- median(res$score <- with(res, scale(type_score-state_score)))
+ggplot(res, aes(reorder(marker_id, score), score, 
+  col = score > med, fill = marker_class, label = marker_id)) +
+  scale_color_manual(values = c("lightgrey", "black")) +
+  guides(color = guide_legend(override.aes = list(size = 3, shape = 19))) +
+  geom_point(shape = 21, size = 3) + 
+  geom_hline(yintercept = med, lty = 3) + 
+  labs(x = "marker") + theme_bw() + theme( 
+    panel.grid.minor = element_blank(),
+    legend.key.size = unit(0.5, "lines"),
+    axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+#| fig-width: 7
+#| fig-height: 5
+y <- assay(aggregateAcrossCells(sce, sce$cluster_id,
+  use.assay.type = "exprs", statistics = "median"))
+y <- sweep(y, 1, rowMins(y), "-")
+y <- sweep(y, 1, rowMaxs(y), "/")
+df <- data.frame(t(y), cluster_id = colnames(y), check.names = FALSE)
+xo <- hclust(dist(t(y)))$order
+yo <- hclust(dist(y))$order
+df <- pivot_longer(df, -cluster_id, names_to = "marker", values_to = "expr")
+ggplot(df, aes(cluster_id, marker, fill = expr)) + 
+    geom_tile() + 
+    scale_fill_distiller(
+      "scaled median\nexpression", 
+      limits = c(0, 1), n.breaks = 3,
+      palette = "YlGnBu", direction = -1) + 
+    guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5)) +
+    coord_cartesian(expand = FALSE) + 
+    labs(x = "cluster", y = "marker") +
+    scale_x_discrete(limits = \(.) .[xo]) +
+    scale_y_discrete(limits = \(.) .[yo]) +
+    theme_bw() + theme(
+      panel.grid = element_blank(), 
+      legend.position = "bottom",
+      legend.justification = c(1, 1),
+      legend.key.width = unit(1, "lines"),
+      legend.key.height = unit(0.5, "lines"),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+```{r}
+#| fig-width: 7
+#| fig-height: 4
+ggplot(
+  dx[rev(order(-dx$p_adj.da)), ], 
+  aes(reorder(marker_id, 1-p_adj.ds), 1-p_adj.ds, col = p_adj.da)) +
+  guides(color = guide_colorbar(title.position = "top", title.hjust = 0.5)) +
+  scale_color_distiller(
+    limits = c(0, 1), n.breaks = 3,
+    palette = "Blues", direction = 1) +
+  geom_boxplot(aes(col = NULL), outlier.color = NA) + 
+  geom_jitter(size = 0.5, height = 0, width = 0.1) + 
+  labs(x = "marker") + theme_bw() + theme(
+    legend.position = "bottom",
+    legend.justification = c(1, 1),
+    panel.grid.minor = element_blank(),
+    legend.key.width = unit(1, "lines"),
+    legend.key.height = unit(0.5, "lines"),
+    axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+#| fig-width: 7
+#| fig-height: 5
+mtx <- dx %>% 
+  pivot_wider(
+    id_cols = "cluster_id", 
+    names_from = "marker_id", 
+    values_from = "p_adj.ds") %>%
+  select(any_of(rownames(sce))) 
+xo <- hclust(dist(mtx))$order
+yo <- hclust(dist(t(mtx)))$order
+ggplot(dx, aes(cluster_id, marker_id, fill = p_adj.ds)) + geom_tile() + 
+  guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5)) +
+  scale_fill_distiller(
+    limits = c(0, 1), n.breaks = 3,
+    palette = "YlGnBu", direction = -1) + 
+  coord_cartesian(expand = FALSE) + 
+  labs(x = "cluster", y = "marker") +
+  scale_x_discrete(limits = \(.) .[xo]) +
+  scale_y_discrete(limits = \(.) .[yo]) +
+  theme_bw() + theme(
+    panel.grid = element_blank(), 
+    legend.position = "bottom",
+    legend.justification = c(1, 1),
+    legend.key.width = unit(1, "lines"),
+    legend.key.height = unit(0.5, "lines"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+## Downstream
+
+let's split features equally according to overall score and repeat everything...
+
+```{r}
+#| label: recompute
+set.seed(seed <- 7043)
+#(sel <- with(res, marker_id[score > median(score)]))
+sel <- res$marker_id[res$state_score < 0.15]
+sce2 <- cluster(sce, 
+  xdim = 7, ydim = 7, features = sel, 
+  seed = seed, verbose = FALSE)
+sce2 <- runDR(sce2, features = sel, cells = 500)
+
+se <- .se(sce2,  "cluster_id", "sample_id", "exprs", "median")
+se$condition <- sce2$condition[match(se$sample_id, sce2$sample_id)]
+da <- .da(sce2)
+ds <- .ds(sce2)
+dx <- left_join(ds, da, 
+  by = "cluster_id", 
+  suffix = c(".ds", ".da"))
+res <- .score(se, da, ds)
+res$marker_class <- marker_classes(sce2)[res$marker_id]
+```
+
+```{r}
+#| dependson: recompute
+#| fig-width: 6
+#| fig-height: 4
+ggplot(se, aes(reorder(marker_id, entropy), entropy, col = condition)) +
+  guides(color = guide_legend(override.aes = list(size = 3))) +
+  geom_point() + labs(x = "marker") + theme_bw() + theme(
+    panel.grid.minor = element_blank(),
+    legend.key.size = unit(0.5, "lines"),
+    axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+#| dependson: recompute
+ggplot(res, aes(state_score, type_score, label = marker_id, col = marker_class)) + 
+  geom_point() + geom_text_repel(size = 3, show.legend = FALSE) +
+  guides(color = guide_legend(override.aes = list(size = 3))) +
+  theme_bw() + theme(
+    panel.grid.minor = element_blank(),
+    legend.key.size = unit(0.5, "lines"))
+```
+
+```{r}
+#| dependson: recompute
+med <- median(res$score <- with(res, scale(type_score-state_score)))
+all(sel %in% res$marker_id[res$score > med])
+all(res$marker_id[res$score > med] %in% sel)
+```
+
+```{r}
+#| dependson: recompute
+#| fig-width: 6
+#| fig-height: 3
+ggplot(res, aes(reorder(marker_id, score), score, 
+  col = score > med, fill = marker_class, label = marker_id)) +
+  scale_color_manual(values = c("lightgrey", "black")) +
+  guides(color = guide_legend(override.aes = list(size = 3, shape = 19))) +
+  geom_point(shape = 21, size = 3) + 
+  geom_hline(yintercept = med, lty = 3) + 
+  labs(x = "marker") + theme_bw() + theme( 
+    panel.grid.minor = element_blank(),
+    legend.key.size = unit(0.5, "lines"),
+    axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+#| dependson: recompute
+#| fig-width: 7
+#| fig-height: 5
+y <- assay(aggregateAcrossCells(sce2, sce2$cluster_id,
+  use.assay.type = "exprs", statistics = "median"))
+y <- sweep(y, 1, rowMins(y), "-")
+y <- sweep(y, 1, rowMaxs(y), "/")
+df <- data.frame(t(y), cluster_id = colnames(y), check.names = FALSE)
+xo <- hclust(dist(t(y)))$order
+yo <- hclust(dist(y))$order
+df <- pivot_longer(df, -cluster_id, names_to = "marker", values_to = "expr")
+ggplot(df, aes(cluster_id, marker, fill = expr)) + 
+    geom_tile() + 
+    scale_fill_distiller(
+      "scaled median\nexpression", 
+      limits = c(0, 1), n.breaks = 3,
+      palette = "YlGnBu", direction = -1) + 
+    guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5)) +
+    coord_cartesian(expand = FALSE) + 
+    labs(x = "cluster", y = "marker") +
+    scale_x_discrete(limits = \(.) .[xo]) +
+    scale_y_discrete(limits = \(.) .[yo]) +
+    theme_bw() + theme(
+      panel.grid = element_blank(), 
+      legend.position = "bottom",
+      legend.justification = c(1, 1),
+      legend.key.width = unit(1, "lines"),
+      legend.key.height = unit(0.5, "lines"),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+```{r}
+#| dependson: recompute
+#| fig-width: 7
+#| fig-height: 4
+ggplot(
+  dx[rev(order(-dx$p_adj.da)), ], 
+  aes(reorder(marker_id, 1-p_adj.ds), 1-p_adj.ds, col = p_adj.da)) +
+  guides(color = guide_colorbar(title.position = "top", title.hjust = 0.5)) +
+  scale_color_distiller(
+    limits = c(0, 1), n.breaks = 3,
+    palette = "Blues", direction = 1) +
+  geom_boxplot(aes(col = NULL), outlier.color = NA) + 
+  geom_jitter(size = 0.5, height = 0, width = 0.1) + 
+  labs(x = "marker") + theme_bw() + theme(
+    legend.position = "bottom",
+    legend.justification = c(1, 1),
+    panel.grid.minor = element_blank(),
+    legend.key.width = unit(1, "lines"),
+    legend.key.height = unit(0.5, "lines"),
+    axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+#| fig-width: 7
+#| fig-height: 5
+mtx <- dx %>% 
+  pivot_wider(
+    id_cols = "cluster_id", 
+    names_from = "marker_id", 
+    values_from = "p_adj.ds") %>%
+  select(any_of(rownames(sce2))) 
+xo <- hclust(dist(mtx))$order
+yo <- hclust(dist(t(mtx)))$order
+ggplot(dx, aes(cluster_id, marker_id, fill = p_adj.ds)) + geom_tile() + 
+  guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5)) +
+  scale_fill_distiller(
+    limits = c(0, 1), n.breaks = 3,
+    palette = "YlGnBu", direction = -1) + 
+  coord_cartesian(expand = FALSE) + 
+  labs(x = "cluster", y = "marker") +
+  scale_x_discrete(limits = \(.) .[xo]) +
+  scale_y_discrete(limits = \(.) .[yo]) +
+  theme_bw() + theme(
+    panel.grid = element_blank(), 
+    legend.position = "bottom",
+    legend.justification = c(1, 1),
+    legend.key.width = unit(1, "lines"),
+    legend.key.height = unit(0.5, "lines"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+```{r}
+#| dependson: recompute
+plotDR(sce, color_by = "condition") + ggtitle("all features") +
+plotDR(sce, color_by = "meta12") + 
+plotDR(sce2, color_by = "condition") + ggtitle("selected only") +
+plotDR(sce2, color_by = "meta12") +
+plot_layout(nrow = 2, guides = "collect") & 
+  theme_void() & theme(legend.key.size = unit(0.5, "lines"))
+```
+
+## Evaluation
+
+- updates type-state scores
+- separation between clusters
+- mixing of groups within clusters
+- DS results (should be more sensitive)
+- DA results (should be non-significant)
+- concordance between new and old selection
+
+## Appenix
+
+::: {.callout-note icon=false, collapse=true}
+
+### Session info
+
+```{r}
+#| label: session-info
+#| code-fold: false
+sessionInfo()
+```
+
+:::
