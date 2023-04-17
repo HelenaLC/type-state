@@ -15,7 +15,7 @@
   idx <- split(seq(ncol(y)), y[[j]])
   # compute proportions across clusters
   # (matrix of dim. features x clusters)
-  p <- sapply(idx, \(.) {
+  p <- lapply(idx, \(.) {
     z <- assay(y)[, .]
     z <- as.matrix(z)
     z[z < 0] <- 0
@@ -32,15 +32,17 @@
   z <- aggregateAcrossCells(x, 
     x[[j]], coldata.merge = FALSE,
     use.assay.type = assay, statistics = fun)
-  data.frame(
+  res <- data.frame(
     row.names = NULL, entropy = c(hs),
     marker_id = rep(rownames(hs), ncol(hs)),
     sample_id = rep(colnames(hs), each = nrow(hs)))
+  res[is.na(res)] <- 0
+  return(res)
 }
 
 .score <- \(se, da, ds) {
   ms <- unique(se$marker_id, ds$marker_id)
-  ss <- c(by(ds, ds$marker_id, \(.) max(abs(.$logFC))))
+  ss <- c(by(ds, ds$marker_id, \(.) mean(abs(.$logFC))))
   ts <- c(by(se, se$marker_id, \(.) mean(1-.$entropy)))
   df <- data.frame(
     row.names = NULL, marker_id = ms,
@@ -90,3 +92,19 @@
     analysis_type = "DS", method_DS = "diffcyt-DS-limma")$res
   data.frame(rowData(se))
 }
+
+
+.all_score <- \(x, dim){
+  x <- cluster(x, 
+                 xdim = dim, ydim = dim,
+                 features = rownames(x), 
+                 seed = seed, verbose = FALSE)
+  se <- .se(x,  "cluster_id", "sample_id", "exprs", "median")
+  se$condition <- x$condition[match(se$sample_id, x$sample_id)]
+  da <- .da(x)
+  ds <- .ds(x)
+  res <- .score(se, da, ds)
+  res$marker_class <- marker_classes(x)[res$marker_id]
+  return(res)
+}
+
