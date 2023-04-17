@@ -1,0 +1,217 @@
+# CyTOF
+
+## Preamble
+
+### Dependencies 
+
+```{r}
+#| label: load-libs
+#| message: false
+#| warning: false
+library(dplyr)
+library(tidyr)
+library(diffcyt)
+library(scuttle)
+library(ggrepel)
+library(ggplot2)
+library(tidytext)
+library(CATALYST)
+library(patchwork)
+library(reshape2)
+library(edgeR)
+```
+
+
+```{r}
+#| label: load-utils
+#| cache: false
+#| echo: false
+source("utils.R") 
+```
+
+
+### Loading
+
+```{r}
+#| label: load-data
+#| code-fold: true
+#| message: false
+#| warning: false
+# download panel & metadata tables
+.rd <- tempfile(rd <- "PBMC8_panel_v3.xlsx")
+.md <- tempfile(md <- "PBMC8_metadata.xlsx")                     
+url <- "http://imlspenticton.uzh.ch/robinson_lab/cytofWorkflow"
+download.file(file.path(url, rd), destfile = .rd, mode = "wb", quiet = TRUE)
+download.file(file.path(url, md), destfile = .md, mode = "wb", quiet = TRUE)
+# load tables & measurement data
+rd <- readxl::read_excel(.rd)                  
+md <- readxl::read_excel(.md) 
+fs <- HDCytoData::Bodenmiller_BCR_XL_flowSet() 
+# fix sample & group ordering
+md$condition <- factor(md$condition, c("Ref", "BCRXL"))        
+md$sample_id <- factor(md$sample_id, md$sample_id[order(md$condition)])    
+# construct 'SingleCellExperiment'
+(sce <- prepData(fs, rd, md, features = rd$fcs_colname))
+set.seed(seed <- 7043)
+sce <- runDR(sce, features = rownames(sce), cells = 500)
+```
+
+
+## How type and state score changes with clustering resolution
+
+```{r}
+dims <- list(5,6,7,8,9,10)
+#.all_score(x=sce, dim  = 3)
+
+res_by_resolution <- lapply(dims, .all_score, x = sce)
+names(res_by_resolution) <- dims
+res_df <-  melt(res_by_resolution, id.vars = c("marker_id", "marker_class"))
+ggplot(data = res_df, aes(x = factor(L1, levels = c(5,6,7,8,9,10)), y = value, shape = variable, color = marker_class)) + geom_point()+ facet_wrap(~marker_id) + xlab("Clustering resolution") + ylab("Score")
+```
+
+## Median expression heatmap
+
+::: {.panel-tabset}
+
+### som25
+```{r}
+sce <- cluster(sce, 
+  xdim = 5, ydim = 5,
+  features = rownames(sce), 
+  seed = seed, verbose = FALSE)
+plotExprHeatmap(sce, features = NULL, 
+    by = "cluster_id", k = names(cluster_codes(sce))[1], 
+    bars = TRUE, perc = TRUE, fun = "median")
+```
+### som36
+
+```{r}
+sce <- cluster(sce, 
+  xdim = 6, ydim = 6,
+  features = rownames(sce), 
+  seed = seed, verbose = FALSE)
+plotExprHeatmap(sce, features = NULL, 
+    by = "cluster_id", k = names(cluster_codes(sce))[1], 
+    bars = TRUE, perc = TRUE, fun = "median")
+```
+
+### som49
+```{r}
+sce <- cluster(sce, 
+  xdim = 7, ydim = 7,
+  features = rownames(sce), 
+  seed = seed, verbose = FALSE)
+plotExprHeatmap(sce, features = NULL, 
+    by = "cluster_id", k = names(cluster_codes(sce))[1], 
+    bars = TRUE, perc = TRUE, fun = "median")
+```
+
+### som64
+```{r}
+sce <- cluster(sce, 
+  xdim = 8, ydim = 8,
+  features = rownames(sce), 
+  seed = seed, verbose = FALSE)
+plotExprHeatmap(sce, features = NULL, 
+    by = "cluster_id", k = names(cluster_codes(sce))[1], 
+    bars = TRUE, perc = TRUE, fun = "median")
+```
+
+### som81
+```{r}
+sce <- cluster(sce, 
+  xdim = 9, ydim = 9,
+  features = rownames(sce), 
+  seed = seed, verbose = FALSE)
+plotExprHeatmap(sce, features = NULL, 
+    by = "cluster_id", k = names(cluster_codes(sce))[1], 
+    bars = TRUE, perc = TRUE, fun = "median")
+```
+
+
+
+### som100
+```{r}
+sce <- cluster(sce, 
+  xdim = 10, ydim = 10,
+  features = rownames(sce), 
+  seed = seed, verbose = FALSE)
+plotExprHeatmap(sce, features = NULL, 
+    by = "cluster_id", k = names(cluster_codes(sce))[1], 
+    bars = TRUE, perc = TRUE, fun = "median")
+```
+
+:::
+
+## F stats (edgeR) vs entropy
+
+```{r}
+exprss <- assay(sce, "exprs")
+#colnames(exprss) <- cluster_ids(sce)
+exprss[exprss < 0] <- 0
+ei <- .ei(sce)
+dm <- createDesignMatrix(ei)
+cm <- createContrast(c(0, 1))
+dge <- DGEList(counts = exprss, group = colData(sce)$condition)
+dge <- calcNormFactors(dge)
+dge <- estimateDisp(dge)
+
+fit <- glmQLFit(dge)
+qlf <- glmQLFTest(fit, coef = 2)
+qlf$table$marker_class <- marker_classes(sce)
+ggplot(qlf$table, aes(x=reorder(rownames(qlf$table), F), y = F, color = marker_class)) + geom_point() + xlab("Markers") + ylab("F") + theme(axis.text.x = element_text(angle=45, hjust=1))
+```
+
+```{r}
+res <- .all_score(sce, dim = 10)
+res$F_stat <- qlf$table$F
+ggplot(res, aes(x = type_score, y = F_stat, label = marker_id, color = marker_class)) + geom_point() +geom_text(hjust=0, vjust=0, size = 3)
+```
+
+
+## UMAP before (all markers) & after feature selection
+
+::: {.panel-tabset}
+
+### feature selected by state score
+```{r}
+set.seed(seed <- 7043)
+#(sel <- with(res, marker_id[score > median(score)]))
+#res <- .all_score(sce, dim = 10)
+sel <- res$marker_id[res$state_score < 0.15]
+sce2 <- runDR(sce, features = sel, cells = 500)
+sce2 <- cluster(sce, 
+  xdim = 10, ydim = 10, features = sel, 
+  seed = seed, verbose = FALSE)
+plotDR(sce, color_by = "condition") + ggtitle("all features") +
+plotDR(sce, color_by = "meta20") + 
+plotDR(sce2, color_by = "condition") + ggtitle("selected only") +
+plotDR(sce2, color_by = "meta20") +
+plot_layout(nrow = 2, guides = "collect") & 
+  theme_void() & theme(legend.key.size = unit(0.5, "lines"))
+```
+
+### feature selected by type score
+
+```{r}
+set.seed(seed <- 7043)
+#(sel <- with(res, marker_id[score > median(score)]))
+#res <- .all_score(sce, dim = 10)
+sel <- res$marker_id[res$type_score > 0.1]
+sce3 <- runDR(sce, features = sel, cells = 500)
+sce3 <- cluster(sce, 
+  xdim = 10, ydim = 10, features = sel, 
+  seed = seed, verbose = FALSE)
+plotDR(sce, color_by = "condition") + ggtitle("all features") +
+plotDR(sce, color_by = "meta20") + 
+plotDR(sce3, color_by = "condition") + ggtitle("selected only") +
+plotDR(sce3, color_by = "meta20") +
+plot_layout(nrow = 2, guides = "collect") & 
+  theme_void() & theme(legend.key.size = unit(0.5, "lines"))
+```
+
+
+
+:::
+
+
