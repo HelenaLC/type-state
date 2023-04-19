@@ -170,6 +170,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#how-type-and-state-score-changes-with-clustering-resolution" id="toc-how-type-and-state-score-changes-with-clustering-resolution" class="nav-link" data-scroll-target="#how-type-and-state-score-changes-with-clustering-resolution">How type and state score changes with clustering resolution</a></li>
   <li><a href="#median-expression-heatmap" id="toc-median-expression-heatmap" class="nav-link" data-scroll-target="#median-expression-heatmap">Median expression heatmap</a></li>
   <li><a href="#f-stats-edger-vs-entropy" id="toc-f-stats-edger-vs-entropy" class="nav-link" data-scroll-target="#f-stats-edger-vs-entropy">F stats (edgeR) vs entropy</a></li>
+<<<<<<< HEAD
+=======
+  <li><a href="#cepo-differential-stability-test" id="toc-cepo-differential-stability-test" class="nav-link" data-scroll-target="#cepo-differential-stability-test">Cepo Differential stability test</a></li>
+  <li><a href="#unweighted-stability" id="toc-unweighted-stability" class="nav-link" data-scroll-target="#unweighted-stability">Unweighted stability</a></li>
+  <li><a href="#weighted-stability" id="toc-weighted-stability" class="nav-link" data-scroll-target="#weighted-stability">Weighted stability</a></li>
+>>>>>>> bbc714a (Try different typeness scoring)
   <li><a href="#umap-before-all-markers-after-feature-selection" id="toc-umap-before-all-markers-after-feature-selection" class="nav-link" data-scroll-target="#umap-before-all-markers-after-feature-selection">UMAP before (all markers) &amp; after feature selection</a></li>
   </ul></li>
   </ul>
@@ -250,11 +256,16 @@ altExpNames(0):</code></pre>
 </section>
 <section id="how-type-and-state-score-changes-with-clustering-resolution" class="level2">
 <h2 class="anchored" data-anchor-id="how-type-and-state-score-changes-with-clustering-resolution">How type and state score changes with clustering resolution</h2>
+<<<<<<< HEAD
 <div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-4_559f4dcfd209905acfede3788b499cb0">
+=======
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-4_10d2fd829fe2129ea7fa72e687c14b36">
+>>>>>>> bbc714a (Try different typeness scoring)
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dims <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">10</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#.all_score(x=sce, dim  = 3)</span></span>
+<<<<<<< HEAD
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>res_by_resolution <span class="ot">&lt;-</span> <span class="fu">lapply</span>(dims, .all_score, <span class="at">x =</span> sce)</span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(res_by_resolution) <span class="ot">&lt;-</span> dims</span>
@@ -263,6 +274,15 @@ altExpNames(0):</code></pre>
 </details>
 <div class="cell-output-display">
 <p><img src="CyTOF_1_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+=======
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>res_by_resolution <span class="ot">&lt;-</span> <span class="fu">lapply</span>(dims, .all_score, <span class="at">x =</span> sce)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(res_by_resolution) <span class="ot">&lt;-</span> dims</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span>  <span class="fu">melt</span>(res_by_resolution, <span class="at">id.vars =</span> <span class="fu">c</span>(<span class="st">"marker_id"</span>, <span class="st">"marker_class"</span>))</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> res_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(L1, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>,<span class="dv">10</span>)), <span class="at">y =</span> value, <span class="at">shape =</span> variable, <span class="at">color =</span> marker_class)) <span class="sc">+</span> <span class="fu">geom_point</span>()<span class="sc">+</span> <span class="fu">facet_wrap</span>(<span class="sc">~</span>marker_id) <span class="sc">+</span> <span class="fu">xlab</span>(<span class="st">"Clustering resolution"</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">"Score"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="CyTOF_1_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="960"></p>
+>>>>>>> bbc714a (Try different typeness scoring)
 </div>
 </div>
 </section>
@@ -378,7 +398,11 @@ altExpNames(0):</code></pre>
 </section>
 <section id="f-stats-edger-vs-entropy" class="level2">
 <h2 class="anchored" data-anchor-id="f-stats-edger-vs-entropy">F stats (edgeR) vs entropy</h2>
+<<<<<<< HEAD
 <div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-11_4dc9451695c2c21b930e90f18ab8b09b">
+=======
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-11_0748fe608d32f1ce60c58d6cf147c162">
+>>>>>>> bbc714a (Try different typeness scoring)
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>exprss <span class="ot">&lt;-</span> <span class="fu">assay</span>(sce, <span class="st">"exprs"</span>)</span>
@@ -405,10 +429,17 @@ altExpNames(0):</code></pre>
 <p><img src="CyTOF_1_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+<<<<<<< HEAD
 <div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-12_eb817fa5775d7495c06f8b2dc6419618">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">.all_score</span>(sce, <span class="at">dim =</span> <span class="dv">10</span>)</span>
+=======
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-12_891b7dca06c62b2e642254d3aa0b9137">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> res_by_resolution[[<span class="st">"10"</span>]]</span>
+>>>>>>> bbc714a (Try different typeness scoring)
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>F_stat <span class="ot">&lt;-</span> qlf<span class="sc">$</span>table<span class="sc">$</span>F</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(res, <span class="fu">aes</span>(<span class="at">x =</span> type_score, <span class="at">y =</span> F_stat, <span class="at">label =</span> marker_id, <span class="at">color =</span> marker_class)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span><span class="fu">geom_text</span>(<span class="at">hjust=</span><span class="dv">0</span>, <span class="at">vjust=</span><span class="dv">0</span>, <span class="at">size =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
@@ -417,6 +448,7 @@ altExpNames(0):</code></pre>
 </div>
 </div>
 </section>
+<<<<<<< HEAD
 <section id="umap-before-all-markers-after-feature-selection" class="level2">
 <h2 class="anchored" data-anchor-id="umap-before-all-markers-after-feature-selection">UMAP before (all markers) &amp; after feature selection</h2>
 <div class="panel-tabset">
@@ -443,10 +475,113 @@ altExpNames(0):</code></pre>
 </details>
 <div class="cell-output-display">
 <p><img src="CyTOF_1_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+=======
+<section id="cepo-differential-stability-test" class="level2">
+<h2 class="anchored" data-anchor-id="cepo-differential-stability-test">Cepo Differential stability test</h2>
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-13_66e342cda6d143cdef35708bec63d371">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Cepo)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>cepo_res <span class="ot">&lt;-</span> <span class="fu">Cepo</span>(<span class="at">exprsMat =</span> <span class="fu">assay</span>(sce, <span class="st">"exprs"</span>),</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">cellType =</span> sce<span class="sc">$</span>cluster_id)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Cell names are missing in the input matrix, 
+                automatically adding `colnames`.</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>diff_stability <span class="ot">&lt;-</span> <span class="fu">apply</span>(<span class="fu">data.frame</span>(cepo_res<span class="sc">$</span>stats), <span class="dv">1</span>, max, <span class="at">na.rm=</span><span class="cn">TRUE</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>idx <span class="ot">&lt;-</span> <span class="fu">match</span>(res<span class="sc">$</span>marker_id, <span class="fu">names</span>(diff_stability))</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>diff_stability <span class="ot">&lt;-</span> diff_stability[idx]</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(res, <span class="fu">aes</span>(<span class="at">x =</span> type_score, <span class="at">y =</span> diff_stability, <span class="at">color =</span> marker_class, <span class="at">label =</span> marker_id)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span><span class="fu">geom_text</span>(<span class="at">hjust=</span><span class="dv">0</span>, <span class="at">vjust=</span><span class="dv">0</span>, <span class="at">size =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="CyTOF_1_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(res, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(marker_id, diff_stability), <span class="at">y =</span> diff_stability, <span class="at">color =</span> marker_class)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle=</span><span class="dv">45</span>, <span class="at">hjust=</span><span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="CyTOF_1_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="unweighted-stability" class="level2">
+<h2 class="anchored" data-anchor-id="unweighted-stability">Unweighted stability</h2>
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-14_90e6bd1c6e87b6a614cc7146190cc5c9">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>stability_score <span class="ot">&lt;-</span> <span class="fu">.calculate_stability</span>(sce)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>stability_score <span class="ot">&lt;-</span> <span class="fu">apply</span>(stability_score, <span class="dv">1</span>, max, <span class="at">na.rm=</span><span class="cn">TRUE</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(res, <span class="fu">aes</span>(<span class="at">x =</span> type_score, <span class="at">y =</span> stability_score, <span class="at">color =</span> marker_class, <span class="at">label =</span> marker_id)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span><span class="fu">geom_text</span>(<span class="at">hjust=</span><span class="dv">0</span>, <span class="at">vjust=</span><span class="dv">0</span>, <span class="at">size =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="CyTOF_1_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(res, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(marker_id, stability_score), <span class="at">y =</span> stability_score, <span class="at">color =</span> marker_class)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle=</span><span class="dv">45</span>, <span class="at">hjust=</span><span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="CyTOF_1_files/figure-html/unnamed-chunk-14-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="weighted-stability" class="level2">
+<h2 class="anchored" data-anchor-id="weighted-stability">Weighted stability</h2>
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-15_409cae9a67303ff6e8f4a6186f462a48">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>weighted_stability_score <span class="ot">&lt;-</span> <span class="fu">.calculate_stability</span>(sce, <span class="at">score =</span> res, <span class="at">weighted =</span> T)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>res<span class="sc">$</span>weighted_stability_score <span class="ot">&lt;-</span> <span class="fu">apply</span>(weighted_stability_score, <span class="dv">1</span>, max, <span class="at">na.rm=</span><span class="cn">TRUE</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(res, <span class="fu">aes</span>(<span class="at">x =</span> type_score, <span class="at">y =</span> weighted_stability_score, <span class="at">color =</span> marker_class, <span class="at">label =</span> marker_id)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span><span class="fu">geom_text</span>(<span class="at">hjust=</span><span class="dv">0</span>, <span class="at">vjust=</span><span class="dv">0</span>, <span class="at">size =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="CyTOF_1_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(res, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(marker_id, weighted_stability_score), <span class="at">y =</span> weighted_stability_score, <span class="at">color =</span> marker_class)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle=</span><span class="dv">45</span>, <span class="at">hjust=</span><span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="CyTOF_1_files/figure-html/unnamed-chunk-15-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="umap-before-all-markers-after-feature-selection" class="level2">
+<h2 class="anchored" data-anchor-id="umap-before-all-markers-after-feature-selection">UMAP before (all markers) &amp; after feature selection</h2>
+<div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">feature selected by state score</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">feature selected by type score</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-3" role="tab" aria-controls="tabset-2-3" aria-selected="false">feature selected by Cepo differential stability</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-4" role="tab" aria-controls="tabset-2-4" aria-selected="false">feature selected by stability score and type score</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-5" role="tab" aria-controls="tabset-2-5" aria-selected="false">feature selected by weighted stability score</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-16_d8e3e0e71b54c7ee7e775bde8e495643">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(seed <span class="ot">&lt;-</span> <span class="dv">7043</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co">#(sel &lt;- with(res, marker_id[score &gt; median(score)]))</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="co">#res &lt;- .all_score(sce, dim = 10)</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>sel <span class="ot">&lt;-</span> res<span class="sc">$</span>marker_id[res<span class="sc">$</span>state_score <span class="sc">&gt;</span> <span class="fu">median</span>(res<span class="sc">$</span>state_score)]</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>sce2 <span class="ot">&lt;-</span> <span class="fu">runDR</span>(sce, <span class="at">features =</span> sel, <span class="at">cells =</span> <span class="dv">500</span>)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>sce2 <span class="ot">&lt;-</span> <span class="fu">cluster</span>(sce, </span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">xdim =</span> <span class="dv">10</span>, <span class="at">ydim =</span> <span class="dv">10</span>, <span class="at">features =</span> sel, </span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> seed, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce, <span class="at">color_by =</span> <span class="st">"condition"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"all features"</span>) <span class="sc">+</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce, <span class="at">color_by =</span> <span class="st">"meta20"</span>) <span class="sc">+</span> </span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce2, <span class="at">color_by =</span> <span class="st">"condition"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"selected only"</span>) <span class="sc">+</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce2, <span class="at">color_by =</span> <span class="st">"meta20"</span>) <span class="sc">+</span> <span class="fu">plotDR</span>(sce2, <span class="at">color_by =</span> res<span class="sc">$</span>marker_id[<span class="fu">which.min</span>(res<span class="sc">$</span>state_score)]) <span class="sc">+</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_layout</span>(<span class="at">nrow =</span> <span class="dv">3</span>, <span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(res<span class="sc">$</span>marker_id[<span class="fu">which.min</span>(res<span class="sc">$</span>state_score)]) <span class="sc">&amp;</span> </span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.key.size =</span> <span class="fu">unit</span>(<span class="fl">0.5</span>, <span class="st">"lines"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="CyTOF_1_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="576"></p>
+>>>>>>> bbc714a (Try different typeness scoring)
 </div>
 </div>
 </div>
 <div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<<<<<<< HEAD
 <div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-14_271578aa7488c019c1c4b6fac3edffb0">
 <details>
 <summary>Code</summary>
@@ -468,6 +603,86 @@ altExpNames(0):</code></pre>
 <div class="cell-output-display">
 <p><img src="CyTOF_1_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
 </div>
+=======
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-17_a9484f106efe6c99f41b7b35e515321a">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(seed <span class="ot">&lt;-</span> <span class="dv">7043</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co">#(sel &lt;- with(res, marker_id[score &gt; median(score)]))</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="co">#res &lt;- .all_score(sce, dim = 10)</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>sel <span class="ot">&lt;-</span> res<span class="sc">$</span>marker_id[res<span class="sc">$</span>type_score <span class="sc">&gt;</span> <span class="fu">median</span>(res<span class="sc">$</span>type_score)]</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>sce3 <span class="ot">&lt;-</span> <span class="fu">runDR</span>(sce, <span class="at">features =</span> sel, <span class="at">cells =</span> <span class="dv">500</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>sce3 <span class="ot">&lt;-</span> <span class="fu">cluster</span>(sce, </span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">xdim =</span> <span class="dv">10</span>, <span class="at">ydim =</span> <span class="dv">10</span>, <span class="at">features =</span> sel, </span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> seed, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce, <span class="at">color_by =</span> <span class="st">"condition"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"all features"</span>) <span class="sc">+</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce, <span class="at">color_by =</span> <span class="st">"meta20"</span>) <span class="sc">+</span> </span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce3, <span class="at">color_by =</span> <span class="st">"condition"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"selected only"</span>) <span class="sc">+</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce3, <span class="at">color_by =</span> <span class="st">"meta20"</span>) <span class="sc">+</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce3, <span class="at">color_by =</span> res<span class="sc">$</span>marker_id[<span class="fu">which.max</span>(res<span class="sc">$</span>type_score)]) <span class="sc">+</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_layout</span>(<span class="at">nrow =</span> <span class="dv">3</span>, <span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(res<span class="sc">$</span>marker_id[<span class="fu">which.max</span>(res<span class="sc">$</span>type_score)]) <span class="sc">&amp;</span> </span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.key.size =</span> <span class="fu">unit</span>(<span class="fl">0.5</span>, <span class="st">"lines"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="CyTOF_1_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="576"></p>
+</div>
+</div>
+</div>
+<div id="tabset-2-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-3-tab">
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-18_483be4f7c71c9a8987e0f50b89807848">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">#sel &lt;- res$marker_id[res$diff_stability &gt; median(res$diff_stability)]</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co">#sce4 &lt;- runDR(sce, features = sel, cells = 500)</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co">#sce4 &lt;- cluster(sce, </span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  xdim = 10, ydim = 10, features = sel, </span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="co">#  seed = seed, verbose = FALSE)</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="co">#plotDR(sce, color_by = "condition") + ggtitle("all features") +</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="co">#plotDR(sce, color_by = "meta20") + </span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="co">#plotDR(sce4, color_by = "condition") + ggtitle("selected only") +</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="co">#plotDR(sce4, color_by = "meta20") +</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="co">#plotDR(sce4, color_by = res$marker_id[which.max(res$diff_stability)]) +</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="co">#plot_layout(nrow = 3, guides = "collect") + ggtitle(res$marker_id[which.max(res$diff_stability)]) &amp; </span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a><span class="co">#  theme_void() &amp; theme(legend.key.size = unit(0.5, "lines"))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</div>
+<div id="tabset-2-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-4-tab">
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-19_3d4222689c56125ddcf18d9311ff5bf0">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>sel <span class="ot">&lt;-</span> res<span class="sc">$</span>marker_id[res<span class="sc">$</span>stability_score <span class="sc">&gt;</span> <span class="fu">median</span>(res<span class="sc">$</span>stability_score) <span class="sc">&amp;</span> res<span class="sc">$</span>type_score <span class="sc">&gt;</span> <span class="fu">median</span>(res<span class="sc">$</span>type_score)]</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>sce5 <span class="ot">&lt;-</span> <span class="fu">runDR</span>(sce, <span class="at">features =</span> sel, <span class="at">cells =</span> <span class="dv">500</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>sce5 <span class="ot">&lt;-</span> <span class="fu">cluster</span>(sce, </span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">xdim =</span> <span class="dv">10</span>, <span class="at">ydim =</span> <span class="dv">10</span>, <span class="at">features =</span> sel, </span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> seed, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce, <span class="at">color_by =</span> <span class="st">"condition"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"all features"</span>) <span class="sc">+</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce, <span class="at">color_by =</span> <span class="st">"meta20"</span>) <span class="sc">+</span> </span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce5, <span class="at">color_by =</span> <span class="st">"condition"</span>) <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"selected only"</span>) <span class="sc">+</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plotDR</span>(sce5, <span class="at">color_by =</span> <span class="st">"meta20"</span>) <span class="sc">+</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_layout</span>(<span class="at">nrow =</span> <span class="dv">3</span>, <span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">&amp;</span> <span class="fu">theme_void</span>() <span class="sc">&amp;</span> <span class="fu">theme</span>(<span class="at">legend.key.size =</span> <span class="fu">unit</span>(<span class="fl">0.5</span>, <span class="st">"lines"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="CyTOF_1_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+<div id="tabset-2-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-5-tab">
+<div class="cell" data-hash="CyTOF_1_cache/html/unnamed-chunk-20_531a5fbb946acc21f87989d9fef16ca3">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">#sel &lt;- res$marker_id[res$weighetd_stability_score &gt; median(res$weighetd_stability_score) &amp; res$type_score &gt; median(res$type_score)]</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co">#sce5 &lt;- runDR(sce, features = sel, cells = 500)</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co">#sce5 &lt;- cluster(sce, </span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  xdim = 10, ydim = 10, features = sel, </span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co">#  seed = seed, verbose = FALSE)</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="co">#plotDR(sce, color_by = "condition") + ggtitle("all features") +</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="co">#plotDR(sce, color_by = "meta20") + </span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="co">#plotDR(sce5, color_by = "condition") + ggtitle("selected only") +</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="co">#plotDR(sce5, color_by = "meta20") +</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="co">#plot_layout(nrow = 3, guides = "collect") &amp; theme_void() &amp; theme(legend.key.size = unit(0.5, "lines"))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+>>>>>>> bbc714a (Try different typeness scoring)
 </div>
 </div>
 </div>

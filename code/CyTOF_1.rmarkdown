@@ -4,6 +4,7 @@
 
 ### Dependencies 
 
+
 ```{r}
 #| label: load-libs
 #| message: false
@@ -21,7 +22,6 @@ library(reshape2)
 library(edgeR)
 ```
 
-
 ```{r}
 #| label: load-utils
 #| cache: false
@@ -30,7 +30,9 @@ source("utils.R")
 ```
 
 
+
 ### Loading
+
 
 ```{r}
 #| label: load-data
@@ -57,30 +59,28 @@ sce <- runDR(sce, features = rownames(sce), cells = 500)
 ```
 
 
+
 ## How type and state score changes with clustering resolution
 
-```{r}
-<<<<<<< HEAD
-dims <- list(5,6,7,8,9,10)
-#.all_score(x=sce, dim  = 3)
 
-=======
+```{r}
 #| fig-width: 10
 #| fig-height: 10
 dims <- list(5,6,7,8,9,10)
 #.all_score(x=sce, dim  = 3)
->>>>>>> bbc714a (Try different typeness scoring)
 res_by_resolution <- lapply(dims, .all_score, x = sce)
 names(res_by_resolution) <- dims
 res_df <-  melt(res_by_resolution, id.vars = c("marker_id", "marker_class"))
 ggplot(data = res_df, aes(x = factor(L1, levels = c(5,6,7,8,9,10)), y = value, shape = variable, color = marker_class)) + geom_point()+ facet_wrap(~marker_id) + xlab("Clustering resolution") + ylab("Score")
 ```
 
+
 ## Median expression heatmap
 
 ::: {.panel-tabset}
 
 ### som25
+
 ```{r}
 sce <- cluster(sce, 
   xdim = 5, ydim = 5,
@@ -90,7 +90,9 @@ plotExprHeatmap(sce, features = NULL,
     by = "cluster_id", k = names(cluster_codes(sce))[1], 
     bars = TRUE, perc = TRUE, fun = "median")
 ```
+
 ### som36
+
 
 ```{r}
 sce <- cluster(sce, 
@@ -102,7 +104,9 @@ plotExprHeatmap(sce, features = NULL,
     bars = TRUE, perc = TRUE, fun = "median")
 ```
 
+
 ### som49
+
 ```{r}
 sce <- cluster(sce, 
   xdim = 7, ydim = 7,
@@ -113,7 +117,9 @@ plotExprHeatmap(sce, features = NULL,
     bars = TRUE, perc = TRUE, fun = "median")
 ```
 
+
 ### som64
+
 ```{r}
 sce <- cluster(sce, 
   xdim = 8, ydim = 8,
@@ -124,7 +130,9 @@ plotExprHeatmap(sce, features = NULL,
     bars = TRUE, perc = TRUE, fun = "median")
 ```
 
+
 ### som81
+
 ```{r}
 sce <- cluster(sce, 
   xdim = 9, ydim = 9,
@@ -137,7 +145,9 @@ plotExprHeatmap(sce, features = NULL,
 
 
 
+
 ### som100
+
 ```{r}
 sce <- cluster(sce, 
   xdim = 10, ydim = 10,
@@ -148,9 +158,11 @@ plotExprHeatmap(sce, features = NULL,
     bars = TRUE, perc = TRUE, fun = "median")
 ```
 
+
 :::
 
 ## F stats (edgeR) vs entropy
+
 
 ```{r}
 exprss <- assay(sce, "exprs")
@@ -162,10 +174,6 @@ cm <- createContrast(c(0, 1))
 dge <- DGEList(counts = exprss, group = colData(sce)$condition)
 dge <- calcNormFactors(dge)
 dge <- estimateDisp(dge)
-<<<<<<< HEAD
-
-=======
->>>>>>> bbc714a (Try different typeness scoring)
 fit <- glmQLFit(dge)
 qlf <- glmQLFTest(fit, coef = 2)
 qlf$table$marker_class <- marker_classes(sce)
@@ -173,19 +181,15 @@ ggplot(qlf$table, aes(x=reorder(rownames(qlf$table), F), y = F, color = marker_c
 ```
 
 ```{r}
-<<<<<<< HEAD
-res <- .all_score(sce, dim = 10)
-=======
 res <- res_by_resolution[["10"]]
->>>>>>> bbc714a (Try different typeness scoring)
 res$F_stat <- qlf$table$F
 ggplot(res, aes(x = type_score, y = F_stat, label = marker_id, color = marker_class)) + geom_point() +geom_text(hjust=0, vjust=0, size = 3)
 ```
 
 
-<<<<<<< HEAD
-=======
+
 ## Cepo Differential stability test
+
 
 ```{r}
 library(Cepo)
@@ -198,7 +202,9 @@ ggplot(res, aes(x = type_score, y = diff_stability, color = marker_class, label 
 ggplot(res, aes(x = reorder(marker_id, diff_stability), y = diff_stability, color = marker_class)) + geom_point() + theme(axis.text.x = element_text(angle=45, hjust=1))
 ```
 
+
 ## Unweighted stability
+
 
 ```{r}
 stability_score <- .calculate_stability(sce)
@@ -208,7 +214,9 @@ ggplot(res, aes(x = reorder(marker_id, stability_score), y = stability_score, co
 ```
 
 
+
 ## Weighted stability
+
 
 ```{r}
 weighted_stability_score <- .calculate_stability(sce, score = res, weighted = T)
@@ -217,26 +225,20 @@ ggplot(res, aes(x = type_score, y = weighted_stability_score, color = marker_cla
 ggplot(res, aes(x = reorder(marker_id, weighted_stability_score), y = weighted_stability_score, color = marker_class)) + geom_point() + theme(axis.text.x = element_text(angle=45, hjust=1))
 ```
 
->>>>>>> bbc714a (Try different typeness scoring)
+
 ## UMAP before (all markers) & after feature selection
 
 ::: {.panel-tabset}
 
 ### feature selected by state score
+
 ```{r}
-<<<<<<< HEAD
-set.seed(seed <- 7043)
-#(sel <- with(res, marker_id[score > median(score)]))
-#res <- .all_score(sce, dim = 10)
-sel <- res$marker_id[res$state_score < 0.15]
-=======
 #| fig-width: 6
-#| fig-height: 9
+#| fig-height: 12
 set.seed(seed <- 7043)
 #(sel <- with(res, marker_id[score > median(score)]))
 #res <- .all_score(sce, dim = 10)
 sel <- res$marker_id[res$state_score > median(res$state_score)]
->>>>>>> bbc714a (Try different typeness scoring)
 sce2 <- runDR(sce, features = sel, cells = 500)
 sce2 <- cluster(sce, 
   xdim = 10, ydim = 10, features = sel, 
@@ -244,32 +246,22 @@ sce2 <- cluster(sce,
 plotDR(sce, color_by = "condition") + ggtitle("all features") +
 plotDR(sce, color_by = "meta20") + 
 plotDR(sce2, color_by = "condition") + ggtitle("selected only") +
-<<<<<<< HEAD
-plotDR(sce2, color_by = "meta20") +
-plot_layout(nrow = 2, guides = "collect") & 
-=======
 plotDR(sce2, color_by = "meta20") + plotDR(sce2, color_by = res$marker_id[which.min(res$state_score)]) +
 plot_layout(nrow = 3, guides = "collect") + ggtitle(res$marker_id[which.min(res$state_score)]) & 
->>>>>>> bbc714a (Try different typeness scoring)
   theme_void() & theme(legend.key.size = unit(0.5, "lines"))
 ```
 
+
 ### feature selected by type score
 
+
 ```{r}
-<<<<<<< HEAD
-set.seed(seed <- 7043)
-#(sel <- with(res, marker_id[score > median(score)]))
-#res <- .all_score(sce, dim = 10)
-sel <- res$marker_id[res$type_score > 0.1]
-=======
 #| fig-width: 6
-#| fig-height: 9
+#| fig-height: 12
 set.seed(seed <- 7043)
 #(sel <- with(res, marker_id[score > median(score)]))
 #res <- .all_score(sce, dim = 10)
 sel <- res$marker_id[res$type_score > median(res$type_score)]
->>>>>>> bbc714a (Try different typeness scoring)
 sce3 <- runDR(sce, features = sel, cells = 500)
 sce3 <- cluster(sce, 
   xdim = 10, ydim = 10, features = sel, 
@@ -278,43 +270,36 @@ plotDR(sce, color_by = "condition") + ggtitle("all features") +
 plotDR(sce, color_by = "meta20") + 
 plotDR(sce3, color_by = "condition") + ggtitle("selected only") +
 plotDR(sce3, color_by = "meta20") +
-<<<<<<< HEAD
-plot_layout(nrow = 2, guides = "collect") & 
-  theme_void() & theme(legend.key.size = unit(0.5, "lines"))
-```
-
-
-
-:::
-
-
-=======
 plotDR(sce3, color_by = res$marker_id[which.max(res$type_score)]) +
 plot_layout(nrow = 3, guides = "collect") + ggtitle(res$marker_id[which.max(res$type_score)]) & 
   theme_void() & theme(legend.key.size = unit(0.5, "lines"))
 ```
 
+
 ### feature selected by Cepo differential stability
+
 
 ```{r}
 #| fig-width: 6
-#| fig-height: 9
-#sel <- res$marker_id[res$diff_stability > median(res$diff_stability)]
-#sce4 <- runDR(sce, features = sel, cells = 500)
-#sce4 <- cluster(sce, 
-#  xdim = 10, ydim = 10, features = sel, 
-#  seed = seed, verbose = FALSE)
-#plotDR(sce, color_by = "condition") + ggtitle("all features") +
-#plotDR(sce, color_by = "meta20") + 
-#plotDR(sce4, color_by = "condition") + ggtitle("selected only") +
-#plotDR(sce4, color_by = "meta20") +
-#plotDR(sce4, color_by = res$marker_id[which.max(res$diff_stability)]) +
-#plot_layout(nrow = 3, guides = "collect") + ggtitle(res$marker_id[which.max(res$diff_stability)]) & 
-#  theme_void() & theme(legend.key.size = unit(0.5, "lines"))
+#| fig-height: 12
+sel <- res$marker_id[res$diff_stability > median(res$diff_stability)]
+sce4 <- runDR(sce, features = sel, cells = 500)
+sce4 <- cluster(sce, 
+  xdim = 10, ydim = 10, features = sel, 
+  seed = seed, verbose = FALSE)
+plotDR(sce, color_by = "condition") + ggtitle("all features") +
+plotDR(sce, color_by = "meta20") + 
+plotDR(sce4, color_by = "condition") + ggtitle("selected only") +
+plotDR(sce4, color_by = "meta20") +
+plotDR(sce4, color_by = res$marker_id[which.max(res$diff_stability)]) +
+plot_layout(nrow = 3, guides = "collect") + ggtitle(res$marker_id[which.max(res$diff_stability)]) & 
+  theme_void() & theme(legend.key.size = unit(0.5, "lines"))
 ```
 
 
+
 ### feature selected by stability score and type score
+
 
 
 ```{r}
@@ -330,20 +315,23 @@ plotDR(sce5, color_by = "meta20") +
 plot_layout(nrow = 3, guides = "collect") & theme_void() & theme(legend.key.size = unit(0.5, "lines"))
 ```
 
+
 ### feature selected by weighted stability score
+
 ```{r}
-#sel <- res$marker_id[res$weighetd_stability_score > median(res$weighetd_stability_score) & res$type_score > median(res$type_score)]
-#sce5 <- runDR(sce, features = sel, cells = 500)
-#sce5 <- cluster(sce, 
-#  xdim = 10, ydim = 10, features = sel, 
-#  seed = seed, verbose = FALSE)
-#plotDR(sce, color_by = "condition") + ggtitle("all features") +
-#plotDR(sce, color_by = "meta20") + 
-#plotDR(sce5, color_by = "condition") + ggtitle("selected only") +
-#plotDR(sce5, color_by = "meta20") +
-#plot_layout(nrow = 3, guides = "collect") & theme_void() & theme(legend.key.size = unit(0.5, "lines"))
+sel <- res$marker_id[res$weighetd_stability_score > median(res$weighetd_stability_score) & res$type_score > median(res$type_score)]
+sce5 <- runDR(sce, features = sel, cells = 500)
+sce5 <- cluster(sce, 
+  xdim = 10, ydim = 10, features = sel, 
+  seed = seed, verbose = FALSE)
+plotDR(sce, color_by = "condition") + ggtitle("all features") +
+plotDR(sce, color_by = "meta20") + 
+plotDR(sce5, color_by = "condition") + ggtitle("selected only") +
+plotDR(sce5, color_by = "meta20") +
+plot_layout(nrow = 3, guides = "collect") & theme_void() & theme(legend.key.size = unit(0.5, "lines"))
 ```
 
 
+
 :::
->>>>>>> bbc714a (Try different typeness scoring)
+
