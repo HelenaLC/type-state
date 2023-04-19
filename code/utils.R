@@ -93,20 +93,13 @@
   data.frame(rowData(se))
 }
 
-<<<<<<< HEAD
 
-.all_score <- \(x, dim){
-  x <- cluster(x, 
-                 xdim = dim, ydim = dim,
-                 features = rownames(x), 
-                 seed = seed, verbose = FALSE)
-=======
+
 .all_score <- \(x, dim){
   x <- cluster(x, 
                xdim = dim, ydim = dim,
                features = rownames(x), 
                seed = seed, verbose = FALSE)
->>>>>>> bbc714a (Try different typeness scoring)
   se <- .se(x,  "cluster_id", "sample_id", "exprs", "median")
   se$condition <- x$condition[match(se$sample_id, x$sample_id)]
   da <- .da(x)
@@ -116,8 +109,7 @@
   return(res)
 }
 
-<<<<<<< HEAD
-=======
+
 
 
 .calculate_stability <- \(x, clustering_to_use = names(cluster_codes(sce)[1]), score, weighted = FALSE){
@@ -144,4 +136,4 @@
 }
 
 
->>>>>>> bbc714a (Try different typeness scoring)
+
