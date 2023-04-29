@@ -1,3 +1,5 @@
+
+
 .se <- \(x, 
   # variables to group by (entropy 
   # is computed across i for every j)
@@ -93,20 +95,12 @@
   data.frame(rowData(se))
 }
 
-<<<<<<< HEAD
 
-.all_score <- \(x, dim){
-  x <- cluster(x, 
-                 xdim = dim, ydim = dim,
-                 features = rownames(x), 
-                 seed = seed, verbose = FALSE)
-=======
 .all_score <- \(x, dim){
   x <- cluster(x, 
                xdim = dim, ydim = dim,
                features = rownames(x), 
                seed = seed, verbose = FALSE)
->>>>>>> bbc714a (Try different typeness scoring)
   se <- .se(x,  "cluster_id", "sample_id", "exprs", "median")
   se$condition <- x$condition[match(se$sample_id, x$sample_id)]
   da <- .da(x)
@@ -116,8 +110,7 @@
   return(res)
 }
 
-<<<<<<< HEAD
-=======
+
 
 
 .calculate_stability <- \(x, clustering_to_use = names(cluster_codes(sce)[1]), score, weighted = FALSE){
@@ -143,5 +136,72 @@
   return(res)
 }
 
+.calculate_wilcox_exprs_score <- \(x, clustering_to_use = names(cluster_codes(sce)[1]), 
+                                  assay_to_use = "exprs", fun = "mean", penalty = T){
+  # wilcox sum rank p-value
+  clusters <- levels(cluster_ids(x, clustering_to_use))
+  exprs_mm <- assay(x, assay_to_use)
+  n_genes <- 1:nrow(x)
+  wilcox_per_cluster <- sapply(clusters, \(j){
+    temp <- x
+    idx <- which(colData(temp)$cluster_id == j)
+    colData(temp)[idx,]$cluster_id <- 1
+    colData(temp)[-idx,]$cluster_id <- 2
+    wilcox_res <- sapply(n_genes, function(i){
+      wilcox.test(exprs_mm[i,] ~ colData(temp)$cluster_id)$p.value
+    })
+  })
+  rownames(wilcox_per_cluster) <- rownames(x)
+  mean_wilcox <- apply(wilcox_per_cluster, 1, mean, na.rm=TRUE)
+  
+  
+  # expression value
+  if(penalty == T){
+    colData(x)[,clustering_to_use] <- cluster_ids(x, clustering_to_use)
+    pb <- muscat::aggregateData(x, by = clustering_to_use, assay = assay_to_use, fun = "mean")
+    minmax_norm <- \(x) {
+      (x - min(x)) / (max(x) - min(x))
+    }
+    norm_mat <- apply(assay(pb), 2, minmax_norm)
+    max_mat <- apply(norm_mat, 1, max)
+    score <- max_mat*(-log(mean_wilcox))
+    
+  }else{
+    score <- -log(mean_wilcox)
+    
+  }
+  return(score)
+}
 
->>>>>>> bbc714a (Try different typeness scoring)
+
+.one_vs_rest_logFC <- \(x, clustering_to_use = names(cluster_codes(x)[1]), 
+                        assay_to_use = "exprs", fun = "mean"){
+  colData(x)[,clustering_to_use] <- cluster_ids(x, clustering_to_use)
+  pb <- aggregateData(x, by = clustering_to_use, assay = assay_to_use, fun = fun)
+  clusters <- levels(cluster_ids(x, clustering_to_use))
+  exprs_mm <- assay(x, assay_to_use)
+  n_genes <- 1:nrow(x)
+  custom_function <- \(x) {
+    \(i) x[i] / mean(x[x != x[i]])
+  }
+  logFC_per_cluster <- t(apply(assay(pb), 1, function(x) sapply(seq_along(x), custom_function(x))))
+  return(logFC_per_cluster)
+}
+
+.Silhouette_score <- \(x, dr = "PCA", feature = "type", 
+                       clustering_to_use = "meta20", 
+                       dim = 10, seed=1234,
+                       fun = mean){
+  x <- runDR(x, dr = dr, feature = feature)
+  x <- cluster(x, 
+                 xdim = dim, ydim = dim,
+                 features = feature, 
+                 seed = seed, verbose = FALSE)
+  colData(x)[,clustering_to_use] <- cluster_ids(x, clustering_to_use)
+  sil.approx <- approxSilhouette(reducedDim(x, dr), clusters=colData(x)[,clustering_to_use])
+  sil.data <- as.data.frame(sil.approx)
+  sil.data$closest <- factor(ifelse(sil.data$width > 0, sil.data$cluster, sil.data$other))
+  fun(sil.data$width)
+}
+
+
