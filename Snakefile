@@ -20,4 +20,4 @@ rule get_data:
 	log:	
             "logs/get_data-{datset}.Rout"
 	shell:	
-	        "{R} CMD BATCH --no-restore --no-save"
+	    "{R} CMD BATCH --no-restore --no-save"
