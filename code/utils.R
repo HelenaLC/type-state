@@ -15,7 +15,7 @@
   idx <- split(seq(ncol(y)), y[[j]])
   # compute proportions across clusters
   # (matrix of dim. features x clusters)
-  p <- sapply(idx, \(.) {
+  p <- lapply(idx, \(.) {
     z <- assay(y)[, .]
     z <- as.matrix(z)
     z[z < 0] <- 0
@@ -32,15 +32,17 @@
   z <- aggregateAcrossCells(x, 
     x[[j]], coldata.merge = FALSE,
     use.assay.type = assay, statistics = fun)
-  data.frame(
+  res <- data.frame(
     row.names = NULL, entropy = c(hs),
     marker_id = rep(rownames(hs), ncol(hs)),
     sample_id = rep(colnames(hs), each = nrow(hs)))
+  res[is.na(res)] <- 0
+  return(res)
 }
 
 .score <- \(se, da, ds) {
   ms <- unique(se$marker_id, ds$marker_id)
-  ss <- c(by(ds, ds$marker_id, \(.) max(abs(.$logFC))))
+  ss <- c(by(ds, ds$marker_id, \(.) mean(abs(.$logFC))))
   ts <- c(by(se, se$marker_id, \(.) mean(1-.$entropy)))
   df <- data.frame(
     row.names = NULL, marker_id = ms,
@@ -90,3 +92,48 @@
     analysis_type = "DS", method_DS = "diffcyt-DS-limma")$res
   data.frame(rowData(se))
 }
+
+
+
+.all_score <- \(x, dim){
+  x <- cluster(x, 
+               xdim = dim, ydim = dim,
+               features = rownames(x), 
+               seed = seed, verbose = FALSE)
+  se <- .se(x,  "cluster_id", "sample_id", "exprs", "median")
+  se$condition <- x$condition[match(se$sample_id, x$sample_id)]
+  da <- .da(x)
+  ds <- .ds(x)
+  res <- .score(se, da, ds)
+  res$marker_class <- marker_classes(x)[res$marker_id]
+  return(res)
+}
+
+
+
+
+.calculate_stability <- \(x, clustering_to_use = names(cluster_codes(sce)[1]), score, weighted = FALSE){
+  if(weighted == T){
+    assay(x, "exprs") <- score$type_score*assay(x, "exprs") 
+  }
+  clusters <- cluster_codes(sce)[clustering_to_use][,1]
+  stability <- lapply(clusters, \(j){
+    idx <- which(cluster_ids(x, clustering_to_use)==j)
+    temp_x <- x[,idx]
+    exprs <- assay(temp_x, "exprs")
+    exprs[exprs < 0] <- 0
+    apply(exprs, 1, function(x) prop.table(table(exprs)))
+    w_j <- rowSums(exprs==0)/ncol(exprs)
+    sigma_j <- apply(data.frame(exprs), 1, var, na.rm=TRUE)
+    mean_j <- apply(data.frame(exprs), 1, mean, na.rm=TRUE)
+    n_genes <- nrow(exprs)
+    s_j <- 1-(w_j+sigma_j/mean_j)/n_genes
+    #data.frame(w = w_j, sigma = sigma_j, mean = mean_j)
+  })
+  res <- matrix(unlist(stability), ncol = length(stability))
+  rownames(res) <- names(stability[[1]])
+  return(res)
+}
+
+
+
