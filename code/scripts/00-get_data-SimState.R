@@ -29,4 +29,5 @@ fun <- \()
                                   cluster = sim.state$Group,
                                   condition = sim.state$Condition,
                                   row.names = NULL)
+  return(sim.state)                                  
 }
