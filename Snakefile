@@ -11,6 +11,15 @@ DATSETS = glob_wildcards("code/scripts/00-get_data-{x}.R").x
 # PREPROCESSING ================================================================
 
 # reproducibly retrieve dataset from public source
+rule all: 
+    input:
+        expand([
+                "code/scripts/00-get_data-{datset}.R", 
+                "data/00-raw/{datset}.rds",
+                "logs/get_data-{datset}.Rout"],
+                datset = DATSETS
+                )
+
 rule get_data:
 	input: 	
             "code/scripts/00-get_data.R",
@@ -20,4 +29,4 @@ rule get_data:
 	log:	
             "logs/get_data-{datset}.Rout"
 	shell:	
-	    "{R} CMD BATCH --no-restore --no-save"
+	        "{R} CMD BATCH --no-restore --no-save"
