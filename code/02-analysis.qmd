@@ -1,0 +1,173 @@
+# Setup
+
+## Preamble
+
+### Dependencies 
+
+```{r}
+#| label: load-libs
+library(lsr)
+library(ggrepel)
+library(ggplot2)
+library(diffcyt)
+library(scuttle)
+library(CATALYST)
+library(tidytext)
+```
+
+### Load data
+
+```{r}
+#| label: load-data
+(sce <- readRDS("../data/Bodenmiller12.rds"))
+```
+
+# Processing
+
+## Clustering
+
+```{r}
+#| label: clustering
+set.seed(1234)
+sce <- cluster(sce, 
+  features = rownames(sce),
+  verbose = FALSE, seed = 1)
+```
+
+## Type
+
+```{r}
+#| label: entropy
+# aggregate by cluster-sample
+ids <-  colData(sce)[c("sample_id", "cluster_id")]
+pbs <- aggregateAcrossCells(sce, ids, 
+  coldata.merge = FALSE, 
+  statistics = "median",
+  use.assay.type = "exprs")
+.se <- \(pbs) {
+  # compute proportions across clusters
+  # (matrix of dim. features x clusters)
+  y <- assay(pbs); y[y < 0] <- 0
+  idx <- split(seq(ncol(pbs)), pbs$sample_id)
+  p <- sapply(idx, \(.) prop.table(y[, .], 1))
+  # Shannon entropy across clusters
+  # (matrix of dim. features x samples)
+  .h <- \(p) {
+    p <- p[p > 0]
+    n <- log(length(p))
+    -sum(p*log(p))/n
+  }
+  se <- sapply(p, apply, 1, .h)
+}
+ts <- 1-rowMeans(se <- .se(pbs))
+```
+
+```{r}
+#| label: anova
+y <- assay(sce, "exprs")
+nk <- nlevels(sce$cluster_id)
+dm <- model.matrix(
+  ~cluster_id+sample_id, 
+  data = data.frame(colData(sce)))
+mod <- lmFit(y, dm)
+fit <- contrasts.fit(mod, coefficients = seq(2, nk))
+fit <- eBayes(fit)
+Fs <- setNames(fit$F, rownames(mod))
+```
+
+```{r}
+#| label: bootstrapping
+# nk <- length(ks <- levels(sce$cluster_id))
+# bs <- replicate(50, {
+#   ids <- sample(ks, nk, TRUE)
+#   idx <- match(ids, pbs$cluster_id)
+#   se <- tryCatch(.se(pbs[, idx]), error = \(.) NULL)
+#   if (is.null(se)) return(se); 1-rowMeans(se)
+# })
+# bs <- do.call(cbind, bs[!sapply(bs, is.null)])
+```
+
+```{r}
+# df <- data.frame(marker = rep(rownames(bs), each = ncol(bs)), type_score = as.vector(bs))
+# ggplot(df, aes(reorder(marker, type_score, median), type_score)) + 
+#   geom_boxplot() + 
+#   theme_bw() + theme(
+#     panel.grid.minor = element_blank(), 
+#     axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+```{r}
+#| label: anova-pbs
+# df <- data.frame(t(assay(pbs)), colData(pbs))
+# ms <- make.names(rownames(pbs))
+# names(ms) <- rownames(pbs)
+# e2 <- sapply(ms, \(.) {
+#   f <- paste0(., "~cluster_id+sample_id")
+#   mod <- aov(as.formula(f), data = df)
+#   etaSquared(mod)[1, 1]
+# })
+```
+
+```{r}
+df <- data.frame(rowData(pbs), type_score = ts, statistic = Fs[names(ts)])
+ggplot(df, aes(type_score, statistic, label = marker_name, col = marker_class)) + 
+  geom_point() + geom_text_repel(size = 3, show.legend = FALSE) + 
+  guides(col = guide_legend(override.aes = list(size = 3))) +
+  labs(x = "1 - Shannon entropy", y = "F statistic") +
+  theme_bw() + theme(
+    aspect.ratio = 2/3, 
+    panel.grid.minor = element_blank(),
+    legend.key.size = unit(0.5, "lines"))
+```
+
+```{r}
+# sub <- sce[, sce$sample_id == "Ref1"]
+# ecdf <- apply(assay(sub, "exprs"), 1, \(.) {.[. < 0] <- 0; data.frame(x = sort(.), y = cumsum(sort(.))) })
+# ecdf <- lapply(ecdf, \(.) {.$x <- .$x/max(.$x); .$y <- .$y/max(.$y); .})
+# df <- data.frame(marker = rep(rownames(sub), each = ncol(sub)), do.call(rbind, ecdf))
+# ggplot(df, aes(x, y)) + 
+#   geom_abline() + 
+#   geom_line(size = 1, col = "red") + 
+#   scale_x_continuous(breaks = c(0, 1)) +
+#   scale_y_continuous(breaks = c(0, 1)) +
+#   facet_wrap(~marker, nrow = 3) + 
+#   theme_bw() + theme(
+#     aspect.ratio = 1, 
+#     legend.position = "none",
+#     panel.grid = element_blank())
+```
+
+## State
+
+```{r}
+#| label: state
+# setup design & contrast matrix
+idx <- match(levels(sce$sample_id), sce$sample_id)
+ei <- data.frame(colData(sce)[idx, ])
+dm <- createDesignMatrix(ei, "condition")
+cm <- createContrast(c(0, 1))
+# run differential state (DA) analysis
+rowData(sce)$marker_class <- "state"
+se <- diffcyt(sce, ei, 
+  design = dm, contrast = cm, verbose = FALSE, 
+  clustering_to_use = names(cluster_codes(sce))[1],
+  analysis_type = "DS", method_DS = "diffcyt-DS-limma")
+ds <- rowData(se$res)
+```
+
+# Visualization
+
+## Appenix
+
+::: {.callout-note icon=false, collapse=true}
+
+### Session info
+
+```{r}
+#| label: session-info
+#| code-fold: false
+sessionInfo()
+```
+
+:::
