@@ -20,8 +20,9 @@ fun <- \()
   
   sim.state_type <- logNormCounts(sim.state_type)
   sim.state_type <- runPCA(sim.state_type, ncomponents = 10)
-  colData(sim.state) <- DataFrame(sample_id = sim.state_type$Sample,
+  colData(sim.state_type) <- DataFrame(sample_id = sim.state_type$Sample,
                                   cluster = sim.state_type$Group,
                                   condition = sim.state_type$Condition,
                                   row.names = NULL)
+  return(sim.state_type)
 }
