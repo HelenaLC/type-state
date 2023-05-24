@@ -1,6 +1,6 @@
 import json
 import itertools
-from snakemake.utils import R
+
 
 configfile: "config.yaml"
 R = config["R"]
