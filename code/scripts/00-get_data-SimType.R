@@ -30,5 +30,6 @@ fun <- \()
                                   cluster = sim.type$Group,
                                   condition = sim.type$Condition,
                                   row.names = NULL)
+  return(sim.type)
 }
 
