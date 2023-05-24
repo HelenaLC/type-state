@@ -5,7 +5,7 @@ import itertools
 configfile: "config.yaml"
 R = config["R"]
 
-# get datasets, subsets & methods
+# get datasets
 DATSETS = glob_wildcards("code/scripts/00-get_data-{x}.R").x
 
 # PREPROCESSING ================================================================
