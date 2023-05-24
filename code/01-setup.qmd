@@ -1,0 +1,55 @@
+# Setup
+
+## Preamble
+
+### Dependencies 
+
+```{r}
+#| label: load-libs
+library(readxl)
+library(CATALYST)
+library(HDCytoData)
+```
+
+## Load data
+
+### [Bodenmiller et al. (2012)](https://doi.org/10.1038/nbt.2317)
+
+- 10 cell surface, 14 signaling markers
+- peripheral blood mononuclear cells (PBMCs)
+- 30' crosslinking with B cell receptor/Fc receptor (BCR/FcR-XL)
+- 8 patients before and after stimulation (16 samples in total)
+
+```{r}
+#| label: Bodenmiller12
+# download panel & metadata tables
+rd_tmp <- tempfile(rd_fnm <- "PBMC8_panel_v3.xlsx")
+md_tmp <- tempfile(md_fnm <- "PBMC8_metadata.xlsx")                     
+url <- "http://imlspenticton.uzh.ch/robinson_lab/cytofWorkflow"
+download.file(file.path(url, rd_fnm), destfile = rd_tmp, mode = "wb", quiet = TRUE)
+download.file(file.path(url, md_fnm), destfile = md_tmp, mode = "wb", quiet = TRUE)
+# load tables & measurement data
+rd <- read_excel(rd_tmp)                  
+md <- read_excel(md_tmp) 
+fs <- Bodenmiller_BCR_XL_flowSet() 
+# fix sample & group ordering
+md$condition <- factor(md$condition, c("Ref", "BCRXL"))        
+md$sample_id <- factor(md$sample_id, md$sample_id[order(md$condition)])    
+# construct 'SingleCellExperiment'
+sce <- prepData(fs, rd, md, features = rd$fcs_colname)
+saveRDS(sce, "../data/Bodenmiller12.rds")
+```
+
+## Appenix
+
+::: {.callout-note icon=false, collapse=true}
+
+### Session info
+
+```{r}
+#| label: session-info
+#| code-fold: false
+sessionInfo()
+```
+
+:::
