@@ -22,8 +22,8 @@ fun <- \()
   sim.state <- splatPopSimulate(vcf = vcf, gff = gff, params = params.group, 
                                 sparsify = FALSE)
   
-  sim.state <- logNormCounts(sim.state)
-  sim.state <- runPCA(sim.state, ncomponents = 10)
+  # sim.state <- logNormCounts(sim.state)
+  # sim.state <- runPCA(sim.state, ncomponents = 10)
   
   colData(sim.state) <- DataFrame(sample_id = sim.state$Sample,
                                   cluster = sim.state$Group,
