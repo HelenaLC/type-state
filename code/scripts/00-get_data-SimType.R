@@ -5,10 +5,10 @@ suppressPackageStartupMessages({
 
 fun <- \()
 {
-  set.seed(42)
+  set.seed(seed <- 42)
   vcf <- mockVCF()
-  gff <- mockGFF()
-  params.group <- newSplatPopParams(batchCells = 100,
+  gff <- mockGFF(n.genes = 2000, seed = seed)
+  params.group <- newSplatPopParams(batchCells = 500,
                                     similarity.scale = 0,
                                     de.prob = 0.3,
                                     de.facLoc = 1, 
