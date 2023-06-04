@@ -22,7 +22,7 @@ x <- x[
 
 x <- logNormCounts(x)
 x <- runPCA(x, ncomponents = 10)
-x$cluster_id <- quickCluster(x, method = "igraph", graph.fun = "louvain", k = 5)
+#x$cluster_id <- quickCluster(x, method = "igraph", graph.fun = "louvain", k = 5)
 
 # drop missing factor levels
 for (. in by) x[[.]] <- droplevels(factor(x[[.]]))
