@@ -9,8 +9,8 @@ R = config["R"]
 TYPE_SCORES = glob_wildcards("code/scripts/02-score-type{x}.R").x
 #STATE_SCORES = glob_wildcards("code/scripts/02-score-state{x}.R").x
 N_FEATURES = glob_wildcards("code/scripts/03-sel_{x}.R").x
-TYPE = ["25", "50", "75", "100"]
-STATE = ["25", "50", "75", "100"]
+TYPE = ["0", "25", "50", "75", "100"]
+STATE = ["0", "25", "50", "75", "100"]
 B = ["0"]
 
 
