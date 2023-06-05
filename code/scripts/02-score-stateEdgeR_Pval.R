@@ -54,8 +54,8 @@ fun <- \(x,
             y <- DGEList(counts = pb_counts, 
                          group = group,
                          samples = samples)
-            keep <- filterByExpr(y)
-            y <- y[keep, , keep.lib.sizes=FALSE]
+            #keep <- filterByExpr(y)
+            #y <- y[keep, , keep.lib.sizes=TRUE]
             y <- calcNormFactors(y)
             design <- model.matrix(~group)
             y <- estimateDisp(y, design)
@@ -69,16 +69,21 @@ fun <- \(x,
         
     })
     
-    names(res) <- unique(colData(x)[,cluster])
-    final <- sapply(res, \(ds) {
+    lst <- lapply(res, \(ds) {
         if (!is.null(ds)) {
-            1 - ds$PValue
+            idx <- match(rownames(ds), rownames(x))
+            ss <- data.frame(row.names = rownames(x),
+                             score = replicate(nrow(x), 0))
+            ss$score[idx] <- 1 - ds$PValue
+            return(ss)
+            
         } else {
-            replicate(nrow(x), 1)
+            ss <- data.frame(score = replicate(nrow(x), 1),
+                             row.names = rownames(x))
         }
-    })
-    
-    rownames(final) <- rownames(x)
+    }) 
+    final <- do.call(cbind, lst)
+
     return(rowMeans(abs(final)))
     
     

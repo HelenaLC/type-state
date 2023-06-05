@@ -9,11 +9,10 @@ fun <- \()
   vcf <- mockVCF()
   gff <- mockGFF(n.genes = 2000, seed = seed)
   params.group <- newSplatPopParams(batchCells = 500,
-                                    similarity.scale = 0,
+                                    similarity.scale = 4,
                                     de.prob = 0.3,
                                     de.facLoc = 1, 
                                     de.facScale = 1,
-                                    de.downProb = 0,
                                     group.prob = c(1/3, 1/3, 1/3),
                                     condition.prob = c(0.5, 0.5),
                                     cde.prob = 0,
