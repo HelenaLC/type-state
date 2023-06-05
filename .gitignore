@@ -5,3 +5,4 @@ docs/*html
 code/*cache
 .snakemake/
 outs/*
+data/*
