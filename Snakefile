@@ -56,12 +56,9 @@ rule sim_data:
     input: "code/scripts/00-sim_data.R",
     output: "data/00-sim/sim-t{t}-s{s}-b{b}.rds"
     log:	"logs/sim-t{t}-s{s}-b{b}.Rout"
-    params: t = lambda wildcards: wildcards.t,
-            s = lambda wildcards: wildcards.s,
-            b = lambda wildcards: wildcards.b
     shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args t={params.t}\
-        s={params.s} b={params.b} res={output}" {input[0]} {log}'''
+        {R} CMD BATCH --no-restore --no-save "--args\
+        wcs={wildcards} res={output}" {input[0]} {log}'''
 
 
 rule fil_data:
