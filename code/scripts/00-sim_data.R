@@ -2,9 +2,9 @@ suppressPackageStartupMessages({
     library(splatter)
 })
 
-t <- as.numeric(args$t)/100
-s <- as.numeric(args$s)/100
-b <- as.numeric(args$b)
+t <- as.numeric(wcs$t)/100
+s <- as.numeric(wcs$s)/100
+b <- as.numeric(wcs$b)
 
 set.seed(seed <- 1)
 vcf <- mockVCF(n.samples = 6, seed = seed)
