@@ -61,16 +61,20 @@ fun <- \(x,
 
     })
     
-    names(res) <- unique(colData(x)[,cluster])
-    final <- sapply(res, \(ds) {
+    
+    lst <- lapply(res, \(ds) {
         if (!is.null(ds)) {
-            idx <- match(rownames(x), rownames(ds))
-            #ds$logFC[idx]
-            1 - ds$P.Value[idx]
+            idx <- match(rownames(ds), rownames(x))
+            ss <- data.frame(row.names = rownames(x),
+                             score = replicate(nrow(x), 0))
+            ss$score[idx] <- 1 - ds$P.Value
+            
         } else {
-            replicate(nrow(x), 1)
+            ss <- data.frame(score = replicate(nrow(x), 1),
+                             row.names = rownames(x))
         }
-    })
+    }) 
+    final <- do.call(cbind, lst)
 
     rownames(final) <- rownames(x)
     return(rowMeans(final))
