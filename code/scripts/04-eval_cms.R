@@ -1,10 +1,10 @@
-suppressPackageStartupMessages(
-    {
-       library(CellMixS)
-    }
-)
-
-fun <- \(x, 
-    cluster = "new_cluster") {
-    
-}
+# suppressPackageStartupMessages(
+#     {
+#        library(CellMixS)
+#     }
+# )
+# 
+# fun <- \(x, 
+#     cluster = "new_cluster") {
+#     
+# }
