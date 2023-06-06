@@ -5,12 +5,11 @@ configfile: "config.yaml"
 R = config["R"]
 
 # get datasets
-#DATSETS = glob_wildcards("code/scripts/00-get_data-{x}.R").x
 TYPE_SCORES = glob_wildcards("code/scripts/02-score-type{x}.R").x
-#STATE_SCORES = glob_wildcards("code/scripts/02-score-state{x}.R").x
-N_FEATURES = glob_wildcards("code/scripts/03-sel_{x}.R").x
-TYPE = ["0", "25", "50", "75", "100"]
-STATE = ["0", "25", "50", "75", "100"]
+STATE_SCORES = glob_wildcards("code/scripts/02-score-state{x}.R").x
+SEL_TYPE = glob_wildcards("code/scripts/03-selType_{x}.R").x
+TYPE = ["70", "75", "80", "85", "90", "95", "100"]
+STATE = ["0", "5", "10", "15", "20", "25", "30"]
 B = ["0"]
 
 
@@ -26,12 +25,12 @@ rule all:
             "outs/sim_pca-t{t}-s{s}-b{b}.png",
 
         # stateness and typeness score
-            "outs/type{t_score}-t{t}-s{s}-b{b}.rds"],
-            #"outs/data-t{t}-s{s}-b{b},state{s_score}.rds"],
+            "outs/type{t_score}-t{t}-s{s}-b{b}.rds",
+            "outs/state{s_score}-t{t}-s{s}-b{b}.rds"],
         
         # Feature selection with new scores
-        #    "data/02-new/{datset},{score},{n_features}_new.rds",
-        #    "output/sel/{datset},{score},{n_features}_sel.rds",
+        #    "data/02-new/new-t{t}-s{s}-b{b},{t_score},type_{sel_type}.rds",
+        #    "outs/sel-t{t}-s{s}-b{b},{t_score},type_{sel_type}.rds"],
 
         # UMAP with newly selected features
         #    "output/UMAP/{datset},{score},{n_features}_UMAP.png",
@@ -44,8 +43,9 @@ rule all:
             t = TYPE,
             s = STATE,
             b = B,
-            t_score = TYPE_SCORES
-            #s_score = STATE_SCORES
+            t_score = TYPE_SCORES,
+            s_score = STATE_SCORES
+            #sel_type = SEL_TYPE
             )
         
 
@@ -81,29 +81,29 @@ rule type_score:
         {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
         {input[2]} {output}" {input[0]} {log}'''
 
-#rule state_score:
-#    priority: 95
-#    input:  "code/scripts/02-score.R",
-#            "code/scripts/02-score-state{s_score}.R",
-#            rules.fil_data.output
-#    output: "outs/state{s_score}-t{t}-s{s}-b{b}.rds"
-#    log:    "logs/state{s_score}-t{t}-s{s}-b{b}.Rout"
-#    shell: '''
-#        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-#        {input[2]} {output}" {input[0]} {log}'''        
+rule state_score:
+    priority: 95
+    input:  "code/scripts/02-score.R",
+            "code/scripts/02-score-state{s_score}.R",
+            rules.fil_data.output
+    output: "outs/state{s_score}-t{t}-s{s}-b{b}.rds"
+    log:    "logs/state{s_score}-t{t}-s{s}-b{b}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+        {input[2]} {output}" {input[0]} {log}'''   
 
-#rule new_data:
-#    priority: 95
-#    input:  "code/scripts/03-sel.R",
-#            "code/scripts/03-sel_{n_features}.R",
-#            rules.fil_data.output,
-#            rules.type_score.output
-#    output: "data/02-new/data-t{t}-s{s}-b{b},{score},{n_features}_new.rds",
-#            "output/sel/data-t{t}-s{s}-b{b},{score},{n_features}_sel.rds"
-#    log:    "logs/new-data-t{t}-s{s}-b{b},{score},{n_features}.Rout"
-#    shell: '''
-#        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-#        {input[2]} {input[3]} {output[0]} {output[1]}" {input[0]} {log}'''
+rule sole_sel_type:
+    priority: 95
+    input:  "code/scripts/03-selType.R",
+            "code/scripts/03-selType_{sel_type}.R",
+            rules.fil_data.output,
+            rules.type_score.output
+    output: "data/02-new/new-t{t}-s{s}-b{b},{t_score},type_{sel_type}.rds",
+            "outs/sel-t{t}-s{s}-b{b},{t_score},type_{sel_type}.rds"
+    log:    "logs/new-t{t}-s{s}-b{b},{t_score},type{sel_type}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args fun={input[1]}\
+        sce={input[2]} score={input[3]} new={output[0]} sel={output[1]}" {input[0]} {log}'''
 
 #rule eval_scores:
 #    priority: 94
@@ -123,7 +123,7 @@ rule type_score:
 #    log:    "logs/UMAP-{datset},{score},{n_features}.Rout"
 #    shell: '''
 #        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
- #       {output}" {input[0]} {log}'''
+#       {output}" {input[0]} {log}'''
 
 # PLOTS ================================================================
 rule plot_sim_pca:
