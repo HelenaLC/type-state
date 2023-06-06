@@ -66,17 +66,17 @@ plotPCA(sim.state, colour_by = "Group", shape_by = "Sample")
 
 ```{r}
 set.seed(seed <- 1)
-vcf <- mockVCF(n.samples = 6)
-gff <- mockGFF(n.genes = 2000)
-params.group <- newSplatPopParams(batchCells = c(300, 300),
+vcf <- mockVCF(n.samples = 6, n.snps = 1200)
+gff <- mockGFF(n.genes = 4000)
+params.group <- newSplatPopParams(batchCells = c(200, 200),
                                   batch.facScale = 0,
                                   similarity.scale = 10,
                                   de.prob = 0.5,
-                                  de.facScale = 0.75,
-                                  group.prob = c(1/3, 1/3, 1/3),
+                                  de.facScale = 0.1,
+                                  group.prob = rep(1/10,10),
                                   condition.prob = c(0.5, 0.5),
                                   cde.prob = 0.5,
-                                  cde.facScale = 0.7,
+                                  cde.facScale = 0.8,
                                   bcv.common = 1
                                   )
 
@@ -85,6 +85,8 @@ x <- splatPopSimulate(vcf = vcf, gff = gff,
                       sparsify = FALSE)
 
 x <- logNormCounts(x)
+tbl <- modelGeneVar(x, block = x$sample_id)
+hvg <- which(tbl$bio > 0)
 x <- runPCA(x, ncomponents = 10, subset_row = hvg)
 plotPCA(x, colour_by = "Group", shape_by = "Condition")
 table(quickCluster(x, method = "hclust"), x$Condition)
