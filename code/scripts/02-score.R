@@ -6,17 +6,19 @@ suppressPackageStartupMessages({
 source(args[[1]])
 sce <- readRDS(args[[2]])
 
-res <- if (!is.null(sce)) {
-    # reclustering
-    g <- buildSNNGraph(sce, use.dimred="PCA")
-    sce$cluster_id <- igraph::cluster_louvain(g, resolution = 1)$membership
-    #sce$cluster_id <- quickCluster(sce, method = "hclust")
-    #Y <- process_Y(assay(sce, "counts"), thre = 2)
-    #con_res <- Consensus(Y, k = 3)
-    #sce$cluster_id <- con_res$cluster
-    fun(sce)
-    
-}
+res <- tryCatch (
+    if (!is.null(sce)) {
+        # reclustering
+        g <- buildSNNGraph(sce, use.dimred="PCA")
+        #sce$cluster_id <- igraph::cluster_louvain(g, resolution = 1)$membership
+        sce$cluster_id <- quickCluster(sce, method = "hclust")
+        #Y <- process_Y(assay(sce, "counts"), thre = 2)
+        #con_res <- Consensus(Y, k = 3)
+        #sce$cluster_id <- con_res$cluster
+        fun(sce)
+    },
+    error = function(e) NULL)
+
 saveRDS(res, args[[3]])
 
 ## Type score problem
