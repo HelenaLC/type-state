@@ -113,8 +113,6 @@
   return(res)
 }
 
-
-=======
 .auc <- \(x,
           sel_idx = sel_idx){
     groupDE <- data.frame(rowData(x)) %>%
