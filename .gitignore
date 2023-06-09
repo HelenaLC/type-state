@@ -1,10 +1,19 @@
 .DS_Store
+<<<<<<< HEAD
+Data/*
+docs/*
+docs/*html
+code/*cache
+=======
 logs/*
 data/*
+<<<<<<< HEAD
 output/
+=======
+outs/*
+Plts/*
+>>>>>>> origin/main
 docs/*html
 code/*cache
 .snakemake/
-output/*
-outs/*
-
+>>>>>>> devel
