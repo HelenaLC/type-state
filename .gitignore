@@ -1,5 +1,15 @@
 .DS_Store
+<<<<<<< HEAD
 Data/*
 docs/*
 docs/*html
 code/*cache
+=======
+logs/*
+data/*
+outs/*
+Plts/*
+docs/*html
+code/*cache
+.snakemake/
+>>>>>>> devel
