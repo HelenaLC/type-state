@@ -1,81 +1,57 @@
-
-
-.se <- \(x, 
-  # variables to group by (entropy 
-  # is computed across i for every j)
-  i = "cluster_id", 
-  j = "sample_id",    
-  assay = "exprs",  # measurement data to use
-  fun = "median",   # summary function used for aggregation
-  base = 2) 
-{
-  # compute pseudo-bulks by cluster-sample
-  y <- aggregateAcrossCells(x, 
-    colData(x)[c(i, j)], coldata.merge = FALSE,
-    use.assay.type = assay, statistics = fun)
-  # split cell indices by samples
-  idx <- split(seq(ncol(y)), y[[j]])
-  # compute proportions across clusters
-  # (matrix of dim. features x clusters)
-  p <- lapply(idx, \(.) {
-    z <- assay(y)[, .]
-    z <- as.matrix(z)
-    z[z < 0] <- 0
-    prop.table(z, 1) # equivalent to x/sum(x)
-  })
-  # compute entropy...
-  h <- \(p) {
-    p <- p[p > 0]
-    n <- log(length(p), base = base)
-    -sum(p*log(p, base = base))/n
-  }
-  # ...across clusters for every sample
-  hs <- sapply(p, apply, 1, h)
-  z <- aggregateAcrossCells(x, 
-    x[[j]], coldata.merge = FALSE,
-    use.assay.type = assay, statistics = fun)
-  res <- data.frame(
-    row.names = NULL, entropy = c(hs),
-    marker_id = rep(rownames(hs), ncol(hs)),
-    sample_id = rep(colnames(hs), each = nrow(hs)))
-  res[is.na(res)] <- 0
-  return(res)
-}
-
-.score <- \(se, da, ds) {
-  ms <- unique(se$marker_id, ds$marker_id)
-  ss <- c(by(ds, ds$marker_id, \(.) mean(abs(.$logFC))))
-  ts <- c(by(se, se$marker_id, \(.) mean(1-.$entropy)))
-  df <- data.frame(
-    row.names = NULL, marker_id = ms,
-    state_score = ss[ms], type_score = ts[ms])
-}
-
 .ei <- \(x, 
-  sample = "sample_id",
-  group = "condition")
+         sample = "sample_id",
+         group = "condition")
 {
-  ids <- unique(x[[sample]])
-  idx <- match(ids, x[[sample]])
-  ei <- colData(x)[idx, c(sample, group)]
-  ei <- data.frame(ei, row.names = NULL)
+    ids <- unique(x[[sample]])
+    idx <- match(ids, x[[sample]])
+    ei <- colData(x)[idx, c(sample, group)]
+    ei <- data.frame(ei, row.names = NULL)
 } 
-# setup experiment info 
 
-.da <- \(x, 
-  cluster = names(cluster_codes(x))[1],
-  sample = "sample_id", group = "condition")
-{
-  # setup model & contrast matrix
-  ei <- .ei(x, sample, group)
-  dm <- createDesignMatrix(ei, group)
-  cm <- createContrast(c(0, 1))
-  # run differential abundance (DA) analysis
-  se <- diffcyt(x, ei,
-    clustering_to_use = cluster, 
-    design = dm, contrast = cm,  verbose = FALSE, 
-    analysis_type = "DA", method_DA = "diffcyt-DA-edgeR")$res
-  data.frame(rowData(se))
+.one_vs_rest_wilcox_score <- \(x, 
+                               assay_to_use = "logcounts", 
+                               fun = "mean", 
+                               cluster_to_use = "cluster_id", 
+                               penalty = FALSE) {
+    exprs_mm <- assay(x, assay_to_use)
+    n_genes <- 1:nrow(x)
+    wilcox_per_cluster <- sapply(unique(colData(x)[, cluster_to_use]), \(j){
+        temp <- x
+        cell1 <- which(colData(temp)[,cluster_to_use] == j)
+        cell2 <- which(colData(temp)[,cluster_to_use] != j)
+        group.info <- data.frame(row.names = c(cell1, cell2))
+        group.info[cell1, "group"] <- "Group1"
+        group.info[cell2, "group"] <- "Group2"
+        group.info[, "group"] <- factor(x = group.info[, "group"])
+        data.use <- exprs_mm[, as.numeric(rownames(group.info)), drop = FALSE]
+        wilcox_res <- sapply(n_genes, function(i){
+            if (length(unique(group.info[, "group"])) == 2) {
+                wilcox.test(data.use[i,] ~ group.info[, "group"])$p.value
+            } else {
+                wilcox.test(data.use[i,] ~ 1)$p.value
+            }
+        })
+        
+    })
+    rownames(wilcox_per_cluster) <- rownames(x)
+    mean_wilcox <- apply(wilcox_per_cluster, 1, mean, na.rm=TRUE)
+    
+    if(penalty){
+        pb <- muscat::aggregateData(x, 
+                                    by = cluster_to_use, 
+                                    assay = assay_to_use, 
+                                    fun = fun)
+        minmax_norm <- \(x) {
+            (x - min(x)) / (max(x) - min(x))
+        }
+        norm_mat <- apply(assay(pb), 2, minmax_norm)
+        max_mat <- apply(norm_mat, 1, max)
+        score <- max_mat*(-log(mean_wilcox))
+        
+    }else{
+        score <- -log(mean_wilcox)
+    }
+    
 }
 
 .ds <- \(x, 
@@ -94,6 +70,7 @@
     analysis_type = "DS", method_DS = "diffcyt-DS-limma")$res
   data.frame(rowData(se))
 }
+
 
 
 .all_score <- \(x, dim){
@@ -136,72 +113,49 @@
   return(res)
 }
 
-.calculate_wilcox_exprs_score <- \(x, clustering_to_use = names(cluster_codes(sce)[1]), 
-                                  assay_to_use = "exprs", fun = "mean", penalty = T){
-  # wilcox sum rank p-value
-  clusters <- levels(cluster_ids(x, clustering_to_use))
-  exprs_mm <- assay(x, assay_to_use)
-  n_genes <- 1:nrow(x)
-  wilcox_per_cluster <- sapply(clusters, \(j){
-    temp <- x
-    idx <- which(colData(temp)$cluster_id == j)
-    colData(temp)[idx,]$cluster_id <- 1
-    colData(temp)[-idx,]$cluster_id <- 2
-    wilcox_res <- sapply(n_genes, function(i){
-      wilcox.test(exprs_mm[i,] ~ colData(temp)$cluster_id)$p.value
-    })
-  })
-  rownames(wilcox_per_cluster) <- rownames(x)
-  mean_wilcox <- apply(wilcox_per_cluster, 1, mean, na.rm=TRUE)
-  
-  
-  # expression value
-  if(penalty == T){
-    colData(x)[,clustering_to_use] <- cluster_ids(x, clustering_to_use)
-    pb <- muscat::aggregateData(x, by = clustering_to_use, assay = assay_to_use, fun = "mean")
-    minmax_norm <- \(x) {
-      (x - min(x)) / (max(x) - min(x))
+.auc <- \(x,
+          sel_idx = sel_idx){
+    groupDE <- data.frame(rowData(x)) %>%
+        select(GroupDE.Group1, GroupDE.Group2, GroupDE.Group3) 
+    true_markers <- groupDE[rowSums(groupDE == 1) == ncol(groupDE) - 1, ]
+    true_markers_idx <- match(rownames(true_markers), rownames(x))
+    predicted <- true <- rep(0, nrow(x))
+    predicted[sel_idx] <- 1
+    true[true_markers_idx] <- 1
+    recall <- recall(predicted, true)
+    precision <- precision(predicted, true)
+    accuracy <- accuracy(predicted, true)
+    return(list(recall = recall, precision = precision, accuracy = accuracy))
+}
+
+
+.createContrast <- function(contrast) {
+    
+    contrast_matrix <- matrix(contrast, ncol = 1)
+    
+    contrast_matrix
+}
+
+.createDesignMatrix <- function(experiment_info, cols_design = NULL) {
+    
+    stopifnot(any(class(experiment_info) %in% c("data.frame", "tbl_df", "tbl")) || is(experiment_info, "DataFrame"))
+    experiment_info <- as.data.frame(experiment_info)
+    
+    # terms for design matrix
+    if (is.character(cols_design)) {
+        stopifnot(all(cols_design %in% colnames(experiment_info)))
+        terms <- cols_design
+    } else if (is.numeric(cols_design) | is.logical(cols_design)) {
+        terms <- colnames(experiment_info)[cols_design]
+    } else if (is.null(cols_design)) {
+        # default: all columns
+        terms <- colnames(experiment_info)
     }
-    norm_mat <- apply(assay(pb), 2, minmax_norm)
-    max_mat <- apply(norm_mat, 1, max)
-    score <- max_mat*(-log(mean_wilcox))
     
-  }else{
-    score <- -log(mean_wilcox)
+    # create design matrix
+    formula <- as.formula(paste("~", paste(terms, collapse = " + ")))
     
-  }
-  return(score)
+    design <- model.matrix(formula, data = experiment_info)
+    
+    design
 }
-
-
-.one_vs_rest_logFC <- \(x, clustering_to_use = names(cluster_codes(x)[1]), 
-                        assay_to_use = "exprs", fun = "mean"){
-  colData(x)[,clustering_to_use] <- cluster_ids(x, clustering_to_use)
-  pb <- aggregateData(x, by = clustering_to_use, assay = assay_to_use, fun = fun)
-  clusters <- levels(cluster_ids(x, clustering_to_use))
-  exprs_mm <- assay(x, assay_to_use)
-  n_genes <- 1:nrow(x)
-  custom_function <- \(x) {
-    \(i) x[i] / mean(x[x != x[i]])
-  }
-  logFC_per_cluster <- t(apply(assay(pb), 1, function(x) sapply(seq_along(x), custom_function(x))))
-  return(logFC_per_cluster)
-}
-
-.Silhouette_score <- \(x, dr = "PCA", feature = "type", 
-                       clustering_to_use = "meta20", 
-                       dim = 10, seed=1234,
-                       fun = mean){
-  x <- runDR(x, dr = dr, feature = feature)
-  x <- cluster(x, 
-                 xdim = dim, ydim = dim,
-                 features = feature, 
-                 seed = seed, verbose = FALSE)
-  colData(x)[,clustering_to_use] <- cluster_ids(x, clustering_to_use)
-  sil.approx <- approxSilhouette(reducedDim(x, dr), clusters=colData(x)[,clustering_to_use])
-  sil.data <- as.data.frame(sil.approx)
-  sil.data$closest <- factor(ifelse(sil.data$width > 0, sil.data$cluster, sil.data$other))
-  fun(sil.data$width)
-}
-
-
