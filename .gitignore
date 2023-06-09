@@ -1,8 +1,8 @@
 .DS_Store
-logs/
-data/
+logs/*
+data/*
+outs/*
+Plts/*
 docs/*html
 code/*cache
 .snakemake/
-outs/*
-data/*
