@@ -37,6 +37,16 @@ res_roc = expand(
     "outs/roc-{sim},{sco},{sel}.rds",
     sim = SIM, sco = SCO, sel = SEL)
 
+# COLLECTION ===================================================================
+
+def res_sco_by_sim(wildcards):
+    return expand("outs/sco-{sim},{sco}.rds",
+        sim = wildcards.sim, sco = SCO)
+
+def res_sta_by_sco(wildcards):
+    return expand("outs/sta-{sim},{sco},{sel},{sta}.rds",
+        sim = SIM, sco = wildcards.sco, sel = SEL, sta = STA)
+
 # PREPROCESSING ================================================================
 
 # reproducibly retrieve dataset from public source
@@ -103,14 +113,15 @@ rule calc_sco:
 # calculate feature selection
 rule calc_sel:
    priority: 96
-   input:  "code/03-sel.R",
-           "code/03-sel-{sel}.R",
-           rules.calc_sco.output
-   output: "outs/sel-{sim},{sco},{sel}.rds"
-   log:    "logs/sel-{sim},{sco},{sel}.Rout"
-   shell: '''
+   input:   "code/03-sel.R",
+            "code/03-sel-{sel}.R",
+            x = res_sco_by_sim
+    params: lambda wc, input: ";".join(input.x)
+    output: "outs/sel-{sim},{sco},{sel}.rds"
+    log:    "logs/sel-{sim},{sco},{sel}.Rout"
+    shell: '''
        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-       {input[1]} {input[2]} {output[0]}" {input[0]} {log}'''
+       {input[1]} {params} {output[0]}" {input[0]} {log}'''
 
 # reprocessing using selected features
 rule rep_data:
