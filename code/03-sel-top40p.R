@@ -14,6 +14,7 @@ fun <- \(x, method = NULL) {
     thr = -log(0.05)
   }
   y <- which(x > thr)
+
   #y <- order(x, decreasing = TRUE)
   #y <= round(length(x)*0.4)
   # sel <- names(sco[order(sco, decreasing = TRUE)][seq_len(n)])
