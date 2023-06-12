@@ -33,6 +33,9 @@ res_rep = expand(
 res_sta = expand(
     "outs/sta-{sim},{sco},{sel},{sta}.rds",
     sim = SIM, sco = SCO, sel = SEL, sta = STA)
+res_roc = expand(
+    "outs/roc-{sim},{sco},{sel}.rds",
+    sim = SIM, sco = SCO, sel = SEL)
 
 # COLLECTION ===================================================================
 
@@ -53,11 +56,11 @@ rule all:
         # simulation, pre- & re-processing
         res_sim, res_fil, res_rep,
         # scoring & evaluation
-        res_sco, res_sel, res_sta,
+        res_sco, res_sel, res_sta, res_roc,
         # visualization
         expand(
             "plts/{plt}.pdf", 
-            plt = ["pca", "sco", "sta"])
+            plt = ["pca", "sco", "sta", "roc_curve"])
 
 rule session_info:
     priority: 100
@@ -109,16 +112,16 @@ rule calc_sco:
 
 # calculate feature selection
 rule calc_sel:
-   priority: 96
-   input:   "code/03-sel.R",
+    priority: 96
+    input:   "code/03-sel.R",
             "code/03-sel-{sel}.R",
             x = res_sco_by_sim
     params: lambda wc, input: ";".join(input.x)
     output: "outs/sel-{sim},{sco},{sel}.rds"
     log:    "logs/sel-{sim},{sco},{sel}.Rout"
     shell: '''
-       {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-       {input[1]} {params} {output[0]}" {input[0]} {log}'''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+        {input[1]} {params} {output[0]}" {input[0]} {log}'''
 
 # reprocessing using selected features
 rule rep_data:
@@ -132,7 +135,7 @@ rule rep_data:
         {R} CMD BATCH --no-restore --no-save "--args\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
-# calculate evaluation statistics
+# calculate clustering evaluation statistics
 rule calc_sta:
     priority: 95
     input:  "code/05-sta.R",
@@ -143,6 +146,25 @@ rule calc_sta:
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
+
+# calculate performance of detect true markers
+
+rule det_tm:
+    priority: 95
+    input:  "code/06-roc.R",
+            "code/06-roc-type.R",
+            rules.calc_sel.output
+    output: "outs/roc-{sim},{sco},{sel}.rds"
+    log:    "logs/roc-{sim},{sco},{sel}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+        {input[2]} {output}" {input[0]} {log}'''
+
+# COLLECTION ===========================================================
+
+def res_sta_by_sco(wildcards):
+    return expand("outs/sta-{sim},{sco},{sel},{sta}.rds",
+        sim = SIM, sco = wildcards.sco, sel = SEL, sta = STA)
 
 # VISUALIZATION ========================================================
 
@@ -176,3 +198,14 @@ rule plot_sta:
     shell:  '''
         {R} CMD BATCH --no-restore --no-save "--args\
         {params} {output[0]}" {input[0]} {log}'''
+
+rule plot_roccurve:
+    priority: 49
+    input:  "code/08-plot-roc_curve.R", x = res_roc
+    params: lambda wc, input: ";".join(input.x)
+    output: "plts/roc_curve.pdf"
+    log:    "logs/plot-roc_curve.Rout"
+    shell:  '''
+        {R} CMD BATCH --no-restore --no-save "--args\
+        {params} {output[0]}" {input[0]} {log}'''
+

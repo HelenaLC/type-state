@@ -69,10 +69,7 @@ fun <- \(x,
                              score = replicate(nrow(x), 0))
             ss$score[idx] <- 1 - ds$P.Value
             
-        } else {
-            ss <- data.frame(score = replicate(nrow(x), 1),
-                             row.names = rownames(x))
-        }
+        } 
     }) 
     final <- do.call(cbind, lst)
 
