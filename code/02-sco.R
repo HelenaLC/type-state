@@ -11,22 +11,6 @@ suppressPackageStartupMessages({
 source(args[[1]])
 sce <- readRDS(args[[2]])
 
-<<<<<<< HEAD:code/scripts/02-score.R
-res <- tryCatch (
-    if (!is.null(sce)) {
-        # reclustering
-        g <- buildSNNGraph(sce, use.dimred="PCA")
-        #sce$cluster_id <- igraph::cluster_louvain(g, resolution = 1)$membership
-        sce$cluster_id <- quickCluster(sce, method = "hclust")
-        #Y <- process_Y(assay(sce, "counts"), thre = 2)
-        #con_res <- Consensus(Y, k = 3)
-        #sce$cluster_id <- con_res$cluster
-        fun(sce)
-    },
-    error = function(e) NULL)
-
-saveRDS(res, args[[3]])
-=======
 res <- if (!is.null(sce)) {
     # re-clustering
     g <- buildSNNGraph(sce, use.dimred = "PCA")
@@ -42,7 +26,6 @@ df <- data.frame(wcs,
     metadata(sce), rowData(sce), 
     sco_val = res, row.names = NULL)
 saveRDS(df, args[[3]])
->>>>>>> origin/main:code/02-sco.R
 
 ## Type score problem
 #' @TODO: Some samples only appear in one cluster. 

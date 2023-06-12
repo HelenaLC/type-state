@@ -12,6 +12,7 @@ df <- do.call(rbind, res)
 gg <- list(
     geom_density(key_glyph = "point"),
     facet_wrap(~ sco, scales = "free", nrow = 1),
+    scale_x_continuous(trans='log10'),
     guides(color = guide_legend(override.aes = list(size = 2))),
     theme_linedraw(9), theme(
         panel.grid = element_blank(),
@@ -27,4 +28,4 @@ p2 <- ggplot(df, aes(sco_val, col = factor(s))) + gg +
 
 plt <- p1 / p2
 
-ggsave(args[[2]], plt, units = "cm", width = 15, height = 8)
+ggsave(args[[2]], plt, units = "cm", width = 30, height = 10)
