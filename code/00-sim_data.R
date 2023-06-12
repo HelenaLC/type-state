@@ -11,7 +11,9 @@ b <- as.numeric(wcs$b)/100
 
 p <- newSplatPopParams(
     de.facLoc = t,
+    de.facScale = 0.001,
     cde.facLoc = s,
+    cde.facScale = 0.001,
     batch.facLoc = b,
     bcv.common = 1,
     similarity.scale = 10,
