@@ -25,8 +25,8 @@ fun <- \(x,
     res <- lapply(unique(colData(x)[,cluster]), \(i) {
         temp <- x[, which(colData(x)[,cluster] == i)]
         sce <- SingleCellExperiment(assays = list(counts = assay(temp, assay_to_use)),
-                                    colData = DataFrame(sample_id = colData(temp)[, sample],
-                                                        condition = colData(temp)[, condition]))
+            colData = DataFrame(sample_id = colData(temp)[, sample],
+                condition = colData(temp)[, condition]))
         # drop samples without any cells
         sce$sample_id <- droplevels(sce$sample_id)
         # split cell indices by sample
