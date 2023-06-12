@@ -112,16 +112,16 @@ rule calc_sco:
 
 # calculate feature selection
 rule calc_sel:
-   priority: 96
-   input:   "code/03-sel.R",
+    priority: 96
+    input:   "code/03-sel.R",
             "code/03-sel-{sel}.R",
             x = res_sco_by_sim
     params: lambda wc, input: ";".join(input.x)
     output: "outs/sel-{sim},{sco},{sel}.rds"
     log:    "logs/sel-{sim},{sco},{sel}.Rout"
     shell: '''
-       {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-       {input[1]} {params} {output[0]}" {input[0]} {log}'''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+        {input[1]} {params} {output[0]}" {input[0]} {log}'''
 
 # reprocessing using selected features
 rule rep_data:
@@ -201,10 +201,10 @@ rule plot_sta:
 
 rule plot_roccurve:
     priority: 49
-    input:  "code/08-plot-roccurve.R", x = res_roc
+    input:  "code/08-plot-roc_curve.R", x = res_roc
     params: lambda wc, input: ";".join(input.x)
     output: "plts/roc_curve.pdf"
-    log:    "logs/plot-roccurve.Rout"
+    log:    "logs/plot-roc_curve.Rout"
     shell:  '''
         {R} CMD BATCH --no-restore --no-save "--args\
         {params} {output[0]}" {input[0]} {log}'''
