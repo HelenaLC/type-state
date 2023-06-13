@@ -34,8 +34,8 @@ res_sta = expand(
     "outs/sta-{sim},{sco},{sel},{sta}.rds",
     sim = SIM, sco = SCO, sel = SEL, sta = STA)
 res_roc = expand(
-    "outs/roc-{sim},{sco},{sel}.rds",
-    sim = SIM, sco = SCO, sel = SEL)
+    "outs/roc-{sim},{sco}.rds",
+    sim = SIM, sco = SCO)
 
 # COLLECTION ===================================================================
 
@@ -149,13 +149,13 @@ rule calc_sta:
 
 # calculate performance of detect true markers
 
-rule det_tm:
+rule calc_roc:
     priority: 95
     input:  "code/06-roc.R",
             "code/06-roc-type.R",
-            rules.calc_sel.output
-    output: "outs/roc-{sim},{sco},{sel}.rds"
-    log:    "logs/roc-{sim},{sco},{sel}.Rout"
+            rules.calc_sco.output
+    output: "outs/roc-{sim},{sco}.rds"
+    log:    "logs/roc-{sim},{sco}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
         {input[2]} {output}" {input[0]} {log}'''
@@ -199,7 +199,7 @@ rule plot_sta:
         {R} CMD BATCH --no-restore --no-save "--args\
         {params} {output[0]}" {input[0]} {log}'''
 
-rule plot_roccurve:
+rule plot_roc:
     priority: 49
     input:  "code/08-plot-roc_curve.R", x = res_roc
     params: lambda wc, input: ";".join(input.x)
