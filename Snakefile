@@ -67,7 +67,7 @@ rule all:
         # simulation, pre- & re-processing
         res_sim, res_fil, res_rep,
         # scoring & evaluation
-        res_sco, res_sel, res_sta,
+        res_sco, res_sel, res_sta, res_roc,
         # visualization
         res_plt
 
@@ -129,8 +129,8 @@ rule calc_sel:
     output: "outs/sel-{sim},{sel}.rds"
     log:    "logs/sel-{sim},{sel}.Rout"
     shell: '''
-       {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-       {input[1]} {params} {output[0]}" {input[0]} {log}'''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+        {input[1]} {params} {output[0]}" {input[0]} {log}'''
 
 # reprocessing using selected features
 rule rep_data:
@@ -144,7 +144,7 @@ rule rep_data:
         {R} CMD BATCH --no-restore --no-save "--args\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
-# calculate evaluation statistics
+# calculate clustering evaluation statistics
 rule calc_sta:
     priority: 94
     input:  "code/05-sta.R",
@@ -155,6 +155,25 @@ rule calc_sta:
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
+
+# calculate performance of detect true markers
+
+rule calc_roc:
+    priority: 95
+    input:  "code/06-roc.R",
+            "code/06-roc-type.R",
+            rules.calc_sco.output
+    output: "outs/roc-{sim},{sco}.rds"
+    log:    "logs/roc-{sim},{sco}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+        {input[2]} {output}" {input[0]} {log}'''
+
+# COLLECTION ===========================================================
+
+def res_sta_by_sco(wildcards):
+    return expand("outs/sta-{sim},{sco},{sel},{sta}.rds",
+        sim = SIM, sco = wildcards.sco, sel = SEL, sta = STA)
 
 # VISUALIZATION ========================================================
 
@@ -176,6 +195,16 @@ rule plot_pca:
     params: lambda wc, input: ";".join(input.x)
     output: "plts/pca.pdf"
     log:    "logs/plot-pca.Rout"
+    shell:  '''
+        {R} CMD BATCH --no-restore --no-save "--args\
+        {params} {output[0]}" {input[0]} {log}'''
+
+rule plot_roc:
+    priority: 49
+    input:  "code/08-plot-roc_curve.R", x = res_roc
+    params: lambda wc, input: ";".join(input.x)
+    output: "plts/roc_curve.pdf"
+    log:    "logs/plot-roc_curve.Rout"
     shell:  '''
         {R} CMD BATCH --no-restore --no-save "--args\
         {params} {output[0]}" {input[0]} {log}'''
