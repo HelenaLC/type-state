@@ -14,6 +14,7 @@ S = list(range(0, 120, 20))
 B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
+PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in ["sco", "sta"]}
 
 res_sim = expand(
     "data/00-sim/t{t},s{s},b{b}.rds", 
@@ -33,9 +34,25 @@ res_rep = expand(
 res_sta = expand(
     "outs/sta-{sim},{sel},{sta}.rds",
     sim = SIM, sel = SEL, sta = STA)
+<<<<<<< HEAD
 res_roc = expand(
     "outs/roc-{sim},{sco}.rds",
     sim = SIM, sco = SCO)
+=======
+
+res_plt = list()
+for val in PLT.keys():
+    res_plt += expand("plts/{val}-{plt}.pdf", val = val, plt = PLT[val])
+
+res = {
+    "sim": res_sim,
+    "fil": res_fil,
+    "sco": res_sco,
+    "sel": res_sel,
+    "rep": res_rep,
+    "sta": res_sta,
+    "plt": res_plt}
+>>>>>>> 56f7f754457717ef4a2d8bde8ac66d2500ee9f87
 
 # COLLECTION ===================================================================
 
@@ -58,9 +75,13 @@ rule all:
         # scoring & evaluation
         res_sco, res_sel, res_sta, res_roc,
         # visualization
+<<<<<<< HEAD
         expand(
             "plts/{plt}.pdf", 
             plt = ["pca", "sco", "sta", "roc"])
+=======
+        res_plt
+>>>>>>> 56f7f754457717ef4a2d8bde8ac66d2500ee9f87
 
 rule session_info:
     priority: 100
@@ -113,7 +134,7 @@ rule calc_sco:
 # calculate feature selection
 rule calc_sel:
     priority: 96
-    input:   "code/03-sel.R",
+    input:  "code/03-sel.R",
             "code/03-sel-{sel}.R",
             x = res_sco_by_sim
     params: lambda wc, input: ";".join(input.x)
@@ -125,7 +146,7 @@ rule calc_sel:
 
 # reprocessing using selected features
 rule rep_data:
-    priority: 94
+    priority: 95
     input:  "code/04-rep.R",
             rules.fil_data.output,
             rules.calc_sel.output
@@ -137,7 +158,7 @@ rule rep_data:
 
 # calculate clustering evaluation statistics
 rule calc_sta:
-    priority: 95
+    priority: 94
     input:  "code/05-sta.R",
             "code/05-sta-{sta}.R",
             rules.rep_data.output
@@ -168,6 +189,17 @@ def res_sta_by_sco(wildcards):
 
 # VISUALIZATION ========================================================
 
+for val in ["sco", "sta"]:
+    rule:
+        priority: 49
+        input:  expand("code/08-plot_{val}-{{plt}}.R", val = val), x = res[val]
+        params: lambda wc, input: ";".join(input.x)
+        output: expand("plts/{val}-{{plt}}.pdf", val = val)
+        log:    expand("logs/plot_{val}-{{plt}}.Rout", val = val)
+        shell:  '''
+            {R} CMD BATCH --no-restore --no-save "--args\
+            {params} {output[0]}" {input[0]} {log}'''
+
 rule plot_pca:
     priority: 49
     input:  "code/08-plot_pca.R", 
@@ -175,26 +207,6 @@ rule plot_pca:
     params: lambda wc, input: ";".join(input.x)
     output: "plts/pca.pdf"
     log:    "logs/plot-pca.Rout"
-    shell:  '''
-        {R} CMD BATCH --no-restore --no-save "--args\
-        {params} {output[0]}" {input[0]} {log}'''
-
-rule plot_sco:
-    priority: 49
-    input:  "code/08-plot-sco.R", x = res_sco
-    params: lambda wc, input: ";".join(input.x)
-    output: "plts/sco.pdf"
-    log:    "logs/plot-sco.Rout"
-    shell:  '''
-        {R} CMD BATCH --no-restore --no-save "--args\
-        {params} {output[0]}" {input[0]} {log}'''
-
-rule plot_sta:
-    priority: 49
-    input:  "code/08-plot-sta.R", x = res_sta
-    params: lambda wc, input: ";".join(input.x)
-    output: "plts/sta.pdf"
-    log:    "logs/plot-sta.Rout"
     shell:  '''
         {R} CMD BATCH --no-restore --no-save "--args\
         {params} {output[0]}" {input[0]} {log}'''
@@ -219,4 +231,3 @@ rule plot_rep:
     shell:  '''
         {R} CMD BATCH --no-restore --no-save "--args\
         {params} {output[0]}" {input[0]} {log}'''
-
