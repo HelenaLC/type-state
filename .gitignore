@@ -7,8 +7,12 @@ code/*cache
 =======
 logs/*
 data/*
+<<<<<<< HEAD
+output/
+=======
 outs/*
 Plts/*
+>>>>>>> origin/main
 docs/*html
 code/*cache
 .snakemake/
