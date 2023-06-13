@@ -25,14 +25,14 @@ res_sco = expand(
     "outs/sco-{sim},{sco}.rds",
     sim = SIM, sco = SCO)
 res_sel = expand(
-    "outs/sel-{sim},{sco},{sel}.rds",
-    sim = SIM, sco = SCO, sel = SEL)
+    "outs/sel-{sim},{sel}.rds",
+    sim = SIM, sel = SEL)
 res_rep = expand(
-    "data/02-rep/{sim},{sco},{sel}.rds", 
-    sim = SIM, sco = SCO, sel = SEL)
+    "data/02-rep/{sim},{sel}.rds", 
+    sim = SIM, sel = SEL)
 res_sta = expand(
-    "outs/sta-{sim},{sco},{sel},{sta}.rds",
-    sim = SIM, sco = SCO, sel = SEL, sta = STA)
+    "outs/sta-{sim},{sel},{sta}.rds",
+    sim = SIM, sel = SEL, sta = STA)
 res_roc = expand(
     "outs/roc-{sim},{sco}.rds",
     sim = SIM, sco = SCO)
@@ -60,7 +60,7 @@ rule all:
         # visualization
         expand(
             "plts/{plt}.pdf", 
-            plt = ["pca", "sco", "sta", "roc_curve"])
+            plt = ["pca", "sco", "sta", "roc"])
 
 rule session_info:
     priority: 100
@@ -117,8 +117,8 @@ rule calc_sel:
             "code/03-sel-{sel}.R",
             x = res_sco_by_sim
     params: lambda wc, input: ";".join(input.x)
-    output: "outs/sel-{sim},{sco},{sel}.rds"
-    log:    "logs/sel-{sim},{sco},{sel}.Rout"
+    output: "outs/sel-{sim},{sel}.rds"
+    log:    "logs/sel-{sim},{sel}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {params} {output[0]}" {input[0]} {log}'''
@@ -129,8 +129,8 @@ rule rep_data:
     input:  "code/04-rep.R",
             rules.fil_data.output,
             rules.calc_sel.output
-    output: "data/02-rep/{sim},{sco},{sel}.rds"
-    log:    "logs/rep_data-{sim},{sco},{sel}.Rout"
+    output: "data/02-rep/{sim},{sel}.rds"
+    log:    "logs/rep_data-{sim},{sel}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
@@ -141,8 +141,8 @@ rule calc_sta:
     input:  "code/05-sta.R",
             "code/05-sta-{sta}.R",
             rules.rep_data.output
-    output: "outs/sta-{sim},{sco},{sel},{sta}.rds"
-    log:    "logs/sta-{sim},{sco},{sel},{sta}.Rout"
+    output: "outs/sta-{sim},{sel},{sta}.rds"
+    log:    "logs/sta-{sim},{sel},{sta}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
@@ -203,8 +203,19 @@ rule plot_roc:
     priority: 49
     input:  "code/08-plot-roc_curve.R", x = res_roc
     params: lambda wc, input: ";".join(input.x)
-    output: "plts/roc_curve.pdf"
-    log:    "logs/plot-roc_curve.Rout"
+    output: "plts/roc.pdf"
+    log:    "logs/plot-roc.Rout"
+    shell:  '''
+        {R} CMD BATCH --no-restore --no-save "--args\
+        {params} {output[0]}" {input[0]} {log}'''
+
+rule plot_rep:
+    priority: 49
+    input:  "code/08-plot_pca.R", 
+            x = res_rep
+    params: lambda wc, input: ";".join(input.x)
+    output: "plts/rep.pdf"
+    log:    "logs/plot-rep.Rout"
     shell:  '''
         {R} CMD BATCH --no-restore --no-save "--args\
         {params} {output[0]}" {input[0]} {log}'''
