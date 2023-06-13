@@ -3,10 +3,18 @@
 #     list.files("outs", "sco-t0,s0,b0.*", full.names = TRUE))
 
 source(args[[1]])
-res <- lapply(args[[2]], readRDS)
-res <- do.call("rbind", res)
+ls <- lapply(args[[2]], readRDS)
+names(ls) <- sapply(ls, \(.) .$sco[1])
+idx <- fun(ls)
 
-res <- data.frame(res, wcs)
-res$sel_val <- fun(res)
+df <- ls[[1]]
+res <- data.frame(
+    row.names = rownames(df),
+    t = df$t,
+    s = df$s,
+    b = df$b)
+
+res$sel_val <- FALSE
+res$sel_val[idx] <- TRUE
 
 saveRDS(res, args[[3]])

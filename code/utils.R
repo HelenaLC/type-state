@@ -113,7 +113,7 @@
   return(res)
 }
 
-.auc <- \(x,
+.roc_type <- \(x,
           sel_idx = sel_idx){
     groupDE <- data.frame(rowData(x)) %>%
         select(GroupDE.Group1, GroupDE.Group2, GroupDE.Group3) 
