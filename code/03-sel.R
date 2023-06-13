@@ -17,5 +17,4 @@ res <- data.frame(
 res$sel_val <- FALSE
 res$sel_val[idx] <- TRUE
 
-
 saveRDS(res, args[[3]])
