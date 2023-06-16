@@ -4,7 +4,7 @@ import itertools
 configfile: "config.yaml"
 R = config["R"]
 
-SCO = glob_wildcards("code/02-sco-type_{x}.R").x
+SCO = glob_wildcards("code/02-sco-{x}.R").x
 SEL = glob_wildcards("code/03-sel-{x}.R").x
 STA = glob_wildcards("code/05-sta-{x}.R").x
 
@@ -34,6 +34,9 @@ res_rep = expand(
 res_sta = expand(
     "outs/sta-{sim},{sel},{sta}.rds",
     sim = SIM, sel = SEL, sta = STA)
+res_roc = expand(
+    "outs/roc-{sim},{sco}.rds",
+    sim = SIM, sco = SCO)
 
 res_plt = list()
 for val in PLT.keys():
@@ -47,6 +50,7 @@ res = {
     "rep": res_rep,
     "sta": res_sta,
     "plt": res_plt}
+
 
 # COLLECTION ===================================================================
 
@@ -67,9 +71,10 @@ rule all:
         # simulation, pre- & re-processing
         res_sim, res_fil, res_rep,
         # scoring & evaluation
-        res_sco, res_sel, res_sta, res_roc,
+        res_sco, res_sel, res_sta, #res_roc,
         # visualization
         res_plt
+
 
 rule session_info:
     priority: 100
@@ -111,7 +116,7 @@ rule fil_data:
 rule calc_sco:
     priority: 97
     input:  "code/02-sco.R",
-            "code/02-sco-type_{sco}.R",
+            "code/02-sco-{sco}.R",
             "data/01-fil/{sim}.rds"
     output: "outs/sco-{sim},{sco}.rds"
     log:    "logs/sco-{sim},{sco}.Rout"
@@ -158,16 +163,16 @@ rule calc_sta:
 
 # calculate performance of detect true markers
 
-rule calc_roc:
-    priority: 95
-    input:  "code/06-roc.R",
-            "code/06-roc-type.R",
-            rules.calc_sco.output
-    output: "outs/roc-{sim},{sco}.rds"
-    log:    "logs/roc-{sim},{sco}.Rout"
-    shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-        {input[2]} {output}" {input[0]} {log}'''
+#rule calc_roc:
+#    priority: 95
+#    input:  "code/06-roc.R",
+#            "code/06-roc-type.R",
+#            rules.calc_sco.output
+#    output: "outs/roc-{sim},{sco}.rds"
+#    log:    "logs/roc-{sim},{sco}.Rout"
+#    shell: '''
+#        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+#        {input[2]} {output}" {input[0]} {log}'''
 
 # COLLECTION ===========================================================
 
@@ -199,12 +204,23 @@ rule plot_pca:
         {R} CMD BATCH --no-restore --no-save "--args\
         {params} {output[0]}" {input[0]} {log}'''
 
-rule plot_roc:
+#rule plot_roc:
+#    priority: 49
+#    input:  "code/08-plot-roc_curve.R", x = res_roc
+#    params: lambda wc, input: ";".join(input.x)
+#    output: "plts/roc.pdf"
+#    log:    "logs/plot-roc.Rout"
+#    shell:  '''
+#        {R} CMD BATCH --no-restore --no-save "--args\
+#        {params} {output[0]}" {input[0]} {log}'''
+
+rule plot_rep:
     priority: 49
-    input:  "code/08-plot-roc_curve.R", x = res_roc
+    input:  "code/08-plot_pca.R", 
+            x = res_rep
     params: lambda wc, input: ";".join(input.x)
-    output: "plts/roc_curve.pdf"
-    log:    "logs/plot-roc_curve.Rout"
+    output: "plts/rep.pdf"
+    log:    "logs/plot-rep.Rout"
     shell:  '''
         {R} CMD BATCH --no-restore --no-save "--args\
         {params} {output[0]}" {input[0]} {log}'''
