@@ -22,6 +22,21 @@ df$sco_s <- paste(df$sco, df$s, sep = "_")
 de <- df[grep("GroupDE", names(df))]
 fd <- df[!rowAlls(as.matrix(de) == 1), ]
 
+# logFC > 1 definition
+mg <- sapply(seq_len(ncol(de)), \(i){
+    not_i <- setdiff(seq_len(ncol(de)), i)
+    mgk <- sapply(not_i, \(j) {
+        log(de[,i]/de[,j], base = 2)
+    })
+    rowMeans(mgk)
+})
+
+rownames(mg) <- rownames(de)
+# use abs because of cares about down-regulated markers
+true <- apply(abs(mg), 1, max)
+idx <- which(true > 1)
+fc <- df[idx, ] 
+
 gg <- list(
     labs(y = "ECDF"),
     stat_ecdf(key_glyph = "point"),
@@ -32,9 +47,11 @@ gg <- list(
 
 p1 <- ggplot(df, aes(sco_val, group = sco_t, col = factor(t))) 
 p2 <- ggplot(fd, aes(sco_val, group = sco_t, col = factor(t))) 
+p3 <- ggplot(fc, aes(sco_val, group = sco_t, col = factor(t))) 
 
-p3 <- ggplot(df, aes(sco_val, group = sco_s, col = factor(s))) 
-p4 <- ggplot(fd, aes(sco_val, group = sco_s, col = factor(s)))
+p4 <- ggplot(df, aes(sco_val, group = sco_s, col = factor(s))) 
+p5 <- ggplot(fd, aes(sco_val, group = sco_s, col = factor(s)))
+p6 <- ggplot(fc, aes(sco_val, group = sco_s, col = factor(s)))
 
 thm <- theme_linedraw(9) + theme(
     panel.grid = element_blank(),
@@ -45,10 +62,10 @@ thm <- theme_linedraw(9) + theme(
     strip.background = element_rect(color = NA, fill = "white"))
 
 plt <- 
-    wrap_elements(p1 / p2 + 
+    wrap_elements(p1 / p2 / p3 + 
             plot_layout(guides = "collect") & gg & thm & 
             scale_color_brewer(palette = "Blues", "type\neffect")) / 
-    wrap_elements(p3 / p4 + 
+    wrap_elements(p4 / p5 / p6 + 
             plot_layout(guides = "collect") & gg & thm & 
             scale_color_brewer(palette = "Reds", "state\neffect")) + 
     plot_annotation(tag_levels = "a") &
@@ -56,4 +73,4 @@ plt <-
         plot.margin = margin(0, unit = "mm"),
         plot.tag = element_text(size = 9, face = "bold"))
 
-ggsave(args[[2]], plt, units = "cm", width = 15, height = 12)
+ggsave(args[[2]], plt, units = "cm", width = 20, height = 16)

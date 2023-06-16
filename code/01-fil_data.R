@@ -3,6 +3,7 @@ suppressPackageStartupMessages({
     library(scater)
     library(Matrix)
     library(SingleCellExperiment)
+    library(igraph)
 })
 
 # load data
@@ -37,6 +38,20 @@ dr <- reducedDim(x, "PCA")
 md <- data.frame(metadata(x), wcs)
 cd <- cbind(md, dr, colData(x))
 rd <- cbind(md, rowData(x), md)
+
+# Clustering at high resolution
+g <- buildSNNGraph(x, use.dimred = "PCA")
+x$cluster_hi <- cluster_louvain(g, resolution = 1)$membership
+
+# Clustering at low resolution
+cluster_lo <- cluster_louvain(g, resolution = 0)$membership
+gc <- table(cluster_lo, x$group_id)
+
+if (sum(rowSums(gc == 0) == 1) == nrow(gc)) {
+    x$cluster_lo <- 1
+} else {
+    x$cluster_lo <- cluster_lo
+}
 
 # save data
 saveRDS(x, args$fil)
