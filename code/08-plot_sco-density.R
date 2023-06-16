@@ -52,4 +52,4 @@ plt <-
         plot.margin = margin(0, unit = "mm"),
         plot.tag = element_text(size = 9, face = "bold"))
 
-ggsave(args[[2]], plt, units = "cm", width = 15, height = 12)
+ggsave(args[[2]], plt, units = "cm", width = 20, height = 12)
