@@ -4,16 +4,15 @@ suppressPackageStartupMessages({
 })
 
 
-fun <- \(x,
-    cluster_to_use = "cluster_id",
-    assay_to_use = "logcounts"){
-    x[[cluster_to_use]] <- factor(x[[cluster_to_use]])
-    x[[cluster_to_use]] <- droplevels(x[[cluster_to_use]])
-    ids <- unique(x[[cluster_to_use]])
-    y <- assay(x, assay_to_use)
+fun <- \(x) {
+    
+    x$cluster_hi <- factor(x$cluster_hi)
+    x$cluster_hi <- droplevels(x$cluster_hi)
+    ids <- unique(x$cluster_hi)
+    y <- assay(x, "logcounts")
     res <- sapply(ids, \(k) {
         tmp <- x
-        id <- tmp[[cluster_to_use]]
+        id <- tmp$cluster_hi
         j <- !(i <- id == k)
         ij <- c(which(i), which(j))
         df <- data.frame(row.names = ij)
