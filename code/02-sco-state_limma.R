@@ -3,32 +3,27 @@ suppressPackageStartupMessages(
         library(limma)
         library(muscat)
         library(SingleCellExperiment)
-        source("code/scripts/utils.R")
         library(edgeR)
+        library(dplyr)
     }
 )
 
-fun <- \(x, 
-         sample = "sample_id", 
-         cluster = "cluster_id",
-         assay_to_use = "logcounts",
-         condition = "condition",
-         fun = "sum",
-         min_cells = 3,
-         min_samples = 1){
+fun <- \(x) {
     
     # note: counts are only required for filtering
     counts <- assay(x, "counts")
-    tf <- counts >= min_cells
-    ix_keep <- apply(tf, 1, function(r) sum(r) >= min_samples)
+    tf <- counts >= 3
+    ix_keep <- apply(tf, 1, function(r) sum(r) >= 1)
     x <- x[ix_keep, ]
     
-    res <- lapply(unique(colData(x)[,cluster]), \(i) {
-        temp <- x[, which(colData(x)[,cluster] == i)]
-        sce <- SingleCellExperiment(assays = list(counts = assay(temp, assay_to_use)),
-                                    colData = DataFrame(sample_id = colData(temp)[, sample],
-                                                        condition = colData(temp)[, condition]))
+    res <- lapply(unique(x$cluster_lo), \(i) {
+        temp <- x[, which(x$cluster_lo == i)]
+        sce <- SingleCellExperiment(assays = list(counts = assay(temp, "logcounts")),
+            colData = DataFrame(sample_id = temp$sample_id,
+                condition = temp$group_id))
+        
         # drop samples without any cells
+        sce$sample_id <- as.factor(sce$sample_id)
         sce$sample_id <- droplevels(sce$sample_id)
         # split cell indices by sample
         idx <- split(seq(ncol(sce)), sce$sample_id)
@@ -67,14 +62,13 @@ fun <- \(x,
             idx <- match(rownames(ds), rownames(x))
             ss <- data.frame(row.names = rownames(x),
                              score = replicate(nrow(x), 0))
-            ss$score[idx] <- 1 - ds$P.Value
+            ss$score[idx] <- -log(ds$P.Value)
             
         } 
-    }) 
-    final <- do.call(cbind, lst)
+    }) %>% bind_cols()
 
-    rownames(final) <- rownames(x)
-    return(rowMeans(final))
+    #rownames(final) <- rownames(x)
+    return(rowMeans(lst))
     
         
 }

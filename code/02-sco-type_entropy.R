@@ -3,20 +3,21 @@ suppressPackageStartupMessages({
     library(scater)
 })
 
-fun <- \(x, 
-    cluster = "cluster_id", 
-    sample = "sample_id",    
-    assay = "counts", 
-    fun = "sum",
-    base = 2) {
+fun <- \(x) {
     # compute pseudo-bulks by cluster-sample
+    x <- SingleCellExperiment(assays = list(counts = assay(x, "counts")),
+        colData = DataFrame(sample_id = x$sample_id,
+            condition = x$group_id,
+            cluster_id = x$cluster_hi))
+    
     y <- aggregateAcrossCells(x, 
-        colData(x)[c(cluster, sample)], 
+        colData(x)[c("cluster_id", "sample_id")], 
         coldata.merge = FALSE,
-        use.assay.type = assay, 
-        statistics = fun)
+        use.assay.type = "counts", 
+        statistics = "sum")
+    
     # split cell indices by samples
-    idx <- split(seq(ncol(y)), y[[sample]])
+    idx <- split(seq(ncol(y)), y$sample_id)
     # compute proportions across clusters
     # (matrix of dim. features x clusters)
     p <- lapply(idx, \(.) {
@@ -28,14 +29,14 @@ fun <- \(x,
     # compute entropy...
     h <- \(p) {
         p <- p[p > 0]
-        n <- log(length(p), base = base)
-        -sum(p*log(p, base = base))/n
+        n <- log(length(p), base = 2)
+        -sum(p*log(p, base = 2))/n
     }
     # ...across clusters for every sample
     hs <- sapply(p, apply, 1, h)
     z <- aggregateAcrossCells(x, 
-        x[[sample]], coldata.merge = FALSE,
-        use.assay.type = assay, statistics = fun)
+        x$sample_id, coldata.merge = FALSE,
+        use.assay.type = "counts", statistics = "sum")
     res <- data.frame(
         row.names = NULL, entropy = c(hs),
         marker_id = rep(rownames(hs), ncol(hs)),

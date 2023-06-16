@@ -6,7 +6,7 @@ suppressPackageStartupMessages({
 
 
 
-fun <- \(x){
+fun <- \(x) {
     #n <- sum(x$sel_val)
     groupDE <- data.frame(x) %>%
         select(contains("GroupDE")) 
