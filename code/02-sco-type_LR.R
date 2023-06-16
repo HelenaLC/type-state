@@ -9,11 +9,11 @@ fun <- \(x,
     assay_to_use = "logcounts", 
     cluster_to_use = "cluster_id") {
 
-    y <- assay(x, assay_to_use)
-    ids <- unique(x[[cluster_to_use]])
+    y <- assay(x, "logcounts")
+    ids <- unique(x$cluster_hi)
     res <- sapply(ids, \(k) {
         tmp <- x
-        id <- tmp[[cluster_to_use]]
+        id <- tmp$cluster_hi
         j <- !(i <- id == k)
         ij <- c(which(i), which(j))
         df <- data.frame(row.names = ij)
@@ -25,14 +25,20 @@ fun <- \(x,
             model.data <- cbind(GENE = z[gene, ], df)
             fmla <- as.formula(object = "group ~ GENE")
             fmla2 <- as.formula(object = "group ~ 1")
-            model1 <- glm(formula = fmla, data = model.data, family = "binomial")
-            model2 <- glm(formula = fmla2, data = model.data, family = "binomial")
+            model1 <- glm(formula = fmla, 
+                data = model.data, 
+                family = "binomial")
+            
+            model2 <- glm(formula = fmla2, 
+                data = model.data, 
+                family = "binomial")
+            
             lrtest <- lrtest(model1, model2)
             lrtest$Pr[2]
         })
     })
     #rownames(res) <- rownames(x)
-    res <- apply(res, 1, FUN = aggregate_to_use, na.rm = TRUE)
+    res <- apply(res, 1, FUN = mean, na.rm = TRUE)
     -log(res)
     
 }
