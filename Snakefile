@@ -15,7 +15,7 @@ B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
 PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in ["sco", "sta"]}
-
+FIG = ["pca"]
 res_sim = expand(
     "data/00-sim/t{t},s{s},b{b}.rds", 
     t = T, s = S, b = B)
@@ -37,6 +37,9 @@ res_sta = expand(
 res_roc = expand(
     "outs/roc-{sim},{sco}.rds",
     sim = SIM, sco = SCO)
+res_fig = expand(
+    "plts/{fig}.pdf",
+    fig = FIG)
 
 res_plt = list()
 for val in PLT.keys():
@@ -49,7 +52,8 @@ res = {
     "sel": res_sel,
     "rep": res_rep,
     "sta": res_sta,
-    "plt": res_plt}
+    "plt": res_plt,
+    "fig": res_fig}
 
 
 # COLLECTION ===================================================================
@@ -73,7 +77,8 @@ rule all:
         # scoring & evaluation
         res_sco, res_sel, res_sta, #res_roc,
         # visualization
-        res_plt
+        res_plt,
+        res_fig
 
 
 rule session_info:
