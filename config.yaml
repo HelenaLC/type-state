@@ -1,1 +1,1 @@
-R: "R_LIBS_USER=/home/jiayiwang/lib/ /usr/local/R/R-4.2.3/bin/R"
+R: "R_LIBS_USER=/Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/library/ /Library/Frameworks/R.framework/Resources/bin/R"
