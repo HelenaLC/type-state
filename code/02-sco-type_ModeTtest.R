@@ -19,9 +19,9 @@ fun <- \(x) {
         z <- y[, as.numeric(rownames(df)), drop = FALSE]
         mod.t.test(as.matrix(z), group = df[, "group"])$adj.p.value
     })
-    rownames(res) <- rownames(x)
-    res <- apply(res, 1, FUN = mean, na.rm = TRUE)
-
-    -log(res)
+    
+    res <- -log(res)
+    apply(res, 1, FUN = mean, na.rm = TRUE)
+    
 
 }

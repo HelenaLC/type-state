@@ -75,7 +75,7 @@ fun <- \(x){
     }) %>% bind_cols()
     #final <- do.call(rbind, lst)
 
-    return(rowMeans(lst))
+    return(apply(lst, 1, max))
     
     
 }
