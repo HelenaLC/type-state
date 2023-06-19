@@ -14,14 +14,17 @@ S = list(range(0, 120, 20))
 B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
-PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in ["sco", "sta"]}
-FIG = ["pca"]
+VAL = ["cd", "sco", "sta"]
+PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
+
 res_sim = expand(
     "data/00-sim/t{t},s{s},b{b}.rds", 
     t = T, s = S, b = B)
-res_fil = expand(
-    "data/01-fil/{sim}.rds", 
-    sim = SIM)
+
+res_fil = expand("data/01-fil/{sim}.rds",    sim = SIM)
+res_rd  = expand("data/01-fil/{sim}-rd.rds", sim = SIM)
+res_cd  = expand("data/01-fil/{sim}-cd.rds", sim = SIM)
+
 res_sco = expand(
     "outs/sco-{sim},{sco}.rds",
     sim = SIM, sco = SCO)
@@ -37,9 +40,6 @@ res_sta = expand(
 res_roc = expand(
     "outs/roc-{sim},{sco}.rds",
     sim = SIM, sco = SCO)
-res_fig = expand(
-    "plts/{fig}.pdf",
-    fig = FIG)
 
 res_plt = list()
 for val in PLT.keys():
@@ -48,12 +48,13 @@ for val in PLT.keys():
 res = {
     "sim": res_sim,
     "fil": res_fil,
+    "rd":  res_rd, 
+    "cd":  res_cd,
     "sco": res_sco,
     "sel": res_sel,
     "rep": res_rep,
     "sta": res_sta,
-    "plt": res_plt,
-    "fig": res_fig}
+    "plt": res_plt}
 
 
 # COLLECTION ===================================================================
@@ -73,13 +74,11 @@ rule all:
     input:
         "session_info.txt",
         # simulation, pre- & re-processing
-        res_sim, res_fil, res_rep,
+        res_sim, res_fil, res_rep, 
         # scoring & evaluation
         res_sco, res_sel, res_sta, #res_roc,
         # visualization
-        res_plt,
-        res_fig
-
+        res_plt
 
 rule session_info:
     priority: 100
@@ -179,15 +178,9 @@ rule calc_sta:
 #        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
 #        {input[2]} {output}" {input[0]} {log}'''
 
-# COLLECTION ===========================================================
-
-def res_sta_by_sco(wildcards):
-    return expand("outs/sta-{sim},{sco},{sel},{sta}.rds",
-        sim = SIM, sco = wildcards.sco, sel = SEL, sta = STA)
-
 # VISUALIZATION ========================================================
 
-for val in ["sco", "sta"]:
+for val in VAL:
     rule:
         priority: 49
         input:  expand("code/08-plot_{val}-{{plt}}.R", val = val), x = res[val]
@@ -198,17 +191,6 @@ for val in ["sco", "sta"]:
             {R} CMD BATCH --no-restore --no-save "--args\
             {params} {output[0]}" {input[0]} {log}'''
 
-rule plot_pca:
-    priority: 49
-    input:  "code/08-plot_pca.R", 
-            x = expand("data/01-fil/{sim}-cd.rds", sim = SIM)
-    params: lambda wc, input: ";".join(input.x)
-    output: "plts/pca.pdf"
-    log:    "logs/plot-pca.Rout"
-    shell:  '''
-        {R} CMD BATCH --no-restore --no-save "--args\
-        {params} {output[0]}" {input[0]} {log}'''
-
 #rule plot_roc:
 #    priority: 49
 #    input:  "code/08-plot-roc_curve.R", x = res_roc
@@ -218,14 +200,3 @@ rule plot_pca:
 #    shell:  '''
 #        {R} CMD BATCH --no-restore --no-save "--args\
 #        {params} {output[0]}" {input[0]} {log}'''
-
-rule plot_rep:
-    priority: 49
-    input:  "code/08-plot_pca.R", 
-            x = res_rep
-    params: lambda wc, input: ";".join(input.x)
-    output: "plts/rep.pdf"
-    log:    "logs/plot-rep.Rout"
-    shell:  '''
-        {R} CMD BATCH --no-restore --no-save "--args\
-        {params} {output[0]}" {input[0]} {log}'''
