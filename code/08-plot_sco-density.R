@@ -12,7 +12,7 @@ res <- res[!vapply(res, is.null, logical(1))]
 
 df <- do.call(rbind, res) %>%
     mutate(sco_val = case_when(
-        sco != "entropy" ~ log10(sco_val),
+        sco != "entropy" ~ log(sco_val),
         .default = sco_val))
 
 # DE genes only (according to 'Splatter')
