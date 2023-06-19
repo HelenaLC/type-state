@@ -12,5 +12,6 @@ fun <- \(x) {
         cal_F2(mtx, y$cluster_hi)$F_scores
     })
     rownames(res) <- rownames(x)
+    #apply(res, 1, max)
     rowMeans(res, na.rm = TRUE)
 }

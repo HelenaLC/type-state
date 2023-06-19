@@ -17,7 +17,7 @@ p <- newSplatPopParams(
     batch.facLoc = b,
     bcv.common = 1.5,
     similarity.scale = 10,
-    de.prob = 0.5, cde.prob = 0.5, 
+    de.prob = 0.2, cde.prob = 0.2, 
     batchCells = c(200, 200),
     group.prob = rep(1/3, 3),
     condition.prob = c(0.5, 0.5))
