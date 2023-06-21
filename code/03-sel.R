@@ -12,7 +12,8 @@ res <- data.frame(
     row.names = rownames(df),
     t = df$t,
     s = df$s,
-    b = df$b)
+    b = df$b,
+    sel = wcs$sel)
 
 res$sel_val <- FALSE
 res$sel_val[idx] <- TRUE

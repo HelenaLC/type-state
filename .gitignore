@@ -1,19 +1,15 @@
+.RData
+.Rhistory
 .DS_Store
-<<<<<<< HEAD
-Data/*
+.Rprofile
 docs/*
 docs/*html
+code/arch/*
 code/*cache
-=======
 logs/*
 data/*
-<<<<<<< HEAD
-output/
-=======
 outs/*
-Plts/*
->>>>>>> origin/main
+plts/*
 docs/*html
 code/*cache
 .snakemake/
->>>>>>> devel

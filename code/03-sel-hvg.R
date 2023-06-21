@@ -1,3 +1,3 @@
 fun <- \(x) {
-    return(x$hvg)
+    return(x[[1]]$hvg)
 }
