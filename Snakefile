@@ -7,6 +7,9 @@ R = config["R"]
 SCO = glob_wildcards("code/02-sco-{x}.R").x
 SEL = glob_wildcards("code/03-sel-{x}.R").x
 STA = glob_wildcards("code/05-sta-{x}.R").x
+EVA = glob_wildcards("code/06-eva-{x}.R").x
+#DAS = glob_wildcards("code/07-das-{x}.R").x
+
 
 # magnitude of type, state & batch effect
 T = list(range(0, 120, 20))
@@ -14,14 +17,17 @@ S = list(range(0, 120, 20))
 B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
-PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in ["sco", "sta"]}
-FIG = ["pca"]
+VAL = ["cd", "sco", "sta", "eva"]
+PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
+
 res_sim = expand(
     "data/00-sim/t{t},s{s},b{b}.rds", 
     t = T, s = S, b = B)
-res_fil = expand(
-    "data/01-fil/{sim}.rds", 
-    sim = SIM)
+
+res_fil = expand("data/01-fil/{sim}.rds",    sim = SIM)
+res_rd  = expand("data/01-fil/{sim}-rd.rds", sim = SIM)
+res_cd  = expand("data/01-fil/{sim}-cd.rds", sim = SIM)
+
 res_sco = expand(
     "outs/sco-{sim},{sco}.rds",
     sim = SIM, sco = SCO)
@@ -34,12 +40,12 @@ res_rep = expand(
 res_sta = expand(
     "outs/sta-{sim},{sel},{sta}.rds",
     sim = SIM, sel = SEL, sta = STA)
-res_roc = expand(
-    "outs/roc-{sim},{sco}.rds",
-    sim = SIM, sco = SCO)
-res_fig = expand(
-    "plts/{fig}.pdf",
-    fig = FIG)
+#res_das = expand(
+#    "outs/dd-{sim},{sel},{das}.rds",
+#    sim = SIM, sel = SEL, das = DAS)
+res_eva = expand(
+    "outs/eva-{sim},{sco},{eva}.rds",
+    sim = SIM, sco = SCO, eva = EVA)
 
 res_plt = list()
 for val in PLT.keys():
@@ -48,12 +54,16 @@ for val in PLT.keys():
 res = {
     "sim": res_sim,
     "fil": res_fil,
+    "rd":  res_rd, 
+    "cd":  res_cd,
     "sco": res_sco,
     "sel": res_sel,
     "rep": res_rep,
     "sta": res_sta,
     "plt": res_plt,
-    "fig": res_fig}
+    #"das": res_das,
+    "eva": res_eva
+    }
 
 
 # COLLECTION ===================================================================
@@ -73,13 +83,11 @@ rule all:
     input:
         "session_info.txt",
         # simulation, pre- & re-processing
-        res_sim, res_fil, res_rep,
+        res_sim, res_fil, res_rep, 
         # scoring & evaluation
-        res_sco, res_sel, res_sta, #res_roc,
+        res_sco, res_sel, res_sta, #res_das,
         # visualization
-        res_plt,
-        res_fig
-
+        res_plt
 
 rule session_info:
     priority: 100
@@ -146,13 +154,13 @@ rule calc_sel:
 rule rep_data:
     priority: 95
     input:  "code/04-rep.R",
-            rules.fil_data.output,
+            "data/01-fil/{sim}.rds",
             rules.calc_sel.output
     output: "data/02-rep/{sim},{sel}.rds"
     log:    "logs/rep_data-{sim},{sel}.Rout"
     shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args\
-        {input[1]} {input[2]} {output}" {input[0]} {log}'''
+        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+            {input[2]} {output}" {input[0]} {log}'''
 
 # calculate clustering evaluation statistics
 rule calc_sta:
@@ -168,26 +176,33 @@ rule calc_sta:
 
 # calculate performance of detect true markers
 
-#rule calc_roc:
-#    priority: 95
-#    input:  "code/06-roc.R",
-#            "code/06-roc-type.R",
-#            rules.calc_sco.output
-#    output: "outs/roc-{sim},{sco}.rds"
-#    log:    "logs/roc-{sim},{sco}.Rout"
+rule calc_eva:
+    priority: 95
+    input:  "code/06-eva.R",
+            "code/06-eva-roc.R",
+            rules.calc_sco.output
+    output: "outs/eva-{sim},{sco},{eva}.rds"
+    log:    "logs/eva-{sim},{sco},{eva}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+        {input[2]} {output}" {input[0]} {log}'''
+
+# differential abundance/analysis 
+
+#rule calc_das:
+#    priority: 94
+#    input:  "code/07-das.R",
+#            "code/07-das-{das}.R",
+#            rules.rep_data.output
+#    output: "outs/dd-{sim},{sel},{das}.rds"
+#    log:    "logs/dd-{sim},{sel},{das}.Rout"
 #    shell: '''
-#        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-#        {input[2]} {output}" {input[0]} {log}'''
-
-# COLLECTION ===========================================================
-
-def res_sta_by_sco(wildcards):
-    return expand("outs/sta-{sim},{sco},{sel},{sta}.rds",
-        sim = SIM, sco = wildcards.sco, sel = SEL, sta = STA)
+#        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+#        {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
 # VISUALIZATION ========================================================
 
-for val in ["sco", "sta"]:
+for val in VAL:
     rule:
         priority: 49
         input:  expand("code/08-plot_{val}-{{plt}}.R", val = val), x = res[val]
@@ -198,17 +213,6 @@ for val in ["sco", "sta"]:
             {R} CMD BATCH --no-restore --no-save "--args\
             {params} {output[0]}" {input[0]} {log}'''
 
-rule plot_pca:
-    priority: 49
-    input:  "code/08-plot_pca.R", 
-            x = expand("data/01-fil/{sim}-cd.rds", sim = SIM)
-    params: lambda wc, input: ";".join(input.x)
-    output: "plts/pca.pdf"
-    log:    "logs/plot-pca.Rout"
-    shell:  '''
-        {R} CMD BATCH --no-restore --no-save "--args\
-        {params} {output[0]}" {input[0]} {log}'''
-
 #rule plot_roc:
 #    priority: 49
 #    input:  "code/08-plot-roc_curve.R", x = res_roc
@@ -218,14 +222,3 @@ rule plot_pca:
 #    shell:  '''
 #        {R} CMD BATCH --no-restore --no-save "--args\
 #        {params} {output[0]}" {input[0]} {log}'''
-
-rule plot_rep:
-    priority: 49
-    input:  "code/08-plot_pca.R", 
-            x = res_rep
-    params: lambda wc, input: ";".join(input.x)
-    output: "plts/rep.pdf"
-    log:    "logs/plot-rep.Rout"
-    shell:  '''
-        {R} CMD BATCH --no-restore --no-save "--args\
-        {params} {output[0]}" {input[0]} {log}'''

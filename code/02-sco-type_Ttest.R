@@ -5,7 +5,6 @@ suppressPackageStartupMessages({
 
 
 fun <- \(x) {
-    
     x$cluster_hi <- factor(x$cluster_hi)
     x$cluster_hi <- droplevels(x$cluster_hi)
     ids <- unique(x$cluster_hi)
@@ -25,12 +24,14 @@ fun <- \(x) {
         fit <- lmFit(z, design = design)
         fit <- contrasts.fit(fit, c(0,1))
         fit <- eBayes(fit, trend = TRUE)
-        fit$F
+        tbl <- topTable(fit, 
+            coef = 1, 
+            number = Inf, 
+            confint = TRUE, 
+            sort.by = "none")
+        tbl$adj.P.Val
     })
-    #rowMeans(res)
-    apply(res, 1, max)
+    
+    rowMeans(-log(res), na.rm = TRUE)
 }
-
-
-
 
