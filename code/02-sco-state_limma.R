@@ -68,7 +68,7 @@ fun <- \(x) {
     }) %>% bind_cols()
 
     #rownames(final) <- rownames(x)
-    return(rowMeans(lst))
+    rowMeans(lst)
     
         
 }

@@ -3,6 +3,7 @@ suppressPackageStartupMessages(
         library(limma)
         library(muscat)
         library(SingleCellExperiment)
+        library(data.table)
         #source("code/scripts/utils.R")
         library(edgeR)
         library(dplyr)
@@ -75,7 +76,7 @@ fun <- \(x){
     }) %>% bind_cols()
     #final <- do.call(rbind, lst)
 
-    return(rowMeans(lst))
+    return(apply(lst, 1, mean))
     
     
 }
