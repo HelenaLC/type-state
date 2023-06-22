@@ -6,7 +6,7 @@ fun <- \(x) {
     e$rank <- rank(e$sco_val)
     f$fe <- f$rank - e$rank
     
-    o <- order(f$fe, decreasing = FALSE)
+    o <- order(f$fe, decreasing = TRUE)
     o <= round(length(f)*0.25)
 
 }
