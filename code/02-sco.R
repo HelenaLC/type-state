@@ -6,6 +6,7 @@ suppressPackageStartupMessages({
     #library(FEAST)
     library(scran)
     library(igraph)
+    library(data.table)
 })
 
 source(args[[1]])

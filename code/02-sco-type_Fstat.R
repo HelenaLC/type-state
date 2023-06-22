@@ -26,9 +26,8 @@ fun <- \(x) {
         fit <- eBayes(fit, trend = TRUE)
         fit$F
     })
+    
     rowMeans(res, na.rm = TRUE)
 }
-
-
 
 

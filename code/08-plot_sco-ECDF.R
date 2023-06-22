@@ -62,7 +62,7 @@ thm <- theme_linedraw(9) + theme(
     strip.background = element_rect(color = NA, fill = "white"))
 
 plt <- 
-    wrap_elements(p1 / p2 / p3 + 
+    wrap_elements(p1 / p2/ p3 + 
             plot_layout(guides = "collect") & gg & thm & 
             scale_color_brewer(palette = "Blues", "type\neffect")) / 
     wrap_elements(p4 / p5 / p6 + 
@@ -73,4 +73,4 @@ plt <-
         plot.margin = margin(0, unit = "mm"),
         plot.tag = element_text(size = 9, face = "bold"))
 
-ggsave(args[[2]], plt, units = "cm", width = 20, height = 16)
+ggsave(args[[2]], plt, units = "cm", width = 20, height = 15)

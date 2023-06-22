@@ -15,6 +15,6 @@ fun <- \(x) {
         }, numeric(1))
     }, numeric(ng))
     
-    res <- -log(rowMeans(res))
-    
+    res <- -log(res)
+    apply(res, 1, mean)
 }
