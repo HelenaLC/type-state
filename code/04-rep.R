@@ -15,7 +15,7 @@ sel <- readRDS(args[[2]])
 #sce$cluster_id <- clusterCells(sce, use.dimred = "PCA")
 rowData(sce)$sel_val <- sel$sel_val
 sce <- runPCA(sce, subset_row = sel$sel_val)
-sce$cluster_id <- quickCluster(sce, subset.row = sel$sel_val)
-
+#sce$cluster_id <- quickCluster(sce, subset.row = sel$sel_val)
+sce$cluster_id <- clusterCells(sce, use.dimred = "PCA")
 
 saveRDS(sce, args[[3]])
