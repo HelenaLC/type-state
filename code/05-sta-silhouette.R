@@ -10,14 +10,14 @@ fun <- \(x) {
     # within samples (high value)
     idx <- split(seq(ncol(x)), x$sample_id)
     res_by_s <- vapply(idx, \(.) {
-        ids <- x$cluster_id[.]
+        ids <- x$cluster_re[.]
         if (length(unique(ids)) == 1) return(NA)
         res <- approxSilhouette(y[., ], ids)
         mean(res$width)
     }, numeric(1))
     # samples should be well mixed
     # within clusters (low value)
-    idx <- split(seq(ncol(x)), x$cluster_id)
+    idx <- split(seq(ncol(x)), x$cluster_re)
     res_by_k <- vapply(idx, \(.) {
         ids <- x$sample_id[.]
         if (length(unique(ids)) == 1) return(NA)
