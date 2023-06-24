@@ -1,4 +1,4 @@
-#args <- list(list.files("outs", "^sco-.*", full.names = TRUE), "plts/sco.pdf")
+#args <- list(list.files("outs", "^sco-.*", full.names = TRUE), "plts/sco-density.pdf")
 
 suppressPackageStartupMessages({
     library(dplyr)
@@ -19,57 +19,39 @@ df <- do.call(rbind, res) %>%
 de <- df[grep("GroupDE", names(df))]
 fd <- df[!rowAlls(as.matrix(de) == 1), ]
 
-mg <- sapply(seq_len(ncol(de)), \(i){
-    not_i <- setdiff(seq_len(ncol(de)), i)
-    mgk <- sapply(not_i, \(j) {
-        log(de[,i]/de[,j], base = 2)
-    })
-    rowMeans(mgk)
-})
-
-rownames(mg) <- rownames(de)
-# use abs because of cares about down-regulated markers
-true <- apply(abs(mg), 1, max)
-idx <- which(true > 1)
-fc <- df[idx, ] 
-
 gg <- list(
     scale_x_continuous(n.breaks = 3),
     scale_y_continuous(n.breaks = 3),
     geom_density(key_glyph = "point"),
-    facet_wrap(~ sco, scales = "free", nrow = 1),
     guides(color = guide_legend(override.aes = list(size = 2))))
 
-p1 <- ggplot(df, aes(sco_val, col = factor(t))) + gg +
-    scale_color_brewer(palette = "Blues", "type\neffect")
-p2 <- ggplot(df, aes(sco_val, col = factor(s))) + gg +
-    scale_color_brewer(palette = "Reds", "state\neffect")
+labs <- \(.) label_value(., multi_line = FALSE)
+fac_s <- facet_wrap(s ~ sco, scales = "free", labeller = labs)
+fac_t <- facet_wrap(t ~ sco, scales = "free", labeller = labs)
 
-p3 <- ggplot(fd, aes(sco_val, col = factor(t))) + gg +
-   scale_color_brewer(palette = "Blues", "type\neffect")
-p4 <- ggplot(fd, aes(sco_val, col = factor(s))) + gg +
-   scale_color_brewer(palette = "Reds", "state\neffect")
+pal_s <- scale_color_brewer(palette = "Reds", "state\neffect", limits = seq(0, 1, 0.2))
+pal_t <- scale_color_brewer(palette = "Blues", "type\neffect", limits = seq(0, 1, 0.2))
 
-p5 <- ggplot(fc, aes(sco_val, col = factor(t))) + gg +
-    scale_color_brewer(palette = "Blues", "type\neffect")
-p6 <- ggplot(fc, aes(sco_val, col = factor(s))) + gg +
-    scale_color_brewer(palette = "Reds", "state\neffect")
+p1 <- ggplot(df, aes(sco_val, col = factor(t))) + gg + fac_s + pal_t
+p2 <- ggplot(fd, aes(sco_val, col = factor(t))) + gg + fac_s + pal_t
+    
+p3 <- ggplot(df, aes(sco_val, col = factor(s))) + gg + fac_t + pal_s
+p4 <- ggplot(fd, aes(sco_val, col = factor(s))) + gg + fac_t + pal_s
 
-
-thm <- theme_linedraw(9) + theme(
+thm <- theme_bw(6) + theme(
     panel.grid = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
     axis.title.x = element_blank(),
-    legend.key.size = unit(0.5, "lines"),
     panel.spacing = unit(2, unit = "mm"),
-    strip.text = element_text(color = "black", face = "bold"),
+    plot.margin = margin(0, unit = "mm"),
+    legend.key.size = unit(0.5, "lines"),
+    strip.text = element_text(color = "black"),
+    plot.tag = element_text(size = 9, face = "bold"),
     strip.background = element_rect(color = NA, fill = "white"))
 
-plt <- 
-    wrap_elements(p1 / p3 / p5  + plot_layout(guides = "collect") & thm) / 
-    wrap_elements(p2 / p4 / p6  + plot_layout(guides = "collect") & thm) + 
-    plot_annotation(tag_levels = "a") &
-    theme(
-        plot.margin = margin(0, unit = "mm"),
-        plot.tag = element_text(size = 9, face = "bold"))
+f1 <- (p1 / p3) & plot_annotation(tag_levels = "a") & thm
+f2 <- (p2 / p4) & plot_annotation(tag_levels = "a") & thm
 
-ggsave(args[[2]], plt, units = "cm", width = 30, height = 15)
+pdf(args[[2]], width = 15/2.54, height = 18/2.54, onefile = TRUE)
+print(f1); print(f2); dev.off()
