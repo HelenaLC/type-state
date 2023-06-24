@@ -8,6 +8,9 @@ SCO = glob_wildcards("code/02-sco-{x}.R").x
 SEL = glob_wildcards("code/03-sel-{x}.R").x
 STA = glob_wildcards("code/05-sta-{x}.R").x
 DAS = glob_wildcards("code/06-das-{x}.R").x
+EVA = glob_wildcards("code/07-eva-{x}.R").x
+
+
 
 # magnitude of type, state & batch effect
 T = list(range(0, 120, 20))
@@ -15,7 +18,7 @@ S = list(range(0, 120, 20))
 B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
-VAL = ["cd", "sco", "sta"]
+VAL = ["cd", "sco", "sta", "eva"]
 PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
 
 res_sim = expand(
@@ -41,9 +44,9 @@ res_sta = expand(
 res_das = expand(
     "outs/das-{sim},{sel},{das}.rds",
     sim = SIM, sel = SEL, das = DAS)
-res_roc = expand(
-    "outs/roc-{sim},{sco}.rds",
-    sim = SIM, sco = SCO)
+res_eva = expand(
+    "outs/eva-{sim},{sco},{eva}.rds",
+    sim = SIM, sco = SCO, eva = EVA)
 
 res_plt = list()
 for val in PLT.keys():
@@ -58,8 +61,11 @@ res = {
     "sel": res_sel,
     "rep": res_rep,
     "sta": res_sta,
+    "plt": res_plt,
+    "eva": res_eva,
     "das": res_das,
     "plt": res_plt}
+
 
 
 # COLLECTION ===================================================================
@@ -83,7 +89,7 @@ rule all:
         # scoring & evaluation
         res_sco, res_sel, res_sta, #res_roc,
         # downstream
-        res_das,
+        #res_das,
         # visualization
         res_plt
 
@@ -152,13 +158,13 @@ rule calc_sel:
 rule rep_data:
     priority: 95
     input:  "code/04-rep.R",
-            rules.fil_data.output,
+            "data/01-fil/{sim}.rds",
             rules.calc_sel.output
     output: "data/02-rep/{sim},{sel}.rds"
     log:    "logs/rep_data-{sim},{sel}.Rout"
     shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args\
-        {input[1]} {input[2]} {output}" {input[0]} {log}'''
+        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+            {input[2]} {output}" {input[0]} {log}'''
 
 # calculate clustering evaluation statistics
 rule calc_sta:
@@ -172,6 +178,7 @@ rule calc_sta:
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
+# differential abundance/analysis 
 rule run_das:
     priority: 94
     input:  "code/06-das.R",
@@ -185,16 +192,20 @@ rule run_das:
 
 # calculate performance of detect true markers
 
-#rule calc_roc:
-#    priority: 95
-#    input:  "code/06-roc.R",
-#            "code/06-roc-type.R",
-#            rules.calc_sco.output
-#    output: "outs/roc-{sim},{sco}.rds"
-#    log:    "logs/roc-{sim},{sco}.Rout"
-#    shell: '''
-#        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-#        {input[2]} {output}" {input[0]} {log}'''
+rule calc_eva:
+    priority: 95
+    input:  "code/07-eva.R",
+            "code/07-eva-roc.R",
+            rules.calc_sco.output
+    output: "outs/eva-{sim},{sco},{eva}.rds"
+    log:    "logs/eva-{sim},{sco},{eva}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+        {input[2]} {output}" {input[0]} {log}'''
+
+
+
+
 
 # VISUALIZATION ========================================================
 
