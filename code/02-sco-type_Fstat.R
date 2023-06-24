@@ -5,36 +5,21 @@ suppressPackageStartupMessages({
 
 
 fun <- \(x) {
-    x$cluster_hi <- factor(x$cluster_hi)
-    x$cluster_hi <- droplevels(x$cluster_hi)
     y <- assay(x, "logcounts")
-    
-    z <- x
-    z$cluster_hi <- factor(x$cluster_hi, sample(unique(x$cluster_hi)))
-    cd <- data.frame(colData(z))
-    mm <- model.matrix(~ sample_id + cluster_hi, data = cd)
-    
-    sapply(rownames(y), \(g) {
-        z <- y[g,]
-        fit <- lmFit(z, mm)
+    cd <- data.frame(colData(x))
+    f <- ~ sample_id + cluster_hi
+    mm <- model.matrix(f, data = cd)
+    rownames(mm) <- colnames(x)
+    res <- apply(y, 1, \(g) {
+        fit <- lmFit(g, mm)
         fit <- eBayes(fit, trend = FALSE)
         cs <- colnames(fit$cov.coefficients)
-        idx <- !(colnames(mm) %in% colnames(fit$cov.coefficients))
-        if (sum(idx) == 0) {
-            cs <- grep("cluster", cs)
-            topTable(fit, coef = cs, sort.by = "none")$F
-        } else {
-            mm <- mm[,-which(idx)]
-            fit <- lmFit(z, mm)
+        nan <- !colnames(mm) %in% cs
+        if (any(nan)) {
+            fit <- lmFit(g, mm[, !nan])
             fit <- eBayes(fit, trend = FALSE)
-            cs <- colnames(fit$cov.coefficients)
-            cs <- grep("cluster", cs)
-            topTable(fit, coef = cs, sort.by = "none")$F
         }
+        cs <- grep("cluster", cs)
+        topTable(fit, coef = cs, sort.by = "none")$F
     })
-
-    
-    
 }
-
-

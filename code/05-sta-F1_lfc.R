@@ -7,14 +7,13 @@ suppressPackageStartupMessages({
 
 
 fun <- \(x) {
-    rd <- data.frame(rowData(x))
     idx <- .lfc_markers(x)
+    rd <- data.frame(rowData(x))
     rd$true <- FALSE
     rd$true[idx] <- TRUE
-    res <- confusionMatrix(
-        data = factor(rd$sel_val, levels = c(TRUE, FALSE)), 
-        reference = factor(rd$true, levels = c(TRUE, FALSE))
-    )
+    tf <- c(TRUE, FALSE)
+    dat <- factor(rd$sel_val, tf)
+    ref <- factor(rd$true, tf)
+    res <- confusionMatrix(data = dat, reference = ref)
     data.frame(sta_val = res$byClass["F1"], row.names = NULL)
-
 }

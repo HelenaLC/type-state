@@ -7,10 +7,8 @@ R = config["R"]
 SCO = glob_wildcards("code/02-sco-{x}.R").x
 SEL = glob_wildcards("code/03-sel-{x}.R").x
 STA = glob_wildcards("code/05-sta-{x}.R").x
-#DAS = glob_wildcards("code/06-das-{x}.R").x
-#EVA = glob_wildcards("code/07-eva-{x}.R").x
-
-
+DAS = glob_wildcards("code/06-das-{x}.R").x
+EVA = glob_wildcards("code/07-eva-{x}.R").x
 
 # magnitude of type, state & batch effect
 T = list(range(0, 120, 20))
@@ -87,9 +85,9 @@ rule all:
         # simulation, pre- & re-processing
         res_sim, res_fil, res_rep, 
         # scoring & evaluation
-        res_sco, res_sel, res_sta, #res_eva,
+        res_sco, res_sel, res_sta,
         # downstream
-    #   res_das,
+        #res_eva, res_das,
         # visualization
         res_plt
 
@@ -179,6 +177,7 @@ rule calc_sta:
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
 # differential abundance/analysis 
+
 #rule run_das:
 #    priority: 94
 #    input:  "code/06-das.R",
@@ -203,9 +202,29 @@ rule calc_sta:
 #        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
 #        {input[2]} {output}" {input[0]} {log}'''
 
+rule run_das:
+    priority: 94
+    input:  "code/06-das.R",
+            "code/06-das-{das}.R",
+            rules.rep_data.output
+    output: "outs/das-{sim},{sel},{das}.rds"
+    log:    "logs/das-{sim},{sel},{das}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+        {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
+# calculate performance of detect true markers
 
-
+rule calc_eva:
+    priority: 95
+    input:  "code/07-eva.R",
+            "code/07-eva-roc.R",
+            rules.calc_sco.output
+    output: "outs/eva-{sim},{sco},{eva}.rds"
+    log:    "logs/eva-{sim},{sco},{eva}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+        {input[2]} {output}" {input[0]} {log}'''
 
 # VISUALIZATION ========================================================
 
