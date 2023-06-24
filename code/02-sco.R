@@ -12,13 +12,11 @@ suppressPackageStartupMessages({
 source(args[[1]])
 sce <- readRDS(args[[2]])
 
-res <- if (!is.null(sce)) {
-    
-    fun(sce)
+df <- if (!is.null(sce)) {
+    res <- fun(sce)
+    data.frame(wcs,
+        metadata(sce), rowData(sce), 
+        sco_val = res, row.names = NULL)
 }
 
-df <- data.frame(wcs,
-    metadata(sce), rowData(sce), 
-    sco_val = res, row.names = NULL)
 saveRDS(df, args[[3]])
-

@@ -17,8 +17,9 @@ p <- newSplatPopParams(
     batch.facLoc = b,
     bcv.common = 1.5,
     similarity.scale = 10,
-    de.prob = 0.2, cde.prob = 0.2, 
-    batchCells = c(400, 400),
+    de.prob = 0.2, 
+    cde.prob = 0.2, 
+    batchCells = 400,
     group.prob = rep(1/3, 3),
     condition.prob = c(0.5, 0.5))
 
@@ -29,6 +30,18 @@ gff <- mockGFF(n.genes = 2e3, seed = seed)
 x <- splatPopSimulate(
     params = p, vcf = vcf, gff = gff,
     verbose = FALSE, sparsify = FALSE)
+
+# standardize cell metadata
+colData(x) <- DataFrame(
+    cluster_id = x$Group,
+    sample_id = x$Sample,
+    group_id = x$Condition)
+for (. in names(colData(x)))
+    x[[.]] <- factor(x[[.]])
+
+# store gene/cell identifiers
+rowData(x)$gene_id <- rownames(x)
+colData(x)$cell_id <- colnames(x)
 
 # store simulation parameters
 metadata(x) <- list(t = t, s = s, b = b)
