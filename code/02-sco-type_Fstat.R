@@ -20,10 +20,10 @@ fun <- \(x) {
         fit <- eBayes(fit, trend = FALSE)
         cs <- colnames(fit$cov.coefficients)
         idx <- !(colnames(mm) %in% colnames(fit$cov.coefficients))
-        if(sum(idx) == 0){
+        if (sum(idx) == 0) {
             cs <- grep("cluster", cs)
             topTable(fit, coef = cs, sort.by = "none")$F
-        }else{
+        } else {
             mm <- mm[,-which(idx)]
             fit <- lmFit(z, mm)
             fit <- eBayes(fit, trend = FALSE)
