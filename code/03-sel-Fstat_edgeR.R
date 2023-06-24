@@ -7,6 +7,6 @@ fun <- \(x) {
     f$fe <- f$rank - e$rank
     
     o <- order(f$fe, decreasing = TRUE)
-    o <= round(length(f)*0.25)
+    o <= round(nrow(f)*0.25)
 
 }
