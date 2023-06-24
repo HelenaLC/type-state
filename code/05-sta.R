@@ -9,6 +9,8 @@ sce <- readRDS(args[[2]])
 res <- fun(sce)
 
 md <- metadata(sce)
+ex <- c(names(res), names(md))
+wcs <- wcs[setdiff(names(wcs), ex)]
 df <- data.frame(md, wcs, res)
 
 saveRDS(df, args[[3]])
