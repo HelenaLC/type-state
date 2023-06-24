@@ -42,10 +42,10 @@ gg <- list(
 
 p1 <- ggplot(df, aes(sco_val, col = factor(t))) + gg +
     scale_color_brewer(palette = "Blues", "type\neffect")
-p2 <- ggplot(fd, aes(sco_val, col = factor(s))) + gg +
+p2 <- ggplot(df, aes(sco_val, col = factor(s))) + gg +
     scale_color_brewer(palette = "Reds", "state\neffect")
 
-p3 <- ggplot(df, aes(sco_val, col = factor(t))) + gg +
+p3 <- ggplot(fd, aes(sco_val, col = factor(t))) + gg +
    scale_color_brewer(palette = "Blues", "type\neffect")
 p4 <- ggplot(fd, aes(sco_val, col = factor(s))) + gg +
    scale_color_brewer(palette = "Reds", "state\neffect")

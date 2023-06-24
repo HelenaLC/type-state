@@ -18,12 +18,12 @@ p <- newSplatPopParams(
     bcv.common = 1.5,
     similarity.scale = 10,
     de.prob = 0.2, cde.prob = 0.2, 
-    batchCells = c(200, 200),
+    batchCells = c(400, 400),
     group.prob = rep(1/3, 3),
     condition.prob = c(0.5, 0.5))
 
 vcf <- mockVCF(n.samples = 6, seed = seed)
-gff <- mockGFF(n.genes = 1e3, seed = seed)
+gff <- mockGFF(n.genes = 2e3, seed = seed)
 
 # data generation
 x <- splatPopSimulate(

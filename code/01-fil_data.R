@@ -30,18 +30,17 @@ x <- x[gs, cs]
 x <- logNormCounts(x)
 tbl <- modelGeneVar(x, block = x$sample_id)
 rowData(x)$hvg <- hvg <- tbl$bio > 0
+rowData(x)$bio <- tbl$bio 
+#x <- runPCA(x, subset_row = hvg, ncomponents = 10)
 x <- runPCA(x, subset_row = hvg, ncomponents = 10)
 
 # table of gene/cell metadata
 # and simulation parameters
 dr <- reducedDim(x, "PCA")
-md <- data.frame(metadata(x), wcs)
-cd <- cbind(md, dr, colData(x))
-rd <- cbind(md, rowData(x), md)
 
 # Clustering at high resolution
 g <- buildSNNGraph(x, use.dimred = "PCA")
-x$cluster_hi <- cluster_louvain(g, resolution = 1)$membership
+x$cluster_hi <- cluster_louvain(g, resolution = 2)$membership
 
 # Clustering at low resolution
 cluster_lo <- cluster_louvain(g, resolution = 0)$membership
@@ -52,6 +51,10 @@ if (sum(rowSums(gc == 0) == 1) == nrow(gc)) {
 } else {
     x$cluster_lo <- cluster_lo
 }
+
+md <- data.frame(metadata(x), wcs)
+cd <- cbind(md, dr, colData(x))
+rd <- cbind(md, rowData(x), md)
 
 # save data
 saveRDS(x, args$fil)
