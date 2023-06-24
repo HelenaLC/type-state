@@ -2,10 +2,11 @@
 .Rhistory
 .DS_Store
 .Rprofile
-logs/*
-data/*
-outs/*
-plts/*
+logs/*Rout
+data/*rds
+data/**/*rds
+outs/*rds
+plts/*pdf
 docs/*
 docs/*html
 code/arch/*
