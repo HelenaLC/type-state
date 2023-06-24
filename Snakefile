@@ -7,8 +7,8 @@ R = config["R"]
 SCO = glob_wildcards("code/02-sco-{x}.R").x
 SEL = glob_wildcards("code/03-sel-{x}.R").x
 STA = glob_wildcards("code/05-sta-{x}.R").x
-DAS = glob_wildcards("code/06-das-{x}.R").x
-EVA = glob_wildcards("code/07-eva-{x}.R").x
+#DAS = glob_wildcards("code/06-das-{x}.R").x
+#EVA = glob_wildcards("code/07-eva-{x}.R").x
 
 
 
@@ -18,7 +18,7 @@ S = list(range(0, 120, 20))
 B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
-VAL = ["cd", "sco", "sta", "eva", "das"]
+VAL = ["cd", "sco", "sta", "rd"]
 PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
 
 res_sim = expand(
@@ -41,12 +41,12 @@ res_rep = expand(
 res_sta = expand(
     "outs/sta-{sim},{sel},{sta}.rds",
     sim = SIM, sel = SEL, sta = STA)
-res_das = expand(
-    "outs/das-{sim},{sel},{das}.rds",
-    sim = SIM, sel = SEL, das = DAS)
-res_eva = expand(
-    "outs/eva-{sim},{sco},{eva}.rds",
-    sim = SIM, sco = SCO, eva = EVA)
+#res_das = expand(
+#    "outs/das-{sim},{sel},{das}.rds",
+#    sim = SIM, sel = SEL, das = DAS)
+#res_eva = expand(
+#    "outs/eva-{sim},{sco},{eva}.rds",
+#    sim = SIM, sco = SCO, eva = EVA)
 
 res_plt = list()
 for val in PLT.keys():
@@ -62,8 +62,8 @@ res = {
     "rep": res_rep,
     "sta": res_sta,
     "plt": res_plt,
-    "eva": res_eva,
-    "das": res_das,
+#    "eva": res_eva,
+#    "das": res_das,
     "plt": res_plt}
 
 
@@ -87,9 +87,9 @@ rule all:
         # simulation, pre- & re-processing
         res_sim, res_fil, res_rep, 
         # scoring & evaluation
-        res_sco, res_sel, res_sta, #res_roc,
+        res_sco, res_sel, res_sta, #res_eva,
         # downstream
-        res_das,
+    #   res_das,
         # visualization
         res_plt
 
@@ -179,29 +179,29 @@ rule calc_sta:
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
 # differential abundance/analysis 
-rule run_das:
-    priority: 94
-    input:  "code/06-das.R",
-            "code/06-das-{das}.R",
-            rules.rep_data.output
-    output: "outs/das-{sim},{sel},{das}.rds"
-    log:    "logs/das-{sim},{sel},{das}.Rout"
-    shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-        {input[1]} {input[2]} {output}" {input[0]} {log}'''
+#rule run_das:
+#    priority: 94
+#    input:  "code/06-das.R",
+#            "code/06-das-{das}.R",
+#            rules.rep_data.output
+#    output: "outs/das-{sim},{sel},{das}.rds"
+#    log:    "logs/das-{sim},{sel},{das}.Rout"
+#    shell: '''
+#        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+#        {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
 # calculate performance of detect true markers
 
-rule calc_eva:
-    priority: 95
-    input:  "code/07-eva.R",
-            "code/07-eva-roc.R",
-            rules.calc_sco.output
-    output: "outs/eva-{sim},{sco},{eva}.rds"
-    log:    "logs/eva-{sim},{sco},{eva}.Rout"
-    shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-        {input[2]} {output}" {input[0]} {log}'''
+#rule calc_eva:
+#    priority: 95
+#    input:  "code/07-eva.R",
+#            "code/07-eva-roc.R",
+#            rules.calc_sco.output
+#    output: "outs/eva-{sim},{sco},{eva}.rds"
+#   log:    "logs/eva-{sim},{sco},{eva}.Rout"
+#    shell: '''
+#        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+#        {input[2]} {output}" {input[0]} {log}'''
 
 
 
@@ -220,12 +220,3 @@ for val in VAL:
             {R} CMD BATCH --no-restore --no-save "--args\
             {params} {output[0]}" {input[0]} {log}'''
 
-#rule plot_roc:
-#    priority: 49
-#    input:  "code/08-plot-roc_curve.R", x = res_roc
-#    params: lambda wc, input: ";".join(input.x)
-#    output: "plts/roc.pdf"
-#    log:    "logs/plot-roc.Rout"
-#    shell:  '''
-#        {R} CMD BATCH --no-restore --no-save "--args\
-#        {params} {output[0]}" {input[0]} {log}'''
