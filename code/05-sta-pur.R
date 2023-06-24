@@ -24,9 +24,18 @@ fun <- \(x) {
         res <- neighborPurity(y[., ], ids)
         mean(res$purity)
     }, numeric(1))
-    # average across samples/clusters & groupings
-    res_by_s <- mean(res_by_s, na.rm = TRUE)
-    res_by_k <- mean(res_by_k, na.rm = TRUE)
-    res <- ( res_by_s + (1 - res_by_k) ) / 2
-    data.frame(sta_val = res, row.names = NULL)
+    # average across samples/clusters
+    res_s <- mean(res_by_s, na.rm = TRUE)
+    res_k <- mean(res_by_k, na.rm = TRUE)
+    # return as separate statistics
+    df_s <- data.frame(
+        sta = "pur_s",
+        sta_val = res_s,
+        row.names = NULL)
+    df_k <- data.frame(
+        sta = "pur_k",
+        sta_val = res_k,
+        row.names = NULL)
+    df <- rbind(df_s, df_k)
+    return(df)
 }
