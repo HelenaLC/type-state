@@ -159,3 +159,22 @@
     
     design
 }
+
+.lfc_markers <- \(x) {
+    rd <- data.frame(rowData(x))
+    de <- rd[grep("GroupDE", names(rd))]
+  
+    mg <- sapply(seq_len(ncol(de)), \(i){
+    not_i <- setdiff(seq_len(ncol(de)), i)
+    mgk <- sapply(not_i, \(j) {
+      log(de[,i]/de[,j], base = 2)
+      })
+    rowMeans(mgk)
+    })
+    
+    rownames(mg) <- rownames(de)
+    # use abs because of down-regulated markers
+    true <- apply(abs(mg), 1, max)
+    idx <- which(true > 1)
+}
+
