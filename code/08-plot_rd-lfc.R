@@ -49,7 +49,7 @@ p1 <- ggplot(de, aes(x=mg, y = ..scaled.., col = factor(t))) + gg +
     xlab("GroupDE: max logFC in three groups")
 
 p2 <- ggplot(de, aes(x=cg, y = ..scaled.., col = factor(s))) + gg +
-    scale_color_brewer(palette = "Reds", "type\neffect") +
+    scale_color_brewer(palette = "Reds", "state\neffect") +
     facet_grid( ~ t, labeller = \(.) label_both(.), scales = "free") +
     xlab("ConditionDE logFC ")
 
