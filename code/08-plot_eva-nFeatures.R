@@ -9,10 +9,10 @@ suppressPackageStartupMessages({
 
 res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
-roc <- do.call(rbind, res)
+nf <- do.call(rbind, res)
 
 
-p <- ggplot(roc, aes(FPR, TPR, col = sco, shape = sco)) + 
+p <- ggplot(nf, aes(n, F1, col = sco, shape = sco)) + 
     geom_point() +
     facet_grid(t ~ s, labeller = \(.) label_both(.)) +
     geom_line(aes(linetype = sco))

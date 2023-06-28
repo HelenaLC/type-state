@@ -6,7 +6,10 @@
 source(args[[1]])
 sce <- readRDS(args[[2]])
 
-res <- fun(sce)
+res <- tryCatch(fun(sce),
+    error = function(e){
+        NULL
+    })
 
 md <- metadata(sce)
 ex <- c(names(res), names(md))
