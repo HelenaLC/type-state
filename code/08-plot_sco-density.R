@@ -32,11 +32,11 @@ fac_t <- facet_wrap(t ~ sco, scales = "free", labeller = labs)
 pal_s <- scale_color_brewer(palette = "Reds", "state\neffect", limits = seq(0, 1, 0.2))
 pal_t <- scale_color_brewer(palette = "Blues", "type\neffect", limits = seq(0, 1, 0.2))
 
-p1 <- ggplot(df, aes(sco_val, col = factor(t))) + gg + fac_s + pal_t
-p2 <- ggplot(fd, aes(sco_val, col = factor(t))) + gg + fac_s + pal_t
+p1 <- ggplot(df, aes(x = sco_val, col = factor(t))) + gg + fac_s + pal_t
+p2 <- ggplot(fd, aes(x = sco_val, col = factor(t))) + gg + fac_s + pal_t
     
-p3 <- ggplot(df, aes(sco_val, col = factor(s))) + gg + fac_t + pal_s
-p4 <- ggplot(fd, aes(sco_val, col = factor(s))) + gg + fac_t + pal_s
+p3 <- ggplot(df, aes(x = sco_val, col = factor(s))) + gg + fac_t + pal_s
+p4 <- ggplot(fd, aes(x = sco_val, col = factor(s))) + gg + fac_t + pal_s
 
 thm <- theme_bw(6) + theme(
     panel.grid = element_blank(),
