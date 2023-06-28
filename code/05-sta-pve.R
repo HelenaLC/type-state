@@ -11,8 +11,9 @@ fun <- \(x) {
     # fit LMM to estimate fraction of variance
     # attributable to cluster, sample, group
     cd <- data.frame(colData(x))
-    cd <- cd[c("cluster_id", "sample_id", "group_id")]
-    mod <- ~(1|cluster_id)+(1|sample_id)+(1|group_id)
+    cd <- cd[c("cluster_re", "sample_id", "group_id")]
+    cd <- sapply(cd, as.numeric)
+    mod <- ~(cluster_re)+(sample_id)+(group_id)
     res <- fitExtractVarPartModel(y, mod, cd, quiet = TRUE)
     # drop residuals & re-scale proportions
     tmp <- as.matrix(res <- res[, -4])
@@ -21,7 +22,7 @@ fun <- \(x) {
     # return variance fractions
     # separately for each variable
     rbind(
-        data.frame(sta = "pve_k", sta_val = res$cluster_id),
+        data.frame(sta = "pve_k", sta_val = res$cluster_re),
         data.frame(sta = "pve_s", sta_val = res$sample_id),
         data.frame(sta = "pve_g", sta_val = res$group_id))
 }

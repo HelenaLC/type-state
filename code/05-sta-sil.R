@@ -9,14 +9,14 @@ fun <- \(x) {
     # within samples (high value)
     idx <- split(seq(ncol(x)), x$sample_id)
     res_by_s <- vapply(idx, \(.) {
-        ids <- as.integer(factor(x$cluster_id[.]))
+        ids <- as.integer(factor(x$cluster_re[.]))
         if (length(unique(ids)) == 1) return(NA)
         res <- silhouette(ids, dist(y[., ]))
         mean(res[, "sil_width"])
     }, numeric(1))
     # samples should be well mixed
     # within clusters (low value)
-    idx <- split(seq(ncol(x)), x$cluster_id)
+    idx <- split(seq(ncol(x)), x$cluster_re)
     res_by_k <- vapply(idx, \(.) {
         ids <- as.integer(factor(x$sample_id[.]))
         if (length(unique(ids)) == 1) return(NA)
