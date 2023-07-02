@@ -47,11 +47,20 @@ p1 <- ggplot(de, aes(x=mg, y = ..scaled.., col = factor(t))) + gg +
     scale_color_brewer(palette = "Blues", "type\neffect") +
     facet_grid( ~ s, labeller = \(.) label_both(.), scales = "free") +
     xlab("GroupDE: max logFC in three groups")
+p2 <- ggplot(de, aes(x=cg, y = ..scaled.., col = factor(t))) + gg +
+    scale_color_brewer(palette = "Blues", "type\neffect") +
+    facet_grid( ~ s, labeller = \(.) label_both(.), scales = "free") +
+    xlab("ConditionDE logFC")
 
-p2 <- ggplot(de, aes(x=cg, y = ..scaled.., col = factor(s))) + gg +
+p3 <- ggplot(de, aes(x=mg, y = ..scaled.., col = factor(s))) + gg +
     scale_color_brewer(palette = "Reds", "state\neffect") +
     facet_grid( ~ t, labeller = \(.) label_both(.), scales = "free") +
-    xlab("ConditionDE logFC ")
+    xlab("GroupDE: max logFC in three groups")
+p4 <- ggplot(de, aes(x=cg, y = ..scaled.., col = factor(s))) + gg +
+    scale_color_brewer(palette = "Reds", "state\neffect") +
+    facet_grid( ~ t, labeller = \(.) label_both(.), scales = "free") +
+    xlab("ConditionDE logFC")
+
 
 thm <- theme_linedraw(9) + theme(
     panel.grid = element_blank(),
@@ -61,8 +70,8 @@ thm <- theme_linedraw(9) + theme(
     strip.text = element_text(color = "black", face = "bold"),
     strip.background = element_rect(color = NA, fill = "white"))
 
-plt <- wrap_elements(p1  + plot_layout(guides = "collect") & thm) / 
-    wrap_elements(p2  + plot_layout(guides = "collect") & thm) + 
+plt <- wrap_elements(p1 / p2  + plot_layout(guides = "collect") & thm) / 
+    wrap_elements(p3 / p4  + plot_layout(guides = "collect") & thm) + 
     plot_annotation(tag_levels = "a") &
     theme(
         plot.margin = margin(0, unit = "mm"),
@@ -70,6 +79,6 @@ plt <- wrap_elements(p1  + plot_layout(guides = "collect") & thm) /
 
 
 
-ggsave(args[[2]], plt, units = "cm", width = 25, height = 10)
+ggsave(args[[2]], plt, units = "cm", width = 25, height = 15)
 
 

@@ -5,9 +5,9 @@ suppressPackageStartupMessages({
 })
 
 fun <- \(x) {
-    ids <- colData(x)[c("sample_id", "cluster_id")]
+    ids <- colData(x)[c("sample_id", "cluster_re")]
     y <- aggregateAcrossCells(x, ids)
-    idx <- split(seq(ncol(y)), y$cluster_id)
+    idx <- split(seq(ncol(y)), y$cluster_re)
     res <- lapply(names(idx), \(k) {
         z <- y[, idx[[k]]]
         gs <- unique(z$group_id)
@@ -22,7 +22,7 @@ fun <- \(x) {
             data.frame(
                 row.names = NULL,
                 gene = rownames(tbl), 
-                cluster_id = k, tbl)
+                cluster_re = k, tbl)
         }
     })
     res <- do.call(rbind, res)

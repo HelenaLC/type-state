@@ -7,8 +7,8 @@ suppressPackageStartupMessages({
 
 
 fun <- \(x) {
-    idx <- .lfc_markers(x)
     rd <- data.frame(rowData(x))
+    idx <- .lfc_markers(rd, cutoff = 1)
     rd$true <- FALSE
     rd$true[idx] <- TRUE
     tf <- c(TRUE, FALSE)
