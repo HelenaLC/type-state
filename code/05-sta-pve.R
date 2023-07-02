@@ -12,11 +12,14 @@ fun <- \(x) {
     # attributable to cluster, sample, group
     cd <- data.frame(colData(x))
     cd <- cd[c("cluster_re", "sample_id", "group_id")]
-    cd <- sapply(cd, as.numeric)
-    mod <- ~(cluster_re)+(sample_id)+(group_id)
+    #cd <- sapply(cd, as.numeric)
+    #mod <- ~(cluster_re)+(sample_id)+(group_id)
+    mod <- ~(1|cluster_re)+(1|sample_id)+(1|group_id)
     res <- fitExtractVarPartModel(y, mod, cd, quiet = TRUE)
     # drop residuals & re-scale proportions
     tmp <- as.matrix(res <- res[, -4])
+    #scl <- \(x) {x / max(x)}
+    #res <- data.frame(t(apply(tmp, 1, scl)))
     res[, -4] <- sweep(tmp, 1, rowSums(tmp), `/`)
     res[rowAlls(is.na(res)), ] <- 0
     # return variance fractions

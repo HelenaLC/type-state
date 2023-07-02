@@ -16,7 +16,7 @@ S = list(range(0, 120, 20))
 B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
-VAL = ["cd", "sco", "sta", "rd", "eva"]
+VAL = ["cd", "sco", "sta", "rd", "eva", "sel"]
 PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
 
 res_sim = expand(
@@ -178,17 +178,6 @@ rule calc_sta:
 
 # differential abundance/analysis 
 
-#rule run_das:
-#    priority: 94
-#    input:  "code/06-das.R",
-#            "code/06-das-{das}.R",
-#            rules.rep_data.output
-#    output: "outs/das-{sim},{sel},{das}.rds"
-#    log:    "logs/das-{sim},{sel},{das}.Rout"
-#    shell: '''
-#        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-#        {input[1]} {input[2]} {output}" {input[0]} {log}'''
-
 rule run_das:
     priority: 94
     input:  "code/06-das.R",
@@ -199,6 +188,7 @@ rule run_das:
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
+
 
 # calculate performance of detect true markers
 
