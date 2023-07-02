@@ -17,7 +17,7 @@ fun <- \(x) {
     }, numeric(1))
     # sample purity should be low
     # within clusters (low value)
-    idx <- split(seq(ncol(x)), x$cluster_id)
+    idx <- split(seq(ncol(x)), x$cluster_re)
     res_by_k <- vapply(idx, \(.) {
         ids <- x$sample_id[.]
         if (length(unique(ids)) == 1) return(NA)

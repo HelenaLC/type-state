@@ -16,7 +16,7 @@ S = list(range(0, 120, 20))
 B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
-VAL = ["cd", "sco", "sta", "rd"]
+VAL = ["cd", "sco", "sta", "rd", "eva", "sel"]
 PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
 
 res_sim = expand(
@@ -42,9 +42,9 @@ res_sta = expand(
 #res_das = expand(
 #    "outs/das-{sim},{sel},{das}.rds",
 #    sim = SIM, sel = SEL, das = DAS)
-#res_eva = expand(
-#    "outs/eva-{sim},{sco},{eva}.rds",
-#    sim = SIM, sco = SCO, eva = EVA)
+res_eva = expand(
+    "outs/eva-{sim},{sco},{eva}.rds",
+    sim = SIM, sco = SCO, eva = EVA)
 
 res_plt = list()
 for val in PLT.keys():
@@ -60,7 +60,7 @@ res = {
     "rep": res_rep,
     "sta": res_sta,
     "plt": res_plt,
-#    "eva": res_eva,
+    "eva": res_eva,
 #    "das": res_das,
     "plt": res_plt}
 
@@ -178,30 +178,6 @@ rule calc_sta:
 
 # differential abundance/analysis 
 
-#rule run_das:
-#    priority: 94
-#    input:  "code/06-das.R",
-#            "code/06-das-{das}.R",
-#            rules.rep_data.output
-#    output: "outs/das-{sim},{sel},{das}.rds"
-#    log:    "logs/das-{sim},{sel},{das}.Rout"
-#    shell: '''
-#        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-#        {input[1]} {input[2]} {output}" {input[0]} {log}'''
-
-# calculate performance of detect true markers
-
-#rule calc_eva:
-#    priority: 95
-#    input:  "code/07-eva.R",
-#            "code/07-eva-roc.R",
-#            rules.calc_sco.output
-#    output: "outs/eva-{sim},{sco},{eva}.rds"
-#   log:    "logs/eva-{sim},{sco},{eva}.Rout"
-#    shell: '''
-#        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-#        {input[2]} {output}" {input[0]} {log}'''
-
 rule run_das:
     priority: 94
     input:  "code/06-das.R",
@@ -213,12 +189,13 @@ rule run_das:
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
+
 # calculate performance of detect true markers
 
 rule calc_eva:
     priority: 95
     input:  "code/07-eva.R",
-            "code/07-eva-roc.R",
+            "code/07-eva-nFeatures.R",
             rules.calc_sco.output
     output: "outs/eva-{sim},{sco},{eva}.rds"
     log:    "logs/eva-{sim},{sco},{eva}.Rout"
