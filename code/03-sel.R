@@ -10,6 +10,6 @@ sel_val <- fun(sco)
 df <- sco[[1]]
 res <- data.frame(
     row.names = NULL, sel = wcs$sel, sel_val,
-    df[1, c("sim", "t", "s", "b", "gene_id")])
+    df[1, c("sim", "t", "s", "b")], gene_id = df$gene_id)
 
 saveRDS(res, args[[3]])

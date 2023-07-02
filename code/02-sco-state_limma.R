@@ -37,7 +37,7 @@ fun <- \(x) {
     # average across clusters
     avg <- tbl %>% 
         group_by(gene) %>%
-        summarize(mean(p_adj))
+        summarize(mean(1-p_adj))
     res <- numeric(nrow(x))
     names(res) <- rownames(x)
     res[avg$gene] <- avg[[2]]

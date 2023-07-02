@@ -4,7 +4,7 @@ suppressPackageStartupMessages({
 })
 
 fun <- \(x) {
-    y <- table(x$sample_id, x$cluster_id)
+    y <- table(x$sample_id, x$cluster_re)
     y <- t(as.matrix(unclass(y)))
     
     ids <- colnames(y)
@@ -27,11 +27,11 @@ fun <- \(x) {
         idx <- match(c("P.Value", "adj.P.Val"), names(tbl))
         names(tbl)[idx] <- c("p_val", "p_adj")
         
-        cell_n <- tabulate(x$cluster_id)
-        cell_i <- split(seq(ncol(x)), x$cluster_id)
+        cell_n <- tabulate(x$cluster_re)
+        cell_i <- split(seq(ncol(x)), x$cluster_re)
         DataFrame(
             row.names = NULL, tbl,
-            cluster_id = rownames(y), 
+            cluster_re = rownames(y), 
             cell_n, cell_i = I(cell_i))
     }
     return(df)
