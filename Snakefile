@@ -16,7 +16,7 @@ S = list(range(0, 120, 20))
 B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
-VAL = ["cd", "sco", "sta", "rd", "eva", "sel"]
+VAL = ["cd", "sco", "sta", "rd", "eva", "sel", "das"]
 PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
 
 res_sim = expand(
@@ -29,7 +29,9 @@ res_cd  = expand("data/01-fil/{sim}-cd.rds", sim = SIM)
 
 res_sco = expand(
     "outs/sco-{sim},{sco}.rds",
-    sim = SIM, sco = SCO)
+    #"outs/sco-{dat},{sco}.rds"],
+    sim = SIM, #dat = DAT, 
+    sco = SCO)
 res_sel = expand(
     "outs/sel-{sim},{sel}.rds",
     sim = SIM, sel = SEL)
@@ -37,11 +39,14 @@ res_rep = expand(
     "data/02-rep/{sim},{sel}.rds", 
     sim = SIM, sel = SEL)
 res_sta = expand(
-    "outs/sta-{sim},{sel},{sta}.rds",
-    sim = SIM, sel = SEL, sta = STA)
-#res_das = expand(
-#    "outs/das-{sim},{sel},{das}.rds",
-#    sim = SIM, sel = SEL, das = DAS)
+        "outs/sta-{sim},{sel},{sta}.rds",
+        sim = SIM, sel = SEL, sta = STA)
+    #expand(
+    #    "outs/sta-{dat},{sel},{sta}.rds",
+    #    sim = SIM, sel = SEL, sta = STA) # filter stuff beginning w F1 from STA
+res_das = expand(
+    "outs/das-{sim},{sel},{das}.rds",
+    sim = SIM, sel = SEL, das = DAS)
 res_eva = expand(
     "outs/eva-{sim},{sco},{eva}.rds",
     sim = SIM, sco = SCO, eva = EVA)
@@ -61,7 +66,7 @@ res = {
     "sta": res_sta,
     "plt": res_plt,
     "eva": res_eva,
-#    "das": res_das,
+    "das": res_das,
     "plt": res_plt}
 
 
@@ -87,7 +92,8 @@ rule all:
         # scoring & evaluation
         res_sco, res_sel, res_sta,
         # downstream
-        #res_eva, res_das,
+        #res_eva, 
+        res_das,
         # visualization
         res_plt
 
