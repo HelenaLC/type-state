@@ -2,6 +2,7 @@ suppressPackageStartupMessages({
     library(edgeR)
     library(scuttle)
     library(SingleCellExperiment)
+    #library(caret)
 })
 
 fun <- \(x) {
@@ -11,7 +12,7 @@ fun <- \(x) {
     res <- lapply(names(idx), \(k) {
         z <- y[, idx[[k]]]
         gs <- unique(z$group_id)
-        if (length(gs) == 2) {
+        if (length(gs) == 2 & length(idx[[k]]) > 2) {
             mm <- model.matrix(~ z$group_id)
             z <- DGEList(assay(z))
             z <- calcNormFactors(z)
