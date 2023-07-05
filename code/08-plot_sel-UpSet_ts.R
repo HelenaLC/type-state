@@ -12,7 +12,6 @@ names(sel) <- sapply(sel, \(.) .$sel[1])
 df <- do.call(rbind, sel) 
 df$info <- paste0("t",df$t,",s",df$s)
 
-plt <- list()
 plt <- lapply(unique(df$info), \(ts){
     tmp <- df[df$info == ts,]
     lst <- split(tmp, tmp$sel)
