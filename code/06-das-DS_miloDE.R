@@ -8,7 +8,10 @@ fun <- \(x){
     res <- de_test_neighbourhoods(m, sample_id = "sample_id", 
         design = ~ group_id, covariates = c("group_id"))
     res <- na.omit(res)
-    idx <- match(c("pval"), names(res))
-    names(res)[idx] <- c("p_val")
+    if (!is.null(res)) {
+        idx <- match(c("pval", "pval_corrected_across_genes"), names(res))
+        names(res)[idx] <- c("p_val", "p_adj")
+    }
+    
     return(res)
 }
