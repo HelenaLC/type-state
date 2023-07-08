@@ -30,7 +30,7 @@ fun <- \(x) {
     if (!is.null(res)) {
         # average across clusters
         res <- group_by(res, gene)
-        res <- summarize(res, mean(1-p_adj))
+        res <- summarize(res, mean(-log(p_adj)))
         out <- numeric(nrow(x))
         names(out) <- rownames(x)
         out[res$gene] <- res[[2]]
