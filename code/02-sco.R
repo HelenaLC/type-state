@@ -7,6 +7,7 @@ suppressPackageStartupMessages({
     library(scran)
     library(igraph)
     library(data.table)
+    library(stringr)
 })
 
 source(args[[1]])
@@ -14,9 +15,14 @@ sce <- readRDS(args[[2]])
 
 df <- if (!is.null(sce)) {
     res <- fun(sce)
-    data.frame(wcs,
-        metadata(sce), rowData(sce), 
-        sco_val = res, row.names = NULL)
+    if (str_detect(args[[2]], "fil")) {
+        data.frame(wcs,
+            metadata(sce), rowData(sce), 
+            sco_val = res, row.names = NULL)
+    } else {
+        data.frame(rowData(sce), wcs,
+            sco_val = res, row.names = NULL)
+    }
 }
 
 saveRDS(df, args[[3]])
