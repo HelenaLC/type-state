@@ -5,15 +5,16 @@ suppressPackageStartupMessages({
     library(ggplot2)
     library(patchwork)
     library(matrixStats)
+    library(stringr)
 })
 
-res <- lapply(args[[1]], readRDS)
+res <- lapply(args[[1]], \(x) { if (str_detect(x,"sim")) readRDS(x) })
 res <- res[!vapply(res, is.null, logical(1))]
 
 df <- do.call(rbind, res) %>%
     mutate(sco_val = case_when(
         !(sco %in% c("type_entropy","random")) ~ log10(sco_val),
-        .default = sco_val))
+        .default = sco_val)) 
 
 # DE genes only (according to 'Splatter')
 de <- df[grep("GroupDE", names(df))]
