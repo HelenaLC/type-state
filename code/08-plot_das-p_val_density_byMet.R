@@ -10,7 +10,7 @@ suppressPackageStartupMessages({
     library(dplyr)
 })
 
-res <- lapply(args[[1]], readRDS)
+res <- lapply(args[[1]], \(x) { if (str_detect(x,"sim")) readRDS(x) })
 res <- res[!vapply(res, is.null, logical(1))]
 res <- lapply(res, \(.) .[c("sel","t", "s", "das", "p_val", "p_adj")])
 
@@ -37,7 +37,7 @@ plt <- lapply(unique(all$das), \(s){
             axis.text.x = element_text(angle = 45, hjust = 1))
 })
 
-pdf(args[[2]], width = 10, height = 8, onefile = TRUE)
+pdf(args[[2]], width = 12, height = 8, onefile = TRUE)
 for (i in seq_along(plt)) {
     print(plt[[i]])
 }

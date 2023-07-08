@@ -4,9 +4,10 @@ suppressPackageStartupMessages({
     library(dplyr)
     library(tidyr)
     library(ggplot2)
+    library(stringr)
 })
 
-res <- lapply(args[[1]], readRDS)
+res <- lapply(args[[1]], \(x) { if (str_detect(x,"sim")) readRDS(x) })
 res <- res[!vapply(res, is.null, logical(1))]
 
 df <- do.call(rbind, res) %>%
@@ -31,4 +32,4 @@ gg <- ggplot(df) +
         legend.key.height = unit(0.5, "lines"),
         panel.border = element_rect(fill = NA))
 
-ggsave(args[[2]], gg, units = "cm", width = 30, height = 24)
+ggsave(args[[2]], gg, units = "cm", width = 30, height = 25)
