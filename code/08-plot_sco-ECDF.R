@@ -5,14 +5,17 @@ suppressPackageStartupMessages({
     library(ggplot2)
     library(patchwork)
     library(matrixStats)
+    library(stringr)
 })
 
-res <- lapply(args[[1]], readRDS)
+res <- lapply(args[[1]], \(x) { if (str_detect(x,"sim")) readRDS(x) })
+
 res <- res[!vapply(res, is.null, logical(1))]
 
 df <- do.call(rbind, res) %>%
     mutate(sco_val = case_when(
-        sco != "entropy" ~ log10(sco_val),
+        sco != "type_entropy" ~ log10(sco_val),
+        TRUE ~ sco_val,
         .default = sco_val))
 
 df$sco_t <- paste(df$sco, df$t, sep = "_")

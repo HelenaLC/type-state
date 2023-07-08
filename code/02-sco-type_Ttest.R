@@ -32,7 +32,7 @@ fun <- \(x) {
         tbl$adj.P.Val
     })
     
-    #rowMeans(-log(res), na.rm = TRUE)
-    apply(-log(res), 1, max)
+    rowMeans(-log(res), na.rm = TRUE)
+    #apply(-log(res), 1, max)
 }
 

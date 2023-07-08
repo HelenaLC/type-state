@@ -4,10 +4,11 @@ suppressPackageStartupMessages({
     library(dplyr)
     library(ggplotify)
     library(cowplot)
+    library(stringr)
 })
 
 
-sel <- lapply(args[[1]], readRDS)
+sel <- lapply(args[[1]], \(x) { if (!str_detect(x,"dat")) readRDS(x) })
 names(sel) <- sapply(sel, \(.) .$sel[1])
 df <- do.call(rbind, sel) 
 df$info <- paste0("t",df$t,",s",df$s)
