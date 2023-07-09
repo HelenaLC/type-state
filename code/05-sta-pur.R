@@ -10,7 +10,7 @@ fun <- \(x) {
     # within samples (high value)
     idx <- split(seq(ncol(x)), x$sample_id)
     res_by_s <- vapply(idx, \(.) {
-        ids <- x$cluster_id[.]
+        ids <- x$cluster_re[.]
         if (length(unique(ids)) == 1) return(NA)
         res <- neighborPurity(y[., ], ids)
         mean(res$purity)

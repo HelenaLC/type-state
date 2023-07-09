@@ -5,9 +5,9 @@ suppressPackageStartupMessages({
 })
 
 fun <- \(x) {
-    ids <- colData(x)[c("sample_id", "cluster_hi")]
+    ids <- colData(x)[c("sample_id", "cluster_lo")]
     y <- aggregateAcrossCells(x, ids)
-    idx <- split(seq(ncol(y)), y$cluster_hi)
+    idx <- split(seq(ncol(y)), y$cluster_lo)
     res <- lapply(names(idx), \(k) {
         z <- y[, idx[[k]]]
         gs <- unique(z$group_id)

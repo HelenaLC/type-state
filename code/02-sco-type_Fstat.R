@@ -5,29 +5,21 @@ suppressPackageStartupMessages({
 
 
 fun <- \(x) {
-    x$cluster_hi <- factor(x$cluster_hi)
-    x$cluster_hi <- droplevels(x$cluster_hi)
-    ids <- unique(x$cluster_hi)
     y <- assay(x, "logcounts")
-    res <- sapply(ids, \(k) {
-        tmp <- x
-        id <- tmp$cluster_hi
-        j <- !(i <- id == k)
-        ij <- c(which(i), which(j))
-        df <- data.frame(row.names = ij)
-        df[i, "group"] <- "Group1"
-        df[j, "group"] <- "Group2"
-        df$group <- factor(df$group)
-        z <- y[, as.numeric(rownames(df)), drop = FALSE]
-        group <- df[,"group"]
-        design <- model.matrix(~ group)
-        fit <- lmFit(z, design = design)
-        fit <- contrasts.fit(fit, c(0,1))
-        fit <- eBayes(fit, trend = TRUE)
-        fit$F
+    cd <- data.frame(colData(x))
+    f <- ~ sample_id + cluster_hi
+    mm <- model.matrix(f, data = cd)
+    rownames(mm) <- colnames(x)
+    res <- apply(y, 1, \(g) {
+        fit <- lmFit(g, mm)
+        fit <- eBayes(fit, trend = FALSE)
+        cs <- colnames(fit$cov.coefficients)
+        nan <- !colnames(mm) %in% cs
+        if (any(nan)) {
+            fit <- lmFit(g, mm[, !nan])
+            fit <- eBayes(fit, trend = FALSE)
+        }
+        cs <- grep("cluster", cs)
+        topTable(fit, coef = cs, sort.by = "none")$F
     })
-    
-    rowMeans(res, na.rm = TRUE)
 }
-
-
