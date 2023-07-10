@@ -43,20 +43,20 @@ gg <- list(
     geom_density(key_glyph = "point"),
     guides(color = guide_legend(override.aes = list(size = 2))))
 
-p1 <- ggplot(de, aes(x=mg, y = ..scaled.., col = factor(t))) + gg +
+p1 <- ggplot(de, aes(x = mg, y = ..scaled.., col = factor(t))) + gg +
     scale_color_brewer(palette = "Blues", "type\neffect") +
     facet_grid( ~ s, labeller = \(.) label_both(.), scales = "free") +
     xlab("GroupDE: max logFC in three groups")
-p2 <- ggplot(de, aes(x=cg, y = ..scaled.., col = factor(t))) + gg +
+p2 <- ggplot(de, aes(x = cg, y = ..scaled.., col = factor(t))) + gg +
     scale_color_brewer(palette = "Blues", "type\neffect") +
     facet_grid( ~ s, labeller = \(.) label_both(.), scales = "free") +
     xlab("ConditionDE logFC")
 
-p3 <- ggplot(de, aes(x=mg, y = ..scaled.., col = factor(s))) + gg +
+p3 <- ggplot(de, aes(x = mg, y = ..scaled.., col = factor(s))) + gg +
     scale_color_brewer(palette = "Reds", "state\neffect") +
     facet_grid( ~ t, labeller = \(.) label_both(.), scales = "free") +
     xlab("GroupDE: max logFC in three groups")
-p4 <- ggplot(de, aes(x=cg, y = ..scaled.., col = factor(s))) + gg +
+p4 <- ggplot(de, aes(x = cg, y = ..scaled.., col = factor(s))) + gg +
     scale_color_brewer(palette = "Reds", "state\neffect") +
     facet_grid( ~ t, labeller = \(.) label_both(.), scales = "free") +
     xlab("ConditionDE logFC")

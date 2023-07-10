@@ -52,7 +52,7 @@ res_rep = expand([
     sim = SIM, dat = DAT, sel = SEL)
 
 res_sta = [expand("outs/sta-sim-{sim},{sel},{sta}.rds", sim = SIM, sel = SEL, sta = STA),
-    expand("outs/sta-dat-{dat},{sel},{sta_fil}.rds", dat = DAT, sel = SEL, sta_fil = [x for x in STA if "F1" not in x])] # filter stuff beginning w F1 from STA
+    expand("outs/sta-dat-{dat},{sel},{sta}.rds", dat = DAT, sel = SEL, sta = [x for x in STA if "F1" not in x])] # filter stuff beginning w F1 from STA
 
 res_das = expand([
     "outs/das-sim-{sim},{sel},{das}.rds",
@@ -264,10 +264,10 @@ rule calc_sta:
 rule comp_sta:
     priority: 94
     input:  "code/05-sta.R",
-            "code/05-sta-{sta_fil}.R",
+            "code/05-sta-{sta}.R",
             rules.rep_dat.output
-    output: "outs/sta-dat-{dat},{sel},{sta_fil}.rds"
-    log:    "logs/sta-dat-{dat},{sel},{sta_fil}.Rout"
+    output: "outs/sta-dat-{dat},{sel},{sta}.rds"
+    log:    "logs/sta-dat-{dat},{sel},{sta}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
