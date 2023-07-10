@@ -5,7 +5,6 @@
 suppressPackageStartupMessages({
     library(stringr)
 })
-
 source(args[[1]])
 sce <- readRDS(args[[2]])
 
@@ -19,6 +18,7 @@ if (!is.null(res)) {
         res <- data.frame(
             row.names = NULL, wcs, res)
     }
+    
     nan <- setdiff(res$gene, rownames(sce))
     if (length(nan)) {
         kid <- levels(sce$cluster_id)
