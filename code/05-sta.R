@@ -10,12 +10,13 @@ sce <- readRDS(args[[2]])
 
 res <- fun(sce)
 
-if (!str_detect(args[[2]][1], "Kang")){
+if (str_detect(args[[2]], "sim")) {
     md <- metadata(sce)
     ex <- c(names(res), names(md))
     wcs <- wcs[setdiff(names(wcs), ex)]
     df <- data.frame(md, wcs, res)
 } else {
+    wcs <- wcs[setdiff(names(wcs), colnames(res))]
     df <- data.frame(wcs, res)
 }
 
