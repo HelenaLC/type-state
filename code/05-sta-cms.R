@@ -9,7 +9,7 @@ fun <- \(x) {
     # within samples (low value)
     knn <- max(table(x$sample_id))/5
     idx <- split(seq(ncol(x)), x$sample_id)
-    res_by_s <- vapply(idx, \(.) {
+    res_by_k <- vapply(idx, \(.) {
         res <- cms(x[, .], knn, "cluster_re", n_dim = npc)
         mean(res$cms) # average across cells
     }, numeric(1))
@@ -17,7 +17,7 @@ fun <- \(x) {
     # within clusters (high value)
     knn <- max(table(x$cluster_re))/5
     idx <- split(seq(ncol(x)), x$cluster_re)
-    res_by_k <- vapply(idx, \(.) {
+    res_by_s <- vapply(idx, \(.) {
         res <- cms(x[, .], knn, "sample_id", n_dim = npc)
         mean(res$cms) # average across cells
     }, numeric(1))

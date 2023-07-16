@@ -17,8 +17,10 @@ plt <- lapply(unique(df$dat), \(x) {
     fd <- df[df$dat == x, ]
     ggplot(fd, aes(x = sel, y = sta_val, col = sel)) +
         geom_bar(stat = "identity", fill = "white") + 
+        xlab("Selection method") + ylab("Evaluation values") +
         facet_wrap(~ sta, ncol = 3, scales = "free") + 
-        ggtitle(x)
+        ggtitle(x) +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 })
 names(plt) <- unique(df$dat)
 #ggsave(args[[2]], , units = "cm", width = 30, height = 25)

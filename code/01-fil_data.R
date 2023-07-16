@@ -4,6 +4,7 @@ suppressPackageStartupMessages({
     library(Matrix)
     library(SingleCellExperiment)
     library(igraph)
+    library(leiden)
 })
 
 # load data
@@ -33,9 +34,11 @@ dr <- reducedDim(x, "PCA")
 
 # high- & low-resolution clustering
 g <- buildSNNGraph(x, use.dimred = "PCA")
-x$cluster_hi <- cluster_louvain(g, resolution = 2)$membership
-x$cluster_lo <- cluster_louvain(g, resolution = 0)$membership
-
+#x$cluster_hi <- cluster_louvain(g, resolution = 2)$membership
+#x$cluster_lo <- cluster_louvain(g, resolution = 0)$membership
+x$cluster_hi <- leiden(g, resolution_parameter = 2)
+x$cluster_lo <- leiden(g, resolution_parameter = 0)
+    
 # mock cluster identifier if low-resolution
 # clusters aren't represented in both groups
 ns <- table(x$cluster_lo, x$group_id)
