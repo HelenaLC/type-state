@@ -53,5 +53,26 @@ thm <- theme_bw(6) + theme(
 f1 <- (p1 / p3) & plot_annotation(tag_levels = "a") & thm
 f2 <- (p2 / p4) & plot_annotation(tag_levels = "a") & thm
 
+dat <- lapply(args[[1]], \(x) { if (str_detect(x,"dat")) readRDS(x) })
+dat <- dat[!vapply(dat, is.null, logical(1))]
+
+rdf <- do.call(rbind, dat) %>%
+    mutate(sco_val = case_when(
+        !(sco %in% c("type_entropy","random")) ~ log10(sco_val),
+        .default = sco_val)) 
+
+plt <- lapply(unique(rdf$dat), \(x) {
+    tmp <- rdf[rdf$dat == x,]
+    p <- ggplot(tmp, aes(x = sco, y = sco_val)) + 
+        gg + ggtitle(x) 
+})
+names(plt) <- unique(rdf$dat)
+
+
+
 pdf(args[[2]], width = 15/1.5, height = 18/1.5, onefile = TRUE)
-print(f1); print(f2); dev.off()
+print(f1) 
+print(f2)
+for (x in names(plt)) print(plt[[x]]) 
+dev.off()
+
