@@ -4,6 +4,8 @@ suppressPackageStartupMessages({
     library(Matrix)
     library(SingleCellExperiment)
     library(igraph)
+    library(harmony)
+    library(leiden)
 })
 
 x <- readRDS(args$dat)
@@ -30,14 +32,23 @@ rowData(x)$hvg <- hvg <- tbl$bio > 0
 rowData(x)$bio <- tbl$bio 
 x <- runPCA(x, subset_row = hvg, ncomponents = 10)
 x <- runUMAP(x)
+
+# batch effect correction
+pca <- HarmonyMatrix(data_mat = assay(x, "counts"), 
+    meta_data = colData(x), 
+    vars_use = "sample_id")
+reducedDim(x, "PCA") <- pca
+
 # table of gene/cell metadata
 # and simulation parameters
 dr <- reducedDim(x, "PCA")
 
 # high- & low-resolution clustering
 g <- buildSNNGraph(x, use.dimred = "PCA")
-x$cluster_hi <- cluster_louvain(g, resolution = 2)$membership
-x$cluster_lo <- cluster_louvain(g, resolution = 0.1)$membership
+# x$cluster_hi <- cluster_louvain(g, resolution = 2)$membership
+# x$cluster_lo <- cluster_louvain(g, resolution = 0.1)$membership
+x$cluster_hi <- leiden(g, resolution_parameter = 2)
+x$cluster_lo <- leiden(g, resolution_parameter = 0)
 
 for (. in names(colData(x)))
     x[[.]] <- factor(x[[.]])
