@@ -17,7 +17,7 @@ S = list(range(0, 120, 20))
 B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
-VAL = ["cd", "sco", "sta", "rd", "sel", "das"]
+VAL = ["cd", "sco", "sta", "rd", "sel", "das", "ncd"]
 PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
 
 res_sim = expand(
@@ -51,6 +51,12 @@ res_rep = expand([
     "data/02-rep/dat-{dat},{sel}.rds"],
     sim = SIM, dat = DAT, sel = SEL)
 
+res_ncd = expand([
+    "data/02-rep/sim-{sim},{sel}-cd.rds", 
+    "data/02-rep/dat-{dat},{sel}-cd.rds"],
+    sim = SIM, dat = DAT, sel = SEL)
+
+
 res_sta = [expand("outs/sta-sim-{sim},{sel},{sta}.rds", sim = SIM, sel = SEL, sta = STA),
     expand("outs/sta-dat-{dat},{sel},{sta}.rds", dat = DAT, sel = SEL, sta = [x for x in STA if "F1" not in x])] # filter stuff beginning w F1 from STA
 
@@ -79,6 +85,7 @@ res = {
     "sco": res_sco,
     "sel": res_sel,
     "rep": res_rep,
+    "ncd": res_ncd,
     "sta": res_sta,
     "plt": res_plt,
 #    "eva": res_eva,
@@ -111,7 +118,7 @@ rule all:
         res_sim, res_fil, # sim
         res_dat, res_pro, # real
         # scoring & evaluation
-        res_sco, res_sel, res_rep, res_sta,
+        res_sco, res_sel, res_rep, res_ncd, res_sta,
         # downstream
         #res_eva, 
         res_das,
@@ -232,23 +239,24 @@ rule rep_sim:
     input:  "code/04-rep.R",
             "data/01-fil/{sim}.rds",
             rules.calc_sel.output
-    output: "data/02-rep/sim-{sim},{sel}.rds"
+    output: "data/02-rep/sim-{sim},{sel}.rds",
+            "data/02-rep/sim-{sim},{sel}-cd.rds"
     log:    "logs/rep_sim-{sim},{sel}.Rout"
     shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-            {input[2]} {output}" {input[0]} {log}'''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+            {input[1]} {input[2]} {output[0]} {output[1]}" {input[0]} {log}'''
 
 rule rep_dat:
     priority: 95
     input:  "code/04-rep.R",
             "data/01-pro/{dat}.rds",
             rules.comp_sel.output
-    output: "data/02-rep/dat-{dat},{sel}.rds"
+    output: "data/02-rep/dat-{dat},{sel}.rds",
+            "data/02-rep/dat-{dat},{sel}-cd.rds"
     log:    "logs/rep_dat-{dat},{sel}.Rout"
     shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-            {input[2]} {output}" {input[0]} {log}'''
-
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+            {input[1]} {input[2]} {output[0]} {output[1]}" {input[0]} {log}'''
 # calculate clustering evaluation statistics
 rule calc_sta:
     priority: 94
