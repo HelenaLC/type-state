@@ -9,8 +9,6 @@ data/*rds
 data/**/*rds
 outs/*rds
 plts/*pdf
-docs/*
-docs/*html
 code/arch/*
 code/*cache
 .snakemake/

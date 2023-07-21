@@ -1,0 +1,257 @@
+# Case study on Kang18 dataset
+
+## Dependencies 
+
+```{r}
+#| label: load-libs
+suppressPackageStartupMessages({
+    library(scran)
+    library(scater)
+    library(patchwork)
+    library(ExperimentHub)
+    library(limma)
+    library(leiden)
+    library(igraph)
+    source("utils.R")
+    library(dplyr)
+    library(edgeR)
+    library(scuttle)
+    library(MLVSBM)
+    library(GGally)
+    library(miloR)
+    library(miloDE)
+    #library(lemur)
+    library(stringr)
+})
+
+```
+
+## Load data
+```{r}
+#| label: load-data
+# load preprocessed data
+sce <- readRDS("../data/case/Kang18.rds")
+gid <- sample(seq_len(nrow(sce)), 3000)
+cid <- sample(seq_len(ncol(sce)), 5000)
+sce <- sce[gid, cid]
+```
+
+## Preprocessing with HVG
+
+```{r}
+#| label: Preprocessing
+# widely used feature selection: HVG
+
+tbl <- modelGeneVar(sce, block = sce$sample_id)
+rowData(sce)$hvg <- hvg <- tbl$bio > 0
+rowData(sce)$bio <- tbl$bio 
+sce <- runPCA(sce, subset_row = hvg, ncomponents = 10)
+sce <- runUMAP(sce, subset_row = hvg)
+```
+
+
+::: {.panel-tabset}
+
+### PCA - cell type
+```{r PCA - cell type}
+plotPCA(sce, colour_by = "cluster_id")
+```
+
+### PCA - sample_id
+```{r PCA - sample_id}
+plotPCA(sce, colour_by = "sample_id")
+```
+
+### UMAP - cell type 
+```{r UMAP - cell type }
+plotUMAP(sce, colour_by = "cluster_id")
+```
+
+### UMAP - sample_id 
+```{r UMAP - sample_id }
+plotUMAP(sce, colour_by = "sample_id")
+```
+
+:::
+
+
+## Initial clustering: high and low resolution
+
+We first perform initial clustering in both high and low resolution using HVG. High resolution is for calculating type scores; while low resolution is for calculating state scores. 
+```{r}
+#| label: Initial clustering
+g <- buildSNNGraph(sce, use.dimred = "PCA")
+sce$cluster_hi <- cluster_louvain(g, resolution = 2)$membership
+sce$cluster_lo <- cluster_louvain(g, resolution = 0)$membership
+sce$cluster_lo <- factor(sce$cluster_lo, sort(unique(sce$cluster_lo)))
+sce$cluster_hi <- factor(sce$cluster_hi, sort(unique(sce$cluster_hi)))
+
+
+# mock cluster identifier if low-resolution
+# clusters aren't represented in both groups
+ns <- table(sce$cluster_lo, sce$group_id)
+na <- rowSums(ns == 0)
+if (sum(na == 1) == nrow(ns)) 
+    sce$cluster_lo <- 1
+```
+
+::: {.panel-tabset}
+
+### PCA - hvg, high resolution
+```{r}
+plotPCA(sce, colour_by = "cluster_hi")
+```
+
+### PCA - hvg, low resolution
+```{r}
+plotPCA(sce, colour_by = "cluster_lo")
+```
+:::
+
+## Feature scoring
+
+Here, we calculated the type score (F-statistics and entropy) and state score (p values of DS analysis by limma and edgeR). The following figure illustrates the relationship between different scores colored by HVG. 
+```{r warning=FALSE, message=FALSE, fig.height=4, fig.width=7}
+#| label: Score features
+rowData(sce)$Fstat <- .Fstat(sce)
+rowData(sce)$edgeR <- .edgeR(sce)
+rowData(sce)$limma <- .limma(sce)
+rowData(sce)$entropy <- .entropy(sce)
+df <- data.frame(rowData(sce)) %>% 
+    mutate(Fstat = log10(Fstat),
+        edgeR = log10(edgeR),
+        limma = log10(limma))
+
+ggpairs(df, columns = 6:9, 
+    ggplot2::aes(colour = hvg, alpha = 0.4),
+    upper = "blank",
+    legend = 1)
+
+
+```
+
+## Feature selection and reprosessing 
+
+### Detect how many genes to select
+```{r}
+#| label: Evaluating number of selected features
+# rowData(sce)$sel <- rank(rowData(sce)$Fstat) - rank(rowData(sce)$limma)
+# n <- seq(0.1,1,0.05)
+# sta <- sapply(n, \(x){
+#     idx <- 
+#         order(rowData(sce)$sel, decreasing = TRUE)[seq_len(round(nrow(sce)*x))]
+#     sel_val <- rep(FALSE, nrow(sce))
+#     sel_val[idx] <- TRUE
+#     rowData(sce)$sel_val <- sel_val
+#     sce <- runPCA(sce, subset_row = rowData(sce)$sel_val)
+#     sce$cluster_re <- clusterCells(sce, use.dimred = "PCA")
+#     ari <- ARI(sce$cluster_re, sce$cluster_id)
+#     
+# })
+# names(sta) <- n
+# saveRDS(sta, "../data/case/sta.rds")
+rowData(sce)$sel <- rank(rowData(sce)$Fstat) - rank(rowData(sce)$edgeR)
+```
+
+```{r line plot on selected genes, fig.width=8}
+sta <- readRDS("/Volumes/jiayiwang/type-state/data/case/sta.rds")
+n <- seq(0.1,1,0.05)
+df <- data.frame(ARI = sta,
+    precentage = n,
+    number = nrow(sce)*n) %>% 
+    mutate(label = paste0(number, ", ", round(ARI, digits = 2)))
+
+ggplot(df, aes(x = n, y = ARI, label = label)) + 
+    geom_line(stat = "identity") +
+    geom_point(stat = "identity") +
+    geom_text(angle = 40, hjust = 0, vjust = -1) +
+    ylim(c(0.4,1))
+```
+
+### Select 30% of top genes and reprocessing
+According to the number of features vs. ARI plot, we selected ~30% of the all genes.
+```{r}
+idx <- order(rowData(sce)$sel, 
+    decreasing = TRUE)[seq_len(round(nrow(sce)*0.3))]
+sel_val <- rep(FALSE, nrow(sce))
+sel_val[idx] <- TRUE
+rowData(sce)$sel_val <- sel_val
+sce <- runPCA(sce, subset_row = rowData(sce)$sel_val)
+sce <- runUMAP(sce, subset_row = rowData(sce)$sel_val)
+sce$cluster_re <- clusterCells(sce, use.dimred = "PCA")
+```
+
+### PCA and UMAP on reprocessed data
+
+::: {.panel-tabset}
+
+#### PCA, cluster_re
+```{r}
+plotPCA(sce, colour_by = "cluster_re")
+```
+
+#### PCA, ground truth label
+```{r}
+plotPCA(sce, colour_by = "cluster_id")
+```
+
+#### UMAP, cluster_re
+```{r}
+plotUMAP(sce, colour_by = "cluster_re")
+```
+
+#### UMAP, ground truth label
+```{r}
+plotUMAP(sce, colour_by = "cluster_id")
+```
+:::
+
+### Abundance plot
+```{r abundance plot, fig.height=4, fig.width=6}
+cd <- data.frame(colData(sce))
+ggplot(cd) +
+    aes(x = cluster_re, fill = cluster_id) +
+    geom_bar(position = "fill") +
+    xlab("Cluster after reprocessed ")
+    #theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+    
+```
+
+
+## Differential analysis
+
+### DA
+```{r DA analysis}
+# edgeR
+da_edgeR <- .DA_edgeR(sce)
+# limma
+da_limma <- .DA_limma(sce)
+# milo
+da_milo <- .DA_milo(sce)
+```
+
+### DS
+```{r DS, message=FALSE}
+# edgeR
+ds_edgeR <- .DS_edgeR(sce)
+# lemur 
+#ds_lemur 
+# miloDE
+ds_milo <- .DS_miloDE(sce) 
+```
+
+### Comparison between DA and DS
+```{r}
+das <- list(da_edgeR, da_limma, da_milo,
+    ds_edgeR, ds_milo)
+das_df <- lapply(das, \(x){
+    x %>% select(p_val, p_adj, DAS)
+}) %>% bind_rows() %>% 
+    mutate(DADS = ifelse(str_detect(DAS, "DS"), "DS", "DA"))
+
+ggplot(das_df, aes(p_val, after_stat(ndensity), col = DAS, linetype = DADS)) +
+        geom_density(key_glyph = "smooth")
+
+```
+
+

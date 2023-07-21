@@ -1,0 +1,72 @@
+# Case study on Kang18 dataset
+
+## Preamble
+
+## Dependencies 
+
+```{r}
+#| label: load-libs
+library(scran)
+library(scater)
+library(patchwork)
+library(ExperimentHub)
+```
+
+## Load data
+```{r}
+#| label: load-data
+# load SCE from EH
+eh <- ExperimentHub()
+q <- query(eh, "Kang18_8vs8")
+sce <- eh[[q$ah_id]]
+```
+
+## Filter data
+
+### Drop unassigned & multiplet cells
+```{r}
+#| label: filter data
+
+# remove undetected genes
+sce <- sce[rowSums(counts(sce)) > 0, ]
+
+# drop unassigned & multiplet cells
+sce <- sce[, !is.na(sce$cell)]
+sce <- sce[, sce$multiplets == "singlet"]
+
+colData(sce) <- DataFrame(
+        cluster_id = sce$cell,
+        sample_id = paste0(sce$stim, sce$ind),
+        group_id = sce$stim)
+
+for (. in names(colData(sce)))
+    sce[[.]] <- factor(sce[[.]])
+    
+# store gene/cell identifiers
+rowData(sce)$gene_id <- rownames(sce)
+colData(sce)$cell_id <- colnames(sce)
+
+```
+
+### QC: remove outlier and lowly expressed genes
+```{r}
+# remove outlier
+qc <- perCellQCMetrics(sce)
+ol <- isOutlier(metric = qc$detected, nmads = 2, log = TRUE)
+sce <- sce[, !ol]
+
+# remove lowly expressed genes
+sce <- sce[rowSums(counts(sce) > 1) >= 10, ]
+
+# compute sum-factors & normalize
+sce <- computeLibraryFactors(sce)
+sce <- logNormCounts(sce)
+
+```
+
+## Save data
+```{r}
+saveRDS(sce, "/Volumes/jiayiwang/type-state/data/case/Kang18.rds")
+```
+
+
