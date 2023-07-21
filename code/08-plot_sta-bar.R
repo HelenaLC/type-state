@@ -20,7 +20,7 @@ plt <- lapply(unique(df$dat), \(x) {
         xlab("Selection method") + ylab("Evaluation values") +
         facet_wrap(~ sta, ncol = 3, scales = "free") + 
         ggtitle(x) +
-        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+        theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 })
 names(plt) <- unique(df$dat)
 #ggsave(args[[2]], , units = "cm", width = 30, height = 25)
