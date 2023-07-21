@@ -215,6 +215,13 @@ ggplot(cd) +
     xlab("Cluster after reprocessed ")
     #theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
     
+ggplot(cd) +
+    aes(x = cluster_id, fill = cluster_re) +
+    geom_bar(position = "fill") +
+    xlab("Cell type") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+    #theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+ 
 ```
 
 
