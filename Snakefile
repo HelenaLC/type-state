@@ -41,29 +41,22 @@ res_sco = expand([
     "outs/sco-dat-{dat},{sco}.rds"],
     sim = SIM, dat = DAT, sco = SCO)
 
-res_sel = expand([
-    "outs/sel-sim-{sim},{sel}.rds",
-    "outs/sel-dat-{dat},{sel}.rds"],
-    sim = SIM, dat = DAT, sel = SEL)
+res_sel = [expand("outs/sel-sim-{sim},{sel}.rds", sim = SIM, sel = SEL),
+        expand("outs/sel-dat-{dat},{sel}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])]
 
-res_rep = expand([
-    "data/02-rep/sim-{sim},{sel}.rds", 
-    "data/02-rep/dat-{dat},{sel}.rds"],
-    sim = SIM, dat = DAT, sel = SEL)
 
-res_ncd = expand([
-    "data/02-rep/sim-{sim},{sel}-cd.rds", 
-    "data/02-rep/dat-{dat},{sel}-cd.rds"],
-    sim = SIM, dat = DAT, sel = SEL)
+res_rep = [expand("data/02-rep/sim-{sim},{sel}.rds", sim = SIM, sel = SEL),
+        expand("data/02-rep/dat-{dat},{sel}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])]
+
+res_ncd = [expand("data/02-rep/sim-{sim},{sel}-cd.rds", sim = SIM, sel = SEL),
+        expand("data/02-rep/dat-{dat},{sel}-cd.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])]
 
 
 res_sta = [expand("outs/sta-sim-{sim},{sel},{sta}.rds", sim = SIM, sel = SEL, sta = STA),
-    expand("outs/sta-dat-{dat},{sel},{sta}.rds", dat = DAT, sel = SEL, sta = [x for x in STA if "F1" not in x])] # filter stuff beginning w F1 from STA
+    expand("outs/sta-dat-{dat},{sel},{sta}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"], sta = [x for x in STA if "F1" not in x])] # filter stuff beginning w F1 from STA
 
-res_das = expand([
-    "outs/das-sim-{sim},{sel},{das}.rds",
-    "outs/das-dat-{dat},{sel},{das}.rds"],
-    sim = SIM, dat = DAT, sel = SEL, das = DAS)
+res_das = [expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS),
+        expand("outs/das-dat-{dat},{sel},{das}.rds", dat = DAT, das = DAS, sel = [x for x in SEL if x != "truth"])]
 
 #res_eva = expand(
 #    "outs/eva-{sim},{sco},{eva}.rds",
