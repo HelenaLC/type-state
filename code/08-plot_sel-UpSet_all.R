@@ -10,11 +10,12 @@ suppressPackageStartupMessages({
 sel <- lapply(args[[1]], \(x) { if (!str_detect(x,"dat")) readRDS(x) })
 names(sel) <- sapply(sel, \(.) .$sel[1])
 df <- do.call(rbind, sel) 
+df$sim_gene <- paste0(df$sim, df$gene_id)
 
 
 # sim data
 lst <- split(df, df$sel)
-sel_idx <- lapply(lst, \(x) x$gene_id[x$sel_val == TRUE])
+sel_idx <- lapply(lst, \(x) x$sim_gene[x$sel_val == TRUE])
 p1 <- upset(fromList(sel_idx),
     order.by = "freq",
     nsets = length(sel_idx),
