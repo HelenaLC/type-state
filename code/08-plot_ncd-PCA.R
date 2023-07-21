@@ -41,6 +41,7 @@ p2 <- lapply(unique(fd$dat), \(x) {
         scale_y_continuous(n.breaks = 3) +
         coord_fixed() + theme_bw(9) + theme(
             legend.position = "none",
+            plot.title = element_text(hjust = 0.5, size = 15),
             panel.grid = element_blank()) + 
         ggtitle(x)
 })
