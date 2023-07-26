@@ -1,14 +1,17 @@
 suppressPackageStartupMessages({
-    library(MKmisc)
+    library(limma)
     library(SummarizedExperiment)
 })
 
+
 fun <- \(x) {
-    y <- assay(x, "logcounts")
+    x$cluster_hi <- factor(x$cluster_hi)
+    x$cluster_hi <- droplevels(x$cluster_hi)
     ids <- unique(x$cluster_hi)
+    y <- assay(x, "logcounts")
     res <- sapply(ids, \(k) {
         tmp <- x
-        id <- tmp$cluster_id
+        id <- tmp$cluster_hi
         j <- !(i <- id == k)
         ij <- c(which(i), which(j))
         df <- data.frame(row.names = ij)
@@ -16,9 +19,20 @@ fun <- \(x) {
         df[j, "group"] <- "Group2"
         df$group <- factor(df$group)
         z <- y[, as.numeric(rownames(df)), drop = FALSE]
-        mod.t.test(as.matrix(z), group = df[, "group"])$adj.p.value
+        group <- df[,"group"]
+        design <- model.matrix(~ group)
+        fit <- lmFit(z, design = design)
+        fit <- contrasts.fit(fit, c(0,1))
+        fit <- eBayes(fit, trend = TRUE)
+        tbl <- topTable(fit, 
+            coef = 1, 
+            number = Inf, 
+            confint = TRUE, 
+            sort.by = "none")
+        tbl$adj.P.Val
     })
     
-    res <- -log(res)
-    rowMeans(res, na.rm = TRUE)
+    rowMeans(-log(res), na.rm = TRUE)
+    #apply(-log(res), 1, max)
 }
+

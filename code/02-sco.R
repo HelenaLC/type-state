@@ -3,7 +3,6 @@
 #     "data/01-fil/t0,s0,b0.rds")
 
 suppressPackageStartupMessages({
-    #library(FEAST)
     library(scran)
     library(igraph)
     library(data.table)
