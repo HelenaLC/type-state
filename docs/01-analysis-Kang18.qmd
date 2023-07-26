@@ -1,8 +1,16 @@
-# Case study on Kang18 dataset
+---
+title: "Case study on Kang18 dataset"
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-tools: true
+---
+
 
 ## Dependencies 
 
-```{r}
+```{r warning=FALSE}
 #| label: load-libs
 suppressPackageStartupMessages({
     library(scran)
@@ -23,11 +31,12 @@ suppressPackageStartupMessages({
     #library(lemur)
     library(stringr)
 })
-
+set.seed(2023)
 ```
 
 ## Load data
-```{r}
+Load filtered data (after QC and normalization)
+```{r fold}
 #| label: load-data
 # load preprocessed data
 sce <- readRDS("../data/case/Kang18.rds")
@@ -37,8 +46,8 @@ sce <- sce[gid, cid]
 ```
 
 ## Preprocessing with HVG
-
-```{r}
+We selected highly variable genes (HVG) and use them for dimensionality reduction.
+```{r fold}
 #| label: Preprocessing
 # widely used feature selection: HVG
 
@@ -78,7 +87,7 @@ plotUMAP(sce, colour_by = "sample_id")
 ## Initial clustering: high and low resolution
 
 We first perform initial clustering in both high and low resolution using HVG. High resolution is for calculating type scores; while low resolution is for calculating state scores. 
-```{r}
+```{r fold}
 #| label: Initial clustering
 g <- buildSNNGraph(sce, use.dimred = "PCA")
 sce$cluster_hi <- cluster_louvain(g, resolution = 2)$membership
@@ -99,19 +108,21 @@ if (sum(na == 1) == nrow(ns))
 
 ### PCA - hvg, high resolution
 ```{r}
+#| label: PCA high
 plotPCA(sce, colour_by = "cluster_hi")
 ```
 
 ### PCA - hvg, low resolution
 ```{r}
+#| label: PCA low
 plotPCA(sce, colour_by = "cluster_lo")
 ```
 :::
 
 ## Feature scoring
 
-Here, we calculated the type score (F-statistics and entropy) and state score (p values of DS analysis by limma and edgeR). The following figure illustrates the relationship between different scores colored by HVG. 
-```{r warning=FALSE, message=FALSE, fig.height=4, fig.width=7}
+Here, we calculated two type scores (F-statistics and entropy) and two state scores (p values of DS analysis by limma and edgeR). The following figure illustrates the relationship between different scores colored by HVG. 
+```{r warning=FALSE, message=FALSE, fig.height=6, fig.width=9, fold}
 #| label: Score features
 rowData(sce)$Fstat <- .Fstat(sce)
 rowData(sce)$edgeR <- .edgeR(sce)
@@ -133,8 +144,10 @@ ggpairs(df, columns = 6:9,
 ## Feature selection and reprosessing 
 
 ### Detect how many genes to select
-```{r}
+Here, we tried different number of genes and evaluate its performance using ARI. It is observed that the ARI increases first with the number of selected genes, which peaked at 900 and then decreased. 
+```{r fold}
 #| label: Evaluating number of selected features
+rowData(sce)$sel <- rank(rowData(sce)$Fstat) - rank(rowData(sce)$edgeR)
 # rowData(sce)$sel <- rank(rowData(sce)$Fstat) - rank(rowData(sce)$limma)
 # n <- seq(0.1,1,0.05)
 # sta <- sapply(n, \(x){
@@ -150,7 +163,10 @@ ggpairs(df, columns = 6:9,
 # })
 # names(sta) <- n
 # saveRDS(sta, "../data/case/sta.rds")
-rowData(sce)$sel <- rank(rowData(sce)$Fstat) - rank(rowData(sce)$edgeR)
+#ggplot(data.frame(rowData(sce)), aes(x = rank(Fstat), y = rank(edgeR))) +
+#    geom_point()
+#ggplot(data.frame(rowData(sce)), aes(x = sel)) +
+#  geom_density()
 ```
 
 ```{r line plot on selected genes, fig.width=8}
@@ -161,16 +177,17 @@ df <- data.frame(ARI = sta,
     number = nrow(sce)*n) %>% 
     mutate(label = paste0(number, ", ", round(ARI, digits = 2)))
 
-ggplot(df, aes(x = n, y = ARI, label = label)) + 
+ggplot(df, aes(x = precentage, y = ARI, label = label)) + 
     geom_line(stat = "identity") +
     geom_point(stat = "identity") +
     geom_text(angle = 40, hjust = 0, vjust = -1) +
-    ylim(c(0.4,1))
+    ylim(c(0.4,0.9))
 ```
 
 ### Select 30% of top genes and reprocessing
 According to the number of features vs. ARI plot, we selected ~30% of the all genes.
 ```{r}
+#| label: Feature selection
 idx <- order(rowData(sce)$sel, 
     decreasing = TRUE)[seq_len(round(nrow(sce)*0.3))]
 sel_val <- rep(FALSE, nrow(sce))
@@ -187,49 +204,72 @@ sce$cluster_re <- clusterCells(sce, use.dimred = "PCA")
 
 #### PCA, cluster_re
 ```{r}
+#| label: PCA cluster_re
 plotPCA(sce, colour_by = "cluster_re")
 ```
 
 #### PCA, ground truth label
 ```{r}
+#| label: PCA ground truth
 plotPCA(sce, colour_by = "cluster_id")
 ```
 
 #### UMAP, cluster_re
 ```{r}
+#| label: UMAP cluster_re
 plotUMAP(sce, colour_by = "cluster_re")
 ```
 
 #### UMAP, ground truth label
 ```{r}
+#| label: UMAP ground truth
 plotUMAP(sce, colour_by = "cluster_id")
 ```
 :::
 
-### Abundance plot
-```{r abundance plot, fig.height=4, fig.width=6}
+## Evaluation of reprocessed clustering results
+
+### Abundance plot 
+
+::: {.panel-tabset}
+
+#### Proportion of cell types in each cluster_re
+```{r abundance plot1, fig.height=5, fig.width=6}
+#| label: Abundance
 cd <- data.frame(colData(sce))
 ggplot(cd) +
     aes(x = cluster_re, fill = cluster_id) +
     geom_bar(position = "fill") +
-    xlab("Cluster after reprocessed ")
+    xlab("Cluster after reprocessed ") +
+    scale_fill_brewer(palette = "Paired")
     
  
 ```
 
-```{r}
+#### Proportion of cluster_re in each cell type
+```{r abundance plot2, fig.height=5, fig.width=5}
 ggplot(cd) +
     aes(x = cluster_id, fill = cluster_re) +
     geom_bar(position = "fill") +
     xlab("Cell type") +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+    scale_fill_brewer(palette = "Paired")
 ```
+:::
+
+### Evaluation metrics
+
+#### Comparison between different self-defined selection methods
+![](figs/sta-self.pdf){width=400%, height=400%}
+
+#### Comparison between different published feature selection methods
+![](figs/sta-pub.pdf){width=400%, height=400%}
 
 
 ## Differential analysis
 
 ### DA
-```{r DA analysis}
+```{r DA analysis, message=FALSE, warning=FALSE}
 # edgeR
 da_edgeR <- .DA_edgeR(sce)
 # limma
@@ -239,7 +279,7 @@ da_milo <- .DA_milo(sce)
 ```
 
 ### DS
-```{r DS, message=FALSE}
+```{r DS, message=FALSE, warning=FALSE}
 # edgeR
 ds_edgeR <- .DS_edgeR(sce)
 # lemur 
@@ -249,9 +289,12 @@ ds_milo <- .DS_miloDE(sce)
 ```
 
 ### Comparison between DA and DS
-```{r}
+
+The DA and DS p-value distribution with *Fstat-edgeR* selection. 
+```{r DAS, message=FALSE, warning=FALSE}
 das <- list(da_edgeR, da_limma, da_milo,
     ds_edgeR, ds_milo)
+
 das_df <- lapply(das, \(x){
     x %>% select(p_val, p_adj, DAS)
 }) %>% bind_rows() %>% 
@@ -261,5 +304,11 @@ ggplot(das_df, aes(p_val, after_stat(ndensity), col = DAS, linetype = DADS)) +
         geom_density(key_glyph = "smooth")
 
 ```
+
+### P-value distribution facet by selection methods
+![](figs/das_bySel.pdf){width=400%, height=400%}
+
+### P-value distribution facet by DAS methods
+![](figs/das_byMet.pdf){width=400%, height=400%}
 
 
