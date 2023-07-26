@@ -6,7 +6,9 @@ suppressPackageStartupMessages({
 })
 
 # simulated data
-res <- lapply(args[[1]], \(x) { if (str_detect(x,"sim")) readRDS(x) })
+res <- lapply(args[[1]], \(x) { if (str_detect(x,"sim")) readRDS(x) %>%
+        select(X1, X2, PC1, PC2, sel, 
+            t, s, b, group_id, cluster_id, cluster_re)})
 df <- do.call(rbind, res)
 
 p1 <- lapply(unique(df$sel), \(x) {
