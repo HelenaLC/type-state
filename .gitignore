@@ -11,8 +11,5 @@ outs/*rds
 plts/*pdf
 code/arch/*
 code/*cache
-docs/figs/*
-docs/*qmd
-docs/*R
 .snakemake/
 config.yaml
