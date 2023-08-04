@@ -18,7 +18,7 @@ rowData(sce)$sel_val <- sel$sel_val
 rowData(sce)$sel <- sel$sel
 
 sce <- runPCA(sce, subset_row = sel$sel_val)
-sce <- runUMAP(sce, subset_row = sel$sel_val)
+sce <- runUMAP(sce, dimred = "PCA")
 sce$cluster_re <- clusterCells(sce, use.dimred = "PCA")
 
 pca <- reducedDim(sce, "PCA")
