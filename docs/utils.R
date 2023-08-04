@@ -282,3 +282,57 @@
     res <- data.frame(res, DAS = "DS_miloDE")
     return(res)
 }
+
+
+
+.sil_k <- \(x) {
+    y <- reducedDim(x, "PCA")
+    # clusters should be well separated
+    # within samples (high value)
+    idx <- split(seq(ncol(x)), x$sample_id)
+    res_by_s <- vapply(idx, \(.) {
+        ids <- as.integer(factor(x$cluster_re[.]))
+        if (length(unique(ids)) == 1) return(NA)
+        res <- silhouette(ids, dist(y[., ]))
+        mean(res[, "sil_width"])
+    }, numeric(1))
+    # samples should be well mixed
+    # within clusters (low value)
+    res_k <- mean(res_by_s, na.rm = TRUE)
+
+}
+
+.pur_k <- \(x) {
+    y <- reducedDim(x, "PCA")
+    # cluster purity should be high
+    # within samples (high value)
+    idx <- split(seq(ncol(x)), x$sample_id)
+    res_by_k <- vapply(idx, \(.) {
+        ids <- x$cluster_re[.]
+        if (length(unique(ids)) == 1) return(NA)
+        res <- neighborPurity(y[., ], ids)
+        mean(res$purity)
+    }, numeric(1))
+    
+    res_k <- mean(res_by_k, na.rm = TRUE)
+}
+
+.FEAST <- \(x) {
+    y <- assay(x, "counts")
+    y <- as.matrix(y)
+    con <- Consensus(Y, k = length(unique(x$cluster_id)))
+    res <- cal_F2(y, con$cluster)
+    res$F_scores
+}
+
+.DUBStepR <- \(x) {
+    y <- assay(x, "logcounts")
+    colnames(y) <- seq_len(ncol(y))
+    #y <- ScaleData(y)
+    dub <- DUBStepR(y, optimise.features = FALSE)
+    res <- rep(0, nrow(x))
+    idx <- match(dub$corr.info$feature.genes, rownames(x))
+    res[idx] <- dub$corr.info$corr.range
+    return(res)
+}
+
