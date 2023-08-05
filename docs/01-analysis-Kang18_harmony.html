@@ -86,16 +86,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </style>
 
 
-<script src="01-analysis-Kang18_files/libs/clipboard/clipboard.min.js"></script>
-<script src="01-analysis-Kang18_files/libs/quarto-html/quarto.js"></script>
-<script src="01-analysis-Kang18_files/libs/quarto-html/popper.min.js"></script>
-<script src="01-analysis-Kang18_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="01-analysis-Kang18_files/libs/quarto-html/anchor.min.js"></script>
-<link href="01-analysis-Kang18_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="01-analysis-Kang18_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="01-analysis-Kang18_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="01-analysis-Kang18_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="01-analysis-Kang18_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="01-analysis-Kang18_harmony_files/libs/clipboard/clipboard.min.js"></script>
+<script src="01-analysis-Kang18_harmony_files/libs/quarto-html/quarto.js"></script>
+<script src="01-analysis-Kang18_harmony_files/libs/quarto-html/popper.min.js"></script>
+<script src="01-analysis-Kang18_harmony_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="01-analysis-Kang18_harmony_files/libs/quarto-html/anchor.min.js"></script>
+<link href="01-analysis-Kang18_harmony_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="01-analysis-Kang18_harmony_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="01-analysis-Kang18_harmony_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="01-analysis-Kang18_harmony_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="01-analysis-Kang18_harmony_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -226,10 +226,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">size =</span> <span class="dv">3</span>, <span class="at">color =</span> <span class="st">"blue"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/Preprocessing-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/Preprocessing-1.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>With the elbow plot, we can roughly see the explained variance . To extract the information in a more quantitative manner, function is used to determine the exact elbow.</p>
+<p>With the elbow plot, we can roughly see the explained variance does not change from PC10. Therefore, we decided to use 10 PCs that explain the majority of the variance of the high-dimension data.</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -253,7 +253,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotPCA</span>(sce, <span class="at">colour_by =</span> <span class="st">"cluster_id"</span>) <span class="sc">+</span> <span class="fu">coord_equal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/PCA%20-%20cell%20type-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/PCA%20-%20cell%20type-1.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
 </div>
@@ -264,7 +264,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotPCA</span>(sce, <span class="at">colour_by =</span> <span class="st">"sample_id"</span>) <span class="sc">+</span> <span class="fu">coord_equal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/PCA%20-%20sample_id-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/PCA%20-%20sample_id-1.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
 </div>
@@ -275,7 +275,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotPCA</span>(sce, <span class="at">colour_by =</span> <span class="st">"group_id"</span>) <span class="sc">+</span> <span class="fu">coord_equal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/PCA%20-%20group_id-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/PCA%20-%20group_id-1.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
 </div>
@@ -288,8 +288,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rsl &lt;- seq(0.1, 5, by = 0.2)</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># g &lt;- buildSNNGraph(sce, use.dimred = "PCA")</span></span>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>rsl <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="fl">0.2</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">buildSNNGraph</span>(sce, <span class="at">use.dimred =</span> <span class="st">"PCA"</span>)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># reso &lt;- lapply(rsl, \(i) {</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#     sce$cluster_hi &lt;- cluster_louvain(g, resolution = i)$membership</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#     sce$cluster_hi  &lt;- factor(sce$cluster_hi,sort(unique(sce$cluster_hi)))</span></span>
@@ -333,7 +333,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <pre><code>Picking joint bandwidth of 0.0793</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/Fstat-1.svg" class="img-fluid" width="1440"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/Fstat-1.svg" class="img-fluid" width="1440"></p>
 </div>
 </div>
 </div>
@@ -365,7 +365,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <pre><code>Picking joint bandwidth of 0.0393</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/edgeR-1.svg" class="img-fluid" width="1440"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/edgeR-1.svg" class="img-fluid" width="1440"></p>
 </div>
 </div>
 </div>
@@ -398,7 +398,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <pre><code>Picking joint bandwidth of 0.1</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/Fstat_edgeR-1.svg" class="img-fluid" width="1440"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/Fstat_edgeR-1.svg" class="img-fluid" width="1440"></p>
 </div>
 </div>
 </div>
@@ -425,7 +425,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotPCA</span>(sce, <span class="at">colour_by =</span> <span class="st">"cluster_hi"</span>) <span class="sc">+</span> <span class="fu">coord_equal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/PCA%20high-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/PCA%20high-1.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
 </div>
@@ -436,7 +436,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotPCA</span>(sce, <span class="at">colour_by =</span> <span class="st">"cluster_lo"</span>) <span class="sc">+</span> <span class="fu">coord_equal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/PCA%20low-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/PCA%20low-1.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
 </div>
@@ -466,7 +466,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/Score%20features-1.svg" class="img-fluid" width="864"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/Score%20features-1.svg" class="img-fluid" width="864"></p>
 </div>
 </div>
 <section id="further-exploration-of-different-scores" class="level3">
@@ -497,7 +497,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">scale.sets =</span> <span class="st">"identity"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/unnamed-chunk-7-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/unnamed-chunk-7-1.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Here, we extract genes with rank difference between Fstat type score and edgeR state score larger than 0, indicating a gene has relatively larger type score than state score. It is observed that even genes with every high F-statistics values but high edgeR value might still be excluded by <em>Fstat_edgeR</em> selection.</p>
@@ -511,7 +511,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"-log(p_val) in edgeR DS"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/unnamed-chunk-8-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/unnamed-chunk-8-1.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
@@ -601,7 +601,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ℹ Please use `linewidth` instead.</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/unnamed-chunk-11-1.svg" class="img-fluid" width="768"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/unnamed-chunk-11-1.svg" class="img-fluid" width="768"></p>
 </div>
 </div>
 </div>
@@ -623,7 +623,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_brewer</span>(<span class="at">palette =</span> <span class="st">"Set1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/unnamed-chunk-12-1.svg" class="img-fluid" width="768"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/unnamed-chunk-12-1.svg" class="img-fluid" width="768"></p>
 </div>
 </div>
 </div>
@@ -645,7 +645,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_brewer</span>(<span class="at">palette =</span> <span class="st">"Set1"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/unnamed-chunk-13-1.svg" class="img-fluid" width="768"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/unnamed-chunk-13-1.svg" class="img-fluid" width="768"></p>
 </div>
 </div>
 </div>
@@ -699,7 +699,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a>        <span class="at">scale.sets =</span> <span class="st">"identity"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/Feature%20selection%20and%20reprocess-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/Feature%20selection%20and%20reprocess-1.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
@@ -719,7 +719,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>pk</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/pk-1.svg" class="img-fluid" width="768"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/pk-1.svg" class="img-fluid" width="768"></p>
 </div>
 </div>
 </div>
@@ -733,7 +733,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>pg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/pg-1.svg" class="img-fluid" width="768"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/pg-1.svg" class="img-fluid" width="768"></p>
 </div>
 </div>
 </div>
@@ -760,7 +760,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">|&gt;</span> <span class="fu">wrap_plots</span>(<span class="at">nrow =</span> <span class="dv">2</span>) <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/Abundance-1.svg" class="img-fluid" width="1152"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/Abundance-1.svg" class="img-fluid" width="1152"></p>
 </div>
 </div>
 </div>
@@ -780,7 +780,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">|&gt;</span> <span class="fu">wrap_plots</span>(<span class="at">nrow =</span> <span class="dv">2</span>) <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/abundance%20plot2-1.svg" class="img-fluid" width="960"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/abundance%20plot2-1.svg" class="img-fluid" width="960"></p>
 </div>
 </div>
 </div>
@@ -862,7 +862,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span> sel, <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">scales =</span> <span class="st">"free"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/sel-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/sel-1.svg" class="img-fluid" width="672"></p>
 </div>
 <details>
 <summary>Code</summary>
@@ -871,7 +871,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span> sel, <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">scales =</span> <span class="st">"free"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/sel-2.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/sel-2.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
 </div>
@@ -884,7 +884,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span> das, <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">scales =</span> <span class="st">"free"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/DAS-1.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/DAS-1.svg" class="img-fluid" width="672"></p>
 </div>
 <details>
 <summary>Code</summary>
@@ -893,7 +893,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span> das, <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">scales =</span> <span class="st">"free"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/DAS-2.svg" class="img-fluid" width="672"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/DAS-2.svg" class="img-fluid" width="672"></p>
 </div>
 </div>
 </div>
@@ -923,7 +923,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.05</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/DADS-1.svg" class="img-fluid" width="1152"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/DADS-1.svg" class="img-fluid" width="1152"></p>
 </div>
 <details>
 <summary>Code</summary>
@@ -936,7 +936,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/DADS-2.svg" class="img-fluid" width="1152"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/DADS-2.svg" class="img-fluid" width="1152"></p>
 </div>
 </div>
 </section>
@@ -980,7 +980,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a>             <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> cluster_re, <span class="at">y =</span> logFC, <span class="at">col =</span> <span class="st">"black"</span>, <span class="at">shape =</span> das))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="01-analysis-Kang18_files/figure-html/milo%20comparsion-1.svg" class="img-fluid" width="1152"></p>
+<p><img src="01-analysis-Kang18_harmony_files/figure-html/milo%20comparsion-1.svg" class="img-fluid" width="1152"></p>
 </div>
 </div>
 <!-- -->
@@ -1257,7 +1257,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb43-80"><a href="#cb43-80" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-81"><a href="#cb43-81" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb43-82"><a href="#cb43-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-83"><a href="#cb43-83" aria-hidden="true" tabindex="-1"></a>With the elbow plot, we can roughly see the explained variance . To extract the information in a more quantitative manner, \code{find_curve_elbow()} function is used to determine the exact elbow. </span>
+<span id="cb43-83"><a href="#cb43-83" aria-hidden="true" tabindex="-1"></a>With the elbow plot, we can roughly see the explained variance does not change from PC10. Therefore, we decided to use 10 PCs that explain the majority of the variance of the high-dimension data. </span>
 <span id="cb43-84"><a href="#cb43-84" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-85"><a href="#cb43-85" aria-hidden="true" tabindex="-1"></a><span class="in">```{r harmony, message=FALSE, warning=FALSE}</span></span>
 <span id="cb43-86"><a href="#cb43-86" aria-hidden="true" tabindex="-1"></a>sce <span class="ot">&lt;-</span> <span class="fu">runPCA</span>(sce, <span class="at">subset_row =</span> hvg, <span class="at">ncomponents =</span> <span class="dv">10</span>)</span>
@@ -1296,8 +1296,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb43-119"><a href="#cb43-119" aria-hidden="true" tabindex="-1"></a>We first perform initial clustering in both high and low resolution using HVG. High resolution is for calculating type scores; while low resolution is for calculating state scores. </span>
 <span id="cb43-120"><a href="#cb43-120" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-121"><a href="#cb43-121" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fig.height=8, fig.width=15, warning=FALSE}</span></span>
-<span id="cb43-122"><a href="#cb43-122" aria-hidden="true" tabindex="-1"></a><span class="co"># rsl &lt;- seq(0.1, 5, by = 0.2)</span></span>
-<span id="cb43-123"><a href="#cb43-123" aria-hidden="true" tabindex="-1"></a><span class="co"># g &lt;- buildSNNGraph(sce, use.dimred = "PCA")</span></span>
+<span id="cb43-122"><a href="#cb43-122" aria-hidden="true" tabindex="-1"></a>rsl <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="fl">0.2</span>)</span>
+<span id="cb43-123"><a href="#cb43-123" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">buildSNNGraph</span>(sce, <span class="at">use.dimred =</span> <span class="st">"PCA"</span>)</span>
 <span id="cb43-124"><a href="#cb43-124" aria-hidden="true" tabindex="-1"></a><span class="co"># reso &lt;- lapply(rsl, \(i) {</span></span>
 <span id="cb43-125"><a href="#cb43-125" aria-hidden="true" tabindex="-1"></a><span class="co">#     sce$cluster_hi &lt;- cluster_louvain(g, resolution = i)$membership</span></span>
 <span id="cb43-126"><a href="#cb43-126" aria-hidden="true" tabindex="-1"></a><span class="co">#     sce$cluster_hi  &lt;- factor(sce$cluster_hi,sort(unique(sce$cluster_hi)))</span></span>
