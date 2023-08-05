@@ -5,6 +5,7 @@ suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(igraph)
     library(leiden)
+    library(harmony)
 })
 
 # load data
@@ -27,6 +28,11 @@ rowData(x)$hvg <- hvg <- tbl$bio > 0
 rowData(x)$bio <- tbl$bio 
 #x <- runPCA(x, subset_row = hvg, ncomponents = 10)
 x <- runPCA(x, subset_row = hvg, ncomponents = 10)
+
+pca <- HarmonyMatrix(data_mat = assay(x, "counts"), 
+    meta_data = colData(x), 
+    vars_use = "sample_id")
+reducedDim(x, "PCA") <- pca
 
 # table of gene/cell metadata
 # and simulation parameters

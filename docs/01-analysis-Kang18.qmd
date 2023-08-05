@@ -80,17 +80,17 @@ ggplot(pv, aes(x = PC, y = percentVar, label = PC)) +
 
 ```
 
-With the elbow plot, we can roughly see the explained variance . To extract the information in a more quantitative manner, \code{find_curve_elbow()} function is used to determine the exact elbow. 
+With the elbow plot, we can roughly see the explained variance does not change from PC10. Therefore, we decided to use 10 PCs that explain the majority of the variance of the high-dimension data. 
 
 ```{r harmony, message=FALSE, warning=FALSE}
 sce <- runPCA(sce, subset_row = hvg, ncomponents = 10)
 
 # integration
-pca <- HarmonyMatrix(data_mat = assay(sce, "counts"),
-    meta_data = colData(sce),
-    vars_use = "sample_id",
-    npcs = 10)
-reducedDim(sce, "PCA") <- pca
+# pca <- HarmonyMatrix(data_mat = assay(sce, "counts"),
+#     meta_data = colData(sce),
+#     vars_use = "sample_id",
+#     npcs = 10)
+# reducedDim(sce, "PCA") <- pca
 ```
 
 
@@ -119,21 +119,21 @@ plotPCA(sce, colour_by = "group_id") + coord_equal()
 We first perform initial clustering in both high and low resolution using HVG. High resolution is for calculating type scores; while low resolution is for calculating state scores. 
 
 ```{r fig.height=8, fig.width=15, warning=FALSE}
-# rsl <- seq(0.1, 5, by = 0.2)
-# g <- buildSNNGraph(sce, use.dimred = "PCA")
-# reso <- lapply(rsl, \(i) {
-#     sce$cluster_hi <- cluster_louvain(g, resolution = i)$membership
-#     sce$cluster_hi  <- factor(sce$cluster_hi,sort(unique(sce$cluster_hi)))
-#     sce$cluster_lo <- sce$cluster_hi
-#     Fstat <- .Fstat(sce)
-#     edgeR <- .edgeR(sce)
-#     Fstat_edgeR <- rank(Fstat) - rank(edgeR)
-#     data.frame(resolution = i, Fstat = Fstat, edgeR = edgeR, Fstat_edgeR)
-# })
-# res_df <- data.frame(do.call(rbind, reso))
+rsl <- seq(0.1, 5, by = 0.2)
+g <- buildSNNGraph(sce, use.dimred = "PCA")
+reso <- lapply(rsl, \(i) {
+    sce$cluster_hi <- cluster_louvain(g, resolution = i)$membership
+    sce$cluster_hi  <- factor(sce$cluster_hi,sort(unique(sce$cluster_hi)))
+    sce$cluster_lo <- sce$cluster_hi
+    Fstat <- .Fstat(sce)
+    edgeR <- .edgeR(sce)
+    Fstat_edgeR <- rank(Fstat) - rank(edgeR)
+    data.frame(resolution = i, Fstat = Fstat, edgeR = edgeR, Fstat_edgeR)
+})
+res_df <- data.frame(do.call(rbind, reso))
 # saveRDS(reso, "../data/case/reso.rds")
-reso <- readRDS("../data/case/reso.rds")
-res_df <- do.call(rbind, reso)
+# reso <- readRDS("../data/case/reso.rds")
+# res_df <- do.call(rbind, reso)
 ```
 
 ::: {.panel-tabset}
