@@ -37,6 +37,7 @@ x <- runUMAP(x)
 pca <- HarmonyMatrix(data_mat = assay(x, "counts"), 
     meta_data = colData(x), 
     vars_use = "sample_id")
+names(pca) <- paste0("PC", names(pca))
 reducedDim(x, "PCA") <- pca
 
 # table of gene/cell metadata

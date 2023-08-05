@@ -236,11 +236,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sce <span class="ot">&lt;-</span> <span class="fu">runPCA</span>(sce, <span class="at">subset_row =</span> hvg, <span class="at">ncomponents =</span> <span class="dv">10</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># integration</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>pca <span class="ot">&lt;-</span> <span class="fu">HarmonyMatrix</span>(<span class="at">data_mat =</span> <span class="fu">assay</span>(sce, <span class="st">"counts"</span>),</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">meta_data =</span> <span class="fu">colData</span>(sce),</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">vars_use =</span> <span class="st">"sample_id"</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">npcs =</span> <span class="dv">10</span>)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">reducedDim</span>(sce, <span class="st">"PCA"</span>) <span class="ot">&lt;-</span> pca</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># pca &lt;- HarmonyMatrix(data_mat = assay(sce, "counts"),</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#     meta_data = colData(sce),</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#     vars_use = "sample_id",</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#     npcs = 10)</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># reducedDim(sce, "PCA") &lt;- pca</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="panel-tabset">
@@ -288,21 +288,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rsl &lt;- seq(0.1, 5, by = 0.2)</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># g &lt;- buildSNNGraph(sce, use.dimred = "PCA")</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># reso &lt;- lapply(rsl, \(i) {</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#     sce$cluster_hi &lt;- cluster_louvain(g, resolution = i)$membership</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#     sce$cluster_hi  &lt;- factor(sce$cluster_hi,sort(unique(sce$cluster_hi)))</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#     sce$cluster_lo &lt;- sce$cluster_hi</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#     Fstat &lt;- .Fstat(sce)</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">#     edgeR &lt;- .edgeR(sce)</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">#     Fstat_edgeR &lt;- rank(Fstat) - rank(edgeR)</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     data.frame(resolution = i, Fstat = Fstat, edgeR = edgeR, Fstat_edgeR)</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co"># })</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co"># res_df &lt;- data.frame(do.call(rbind, reso))</span></span>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>rsl <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="fl">0.2</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">buildSNNGraph</span>(sce, <span class="at">use.dimred =</span> <span class="st">"PCA"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>reso <span class="ot">&lt;-</span> <span class="fu">lapply</span>(rsl, \(i) {</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    sce<span class="sc">$</span>cluster_hi <span class="ot">&lt;-</span> <span class="fu">cluster_louvain</span>(g, <span class="at">resolution =</span> i)<span class="sc">$</span>membership</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    sce<span class="sc">$</span>cluster_hi  <span class="ot">&lt;-</span> <span class="fu">factor</span>(sce<span class="sc">$</span>cluster_hi,<span class="fu">sort</span>(<span class="fu">unique</span>(sce<span class="sc">$</span>cluster_hi)))</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    sce<span class="sc">$</span>cluster_lo <span class="ot">&lt;-</span> sce<span class="sc">$</span>cluster_hi</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    Fstat <span class="ot">&lt;-</span> <span class="fu">.Fstat</span>(sce)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    edgeR <span class="ot">&lt;-</span> <span class="fu">.edgeR</span>(sce)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    Fstat_edgeR <span class="ot">&lt;-</span> <span class="fu">rank</span>(Fstat) <span class="sc">-</span> <span class="fu">rank</span>(edgeR)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">resolution =</span> i, <span class="at">Fstat =</span> Fstat, <span class="at">edgeR =</span> edgeR, Fstat_edgeR)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">do.call</span>(rbind, reso))</span>
 <span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># saveRDS(reso, "../data/case/reso.rds")</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>reso <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"../data/case/reso.rds"</span>)</span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, reso)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># reso &lt;- readRDS("../data/case/reso.rds")</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co"># res_df &lt;- do.call(rbind, reso)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="panel-tabset">
@@ -330,7 +330,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>p1 <span class="sc">+</span> p2 <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">ncol =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
-<pre><code>Picking joint bandwidth of 0.0793</code></pre>
+<pre><code>Picking joint bandwidth of 0.0813</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="01-analysis-Kang18_files/figure-html/Fstat-1.svg" class="img-fluid" width="1440"></p>
@@ -362,7 +362,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>p3 <span class="sc">+</span> p4 <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">ncol =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
-<pre><code>Picking joint bandwidth of 0.0393</code></pre>
+<pre><code>Picking joint bandwidth of 0.0319</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="01-analysis-Kang18_files/figure-html/edgeR-1.svg" class="img-fluid" width="1440"></p>
@@ -395,7 +395,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>p5 <span class="sc">+</span> p6 <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">ncol =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
-<pre><code>Picking joint bandwidth of 0.1</code></pre>
+<pre><code>Picking joint bandwidth of 0.118</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="01-analysis-Kang18_files/figure-html/Fstat_edgeR-1.svg" class="img-fluid" width="1440"></p>
@@ -830,9 +830,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>100% covered by 13 sets.
-100% covered by 23 sets.
-100% covered by 17 sets.
+<pre><code>100% covered by 17 sets.
+100% covered by 22 sets.
+100% covered by 18 sets.
 100% covered by 21 sets.
 100% covered by 23 sets.
 100% covered by 16 sets.</code></pre>
@@ -1257,17 +1257,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb43-80"><a href="#cb43-80" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-81"><a href="#cb43-81" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb43-82"><a href="#cb43-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-83"><a href="#cb43-83" aria-hidden="true" tabindex="-1"></a>With the elbow plot, we can roughly see the explained variance . To extract the information in a more quantitative manner, \code{find_curve_elbow()} function is used to determine the exact elbow. </span>
+<span id="cb43-83"><a href="#cb43-83" aria-hidden="true" tabindex="-1"></a>With the elbow plot, we can roughly see the explained variance does not change from PC10. Therefore, we decided to use 10 PCs that explain the majority of the variance of the high-dimension data. </span>
 <span id="cb43-84"><a href="#cb43-84" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-85"><a href="#cb43-85" aria-hidden="true" tabindex="-1"></a><span class="in">```{r harmony, message=FALSE, warning=FALSE}</span></span>
 <span id="cb43-86"><a href="#cb43-86" aria-hidden="true" tabindex="-1"></a>sce <span class="ot">&lt;-</span> <span class="fu">runPCA</span>(sce, <span class="at">subset_row =</span> hvg, <span class="at">ncomponents =</span> <span class="dv">10</span>)</span>
 <span id="cb43-87"><a href="#cb43-87" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-88"><a href="#cb43-88" aria-hidden="true" tabindex="-1"></a><span class="co"># integration</span></span>
-<span id="cb43-89"><a href="#cb43-89" aria-hidden="true" tabindex="-1"></a>pca <span class="ot">&lt;-</span> <span class="fu">HarmonyMatrix</span>(<span class="at">data_mat =</span> <span class="fu">assay</span>(sce, <span class="st">"counts"</span>),</span>
-<span id="cb43-90"><a href="#cb43-90" aria-hidden="true" tabindex="-1"></a>    <span class="at">meta_data =</span> <span class="fu">colData</span>(sce),</span>
-<span id="cb43-91"><a href="#cb43-91" aria-hidden="true" tabindex="-1"></a>    <span class="at">vars_use =</span> <span class="st">"sample_id"</span>,</span>
-<span id="cb43-92"><a href="#cb43-92" aria-hidden="true" tabindex="-1"></a>    <span class="at">npcs =</span> <span class="dv">10</span>)</span>
-<span id="cb43-93"><a href="#cb43-93" aria-hidden="true" tabindex="-1"></a><span class="fu">reducedDim</span>(sce, <span class="st">"PCA"</span>) <span class="ot">&lt;-</span> pca</span>
+<span id="cb43-89"><a href="#cb43-89" aria-hidden="true" tabindex="-1"></a><span class="co"># pca &lt;- HarmonyMatrix(data_mat = assay(sce, "counts"),</span></span>
+<span id="cb43-90"><a href="#cb43-90" aria-hidden="true" tabindex="-1"></a><span class="co">#     meta_data = colData(sce),</span></span>
+<span id="cb43-91"><a href="#cb43-91" aria-hidden="true" tabindex="-1"></a><span class="co">#     vars_use = "sample_id",</span></span>
+<span id="cb43-92"><a href="#cb43-92" aria-hidden="true" tabindex="-1"></a><span class="co">#     npcs = 10)</span></span>
+<span id="cb43-93"><a href="#cb43-93" aria-hidden="true" tabindex="-1"></a><span class="co"># reducedDim(sce, "PCA") &lt;- pca</span></span>
 <span id="cb43-94"><a href="#cb43-94" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb43-95"><a href="#cb43-95" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-96"><a href="#cb43-96" aria-hidden="true" tabindex="-1"></a></span>
@@ -1296,21 +1296,21 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb43-119"><a href="#cb43-119" aria-hidden="true" tabindex="-1"></a>We first perform initial clustering in both high and low resolution using HVG. High resolution is for calculating type scores; while low resolution is for calculating state scores. </span>
 <span id="cb43-120"><a href="#cb43-120" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-121"><a href="#cb43-121" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fig.height=8, fig.width=15, warning=FALSE}</span></span>
-<span id="cb43-122"><a href="#cb43-122" aria-hidden="true" tabindex="-1"></a><span class="co"># rsl &lt;- seq(0.1, 5, by = 0.2)</span></span>
-<span id="cb43-123"><a href="#cb43-123" aria-hidden="true" tabindex="-1"></a><span class="co"># g &lt;- buildSNNGraph(sce, use.dimred = "PCA")</span></span>
-<span id="cb43-124"><a href="#cb43-124" aria-hidden="true" tabindex="-1"></a><span class="co"># reso &lt;- lapply(rsl, \(i) {</span></span>
-<span id="cb43-125"><a href="#cb43-125" aria-hidden="true" tabindex="-1"></a><span class="co">#     sce$cluster_hi &lt;- cluster_louvain(g, resolution = i)$membership</span></span>
-<span id="cb43-126"><a href="#cb43-126" aria-hidden="true" tabindex="-1"></a><span class="co">#     sce$cluster_hi  &lt;- factor(sce$cluster_hi,sort(unique(sce$cluster_hi)))</span></span>
-<span id="cb43-127"><a href="#cb43-127" aria-hidden="true" tabindex="-1"></a><span class="co">#     sce$cluster_lo &lt;- sce$cluster_hi</span></span>
-<span id="cb43-128"><a href="#cb43-128" aria-hidden="true" tabindex="-1"></a><span class="co">#     Fstat &lt;- .Fstat(sce)</span></span>
-<span id="cb43-129"><a href="#cb43-129" aria-hidden="true" tabindex="-1"></a><span class="co">#     edgeR &lt;- .edgeR(sce)</span></span>
-<span id="cb43-130"><a href="#cb43-130" aria-hidden="true" tabindex="-1"></a><span class="co">#     Fstat_edgeR &lt;- rank(Fstat) - rank(edgeR)</span></span>
-<span id="cb43-131"><a href="#cb43-131" aria-hidden="true" tabindex="-1"></a><span class="co">#     data.frame(resolution = i, Fstat = Fstat, edgeR = edgeR, Fstat_edgeR)</span></span>
-<span id="cb43-132"><a href="#cb43-132" aria-hidden="true" tabindex="-1"></a><span class="co"># })</span></span>
-<span id="cb43-133"><a href="#cb43-133" aria-hidden="true" tabindex="-1"></a><span class="co"># res_df &lt;- data.frame(do.call(rbind, reso))</span></span>
+<span id="cb43-122"><a href="#cb43-122" aria-hidden="true" tabindex="-1"></a>rsl <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="dv">5</span>, <span class="at">by =</span> <span class="fl">0.2</span>)</span>
+<span id="cb43-123"><a href="#cb43-123" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">buildSNNGraph</span>(sce, <span class="at">use.dimred =</span> <span class="st">"PCA"</span>)</span>
+<span id="cb43-124"><a href="#cb43-124" aria-hidden="true" tabindex="-1"></a>reso <span class="ot">&lt;-</span> <span class="fu">lapply</span>(rsl, \(i) {</span>
+<span id="cb43-125"><a href="#cb43-125" aria-hidden="true" tabindex="-1"></a>    sce<span class="sc">$</span>cluster_hi <span class="ot">&lt;-</span> <span class="fu">cluster_louvain</span>(g, <span class="at">resolution =</span> i)<span class="sc">$</span>membership</span>
+<span id="cb43-126"><a href="#cb43-126" aria-hidden="true" tabindex="-1"></a>    sce<span class="sc">$</span>cluster_hi  <span class="ot">&lt;-</span> <span class="fu">factor</span>(sce<span class="sc">$</span>cluster_hi,<span class="fu">sort</span>(<span class="fu">unique</span>(sce<span class="sc">$</span>cluster_hi)))</span>
+<span id="cb43-127"><a href="#cb43-127" aria-hidden="true" tabindex="-1"></a>    sce<span class="sc">$</span>cluster_lo <span class="ot">&lt;-</span> sce<span class="sc">$</span>cluster_hi</span>
+<span id="cb43-128"><a href="#cb43-128" aria-hidden="true" tabindex="-1"></a>    Fstat <span class="ot">&lt;-</span> <span class="fu">.Fstat</span>(sce)</span>
+<span id="cb43-129"><a href="#cb43-129" aria-hidden="true" tabindex="-1"></a>    edgeR <span class="ot">&lt;-</span> <span class="fu">.edgeR</span>(sce)</span>
+<span id="cb43-130"><a href="#cb43-130" aria-hidden="true" tabindex="-1"></a>    Fstat_edgeR <span class="ot">&lt;-</span> <span class="fu">rank</span>(Fstat) <span class="sc">-</span> <span class="fu">rank</span>(edgeR)</span>
+<span id="cb43-131"><a href="#cb43-131" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">resolution =</span> i, <span class="at">Fstat =</span> Fstat, <span class="at">edgeR =</span> edgeR, Fstat_edgeR)</span>
+<span id="cb43-132"><a href="#cb43-132" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb43-133"><a href="#cb43-133" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">do.call</span>(rbind, reso))</span>
 <span id="cb43-134"><a href="#cb43-134" aria-hidden="true" tabindex="-1"></a><span class="co"># saveRDS(reso, "../data/case/reso.rds")</span></span>
-<span id="cb43-135"><a href="#cb43-135" aria-hidden="true" tabindex="-1"></a>reso <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"../data/case/reso.rds"</span>)</span>
-<span id="cb43-136"><a href="#cb43-136" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, reso)</span>
+<span id="cb43-135"><a href="#cb43-135" aria-hidden="true" tabindex="-1"></a><span class="co"># reso &lt;- readRDS("../data/case/reso.rds")</span></span>
+<span id="cb43-136"><a href="#cb43-136" aria-hidden="true" tabindex="-1"></a><span class="co"># res_df &lt;- do.call(rbind, reso)</span></span>
 <span id="cb43-137"><a href="#cb43-137" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb43-138"><a href="#cb43-138" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-139"><a href="#cb43-139" aria-hidden="true" tabindex="-1"></a>::: {.panel-tabset}</span>
