@@ -672,7 +672,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>sco <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Fstat_edgeR"</span>, <span class="st">"Fstat"</span>, <span class="st">"random"</span>, <span class="st">"FEAST"</span>)</span>
 <span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> sel) {</span>
 <span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">&lt;-</span> <span class="fu">paste0</span>(s,<span class="st">"_sel"</span>)</span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>  sce <span class="ot">&lt;-</span> <span class="fu">fs</span>(sce, <span class="at">n =</span> <span class="fl">0.4</span>, <span class="at">sel =</span> s, <span class="at">res =</span> r)</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>  sce <span class="ot">&lt;-</span> <span class="fu">fs</span>(sce, <span class="at">n =</span> <span class="fl">0.45</span>, <span class="at">sel =</span> s, <span class="at">res =</span> r)</span>
 <span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>sel <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Fstat_edgeR_sel"</span>, <span class="st">"Fstat_sel"</span>, <span class="st">"random_sel"</span>, </span>
@@ -830,12 +830,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>100% covered by 13 sets.
-100% covered by 23 sets.
-100% covered by 17 sets.
-100% covered by 21 sets.
-100% covered by 23 sets.
-100% covered by 16 sets.</code></pre>
+<pre><code>100% covered by 16 sets.
+100% covered by 22 sets.
+100% covered by 15 sets.
+100% covered by 20 sets.
+100% covered by 20 sets.
+100% covered by 17 sets.</code></pre>
 </div>
 <details>
 <summary>Code</summary>
@@ -1603,7 +1603,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb43-438"><a href="#cb43-438" aria-hidden="true" tabindex="-1"></a>sco <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Fstat_edgeR"</span>, <span class="st">"Fstat"</span>, <span class="st">"random"</span>, <span class="st">"FEAST"</span>)</span>
 <span id="cb43-439"><a href="#cb43-439" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> sel) {</span>
 <span id="cb43-440"><a href="#cb43-440" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">&lt;-</span> <span class="fu">paste0</span>(s,<span class="st">"_sel"</span>)</span>
-<span id="cb43-441"><a href="#cb43-441" aria-hidden="true" tabindex="-1"></a>  sce <span class="ot">&lt;-</span> <span class="fu">fs</span>(sce, <span class="at">n =</span> <span class="fl">0.4</span>, <span class="at">sel =</span> s, <span class="at">res =</span> r)</span>
+<span id="cb43-441"><a href="#cb43-441" aria-hidden="true" tabindex="-1"></a>  sce <span class="ot">&lt;-</span> <span class="fu">fs</span>(sce, <span class="at">n =</span> <span class="fl">0.45</span>, <span class="at">sel =</span> s, <span class="at">res =</span> r)</span>
 <span id="cb43-442"><a href="#cb43-442" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb43-443"><a href="#cb43-443" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-444"><a href="#cb43-444" aria-hidden="true" tabindex="-1"></a>sel <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Fstat_edgeR_sel"</span>, <span class="st">"Fstat_sel"</span>, <span class="st">"random_sel"</span>, </span>
