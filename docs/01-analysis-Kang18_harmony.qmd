@@ -426,7 +426,7 @@ fs <- \(sce, n, sel, res) {
 sco <- c("Fstat_edgeR", "Fstat", "random", "FEAST")
 for (s in sel) {
   r <- paste0(s,"_sel")
-  sce <- fs(sce, n = 0.4, sel = s, res = r)
+  sce <- fs(sce, n = 0.45, sel = s, res = r)
 }
 
 sel <- c("Fstat_edgeR_sel", "Fstat_sel", "random_sel", 
