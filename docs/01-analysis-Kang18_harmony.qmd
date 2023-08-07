@@ -211,7 +211,7 @@ p5 + p6 + plot_layout(ncol = 2)
 #| label: Initial clustering
 set.seed(2023)
 g <- buildSNNGraph(sce, use.dimred = "PCA")
-sce$cluster_hi <- cluster_louvain(g, resolution = 5)$membership
+sce$cluster_hi <- cluster_louvain(g, resolution = 0.6)$membership
 sce$cluster_lo <- cluster_louvain(g, resolution = 0.6)$membership
 sce$cluster_hi <- factor(sce$cluster_hi, sort(unique(sce$cluster_hi)))
 sce$cluster_lo <- factor(sce$cluster_lo, sort(unique(sce$cluster_lo)))
@@ -424,7 +424,8 @@ fs <- \(sce, n, sel, res) {
     return(sce)
 }
 sco <- c("Fstat_edgeR", "Fstat", "random", "FEAST")
-for (s in sel) {
+
+for (s in sco) {
   r <- paste0(s,"_sel")
   sce <- fs(sce, n = 0.45, sel = s, res = r)
 }
@@ -461,8 +462,9 @@ PCA plots on selected features indicated that all other methods are affected by 
 #### new PCA, cluster_re
 ```{r pk, warning=FALSE, fig.height=10, fig.width=8}
 pk <- lapply(names(sces), \(x) plotPCA(sces[[x]], colour_by = "cluster_re") + 
-    ggtitle(x)) |> 
-    wrap_plots(ncol = 2) + plot_layout(guides = "collect")
+    ggtitle(x) +
+    theme(legend.position="none")) |> 
+    wrap_plots(ncol = 2) + plot_layout(guides = "collect") 
 pk
 ```
 
@@ -472,6 +474,14 @@ pg <- lapply(names(sces), \(x) plotPCA(sces[[x]], colour_by = "group_id") +
     ggtitle(x)) |> 
     wrap_plots(ncol = 2) + plot_layout(guides = "collect")
 pg
+```
+
+#### new PCA, cell type
+```{r pc, warning=FALSE, fig.height=10, fig.width=8}
+pc <- lapply(names(sces), \(x) plotPCA(sces[[x]], colour_by = "cluster_id") + 
+    ggtitle(x)) |> 
+    wrap_plots(ncol = 2) + plot_layout(guides = "collect")
+pc
 ```
 
 :::

@@ -121,19 +121,19 @@ We first perform initial clustering in both high and low resolution using HVG. H
 ```{r fig.height=8, fig.width=15, warning=FALSE}
 rsl <- seq(0.1, 5, by = 0.2)
 g <- buildSNNGraph(sce, use.dimred = "PCA")
-reso <- lapply(rsl, \(i) {
-    sce$cluster_hi <- cluster_louvain(g, resolution = i)$membership
-    sce$cluster_hi  <- factor(sce$cluster_hi,sort(unique(sce$cluster_hi)))
-    sce$cluster_lo <- sce$cluster_hi
-    Fstat <- .Fstat(sce)
-    edgeR <- .edgeR(sce)
-    Fstat_edgeR <- rank(Fstat) - rank(edgeR)
-    data.frame(resolution = i, Fstat = Fstat, edgeR = edgeR, Fstat_edgeR)
-})
-res_df <- data.frame(do.call(rbind, reso))
+# reso <- lapply(rsl, \(i) {
+#     sce$cluster_hi <- cluster_louvain(g, resolution = i)$membership
+#     sce$cluster_hi  <- factor(sce$cluster_hi,sort(unique(sce$cluster_hi)))
+#     sce$cluster_lo <- sce$cluster_hi
+#     Fstat <- .Fstat(sce)
+#     edgeR <- .edgeR(sce)
+#     Fstat_edgeR <- rank(Fstat) - rank(edgeR)
+#     data.frame(resolution = i, Fstat = Fstat, edgeR = edgeR, Fstat_edgeR)
+# })
+# res_df <- data.frame(do.call(rbind, reso))
 # saveRDS(reso, "../data/case/reso.rds")
-# reso <- readRDS("../data/case/reso.rds")
-# res_df <- do.call(rbind, reso)
+reso <- readRDS("../data/case/reso.rds")
+res_df <- do.call(rbind, reso)
 ```
 
 ::: {.panel-tabset}
@@ -411,7 +411,7 @@ ggplot(df, aes(x = precentage, y = purity, col = sel)) +
 ## Feature selection and reprosessing 
 
 ### Feature selection step
-The above evaluation statistics results suggested that different selection methods have their own specific optimal size. Now we simply selected top 40% genes based on their scores (except for hvg and **DUBStepR**), which requires further adaption of the feature sizes. 
+The above evaluation statistics results suggested that different selection methods have their own specific optimal size. Now we simply selected top 45% genes based on their scores (except for hvg and **DUBStepR**), which requires further adaption of the feature sizes. 
 
 ```{r}
 #| label: Feature selection and reprocess
@@ -424,9 +424,9 @@ fs <- \(sce, n, sel, res) {
     return(sce)
 }
 sco <- c("Fstat_edgeR", "Fstat", "random", "FEAST")
-for (s in sel) {
+for (s in sco) {
   r <- paste0(s,"_sel")
-  sce <- fs(sce, n = 0.4, sel = s, res = r)
+  sce <- fs(sce, n = 0.45, sel = s, res = r)
 }
 
 sel <- c("Fstat_edgeR_sel", "Fstat_sel", "random_sel", 
@@ -474,6 +474,13 @@ pg <- lapply(names(sces), \(x) plotPCA(sces[[x]], colour_by = "group_id") +
 pg
 ```
 
+#### new PCA, cell type
+```{r pc, warning=FALSE, fig.height=10, fig.width=8}
+pc <- lapply(names(sces), \(x) plotPCA(sces[[x]], colour_by = "cluster_id") + 
+    ggtitle(x)) |> 
+    wrap_plots(ncol = 2) + plot_layout(guides = "collect")
+pc
+```
 :::
 
 ### Abundance plot 
