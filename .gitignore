@@ -6,7 +6,8 @@ code/._.DS_Store
 .Rprofile
 logs/*Rout
 data/*rds
-data/**/*rds
+data/*/*rds
+data/*
 outs/*rds
 plts/*pdf
 code/arch/*
