@@ -17,7 +17,7 @@ S = list(range(0, 120, 20))
 B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
-VAL = ["cd", "sco", "sta", "rd", "sel", "das", "ncd"]
+VAL = ["cd", "sco", "sta", "rd", "sel", "ncd", "das"]
 PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
 
 res_sim = expand(
@@ -55,8 +55,10 @@ res_ncd = [expand("data/02-rep/sim-{sim},{sel}-cd.rds", sim = SIM, sel = SEL),
 res_sta = [expand("outs/sta-sim-{sim},{sel},{sta}.rds", sim = SIM, sel = SEL, sta = STA),
     expand("outs/sta-dat-{dat},{sel},{sta}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"], sta = [x for x in STA if "F1" not in x])] # filter stuff beginning w F1 from STA
 
-res_das = [expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS),
-        expand("outs/das-dat-{dat},{sel},{das}.rds", dat = DAT, das = DAS, sel = [x for x in SEL if x != "truth"])]
+#res_das = [expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS),
+#        expand("outs/das-dat-{dat},{sel},{das}.rds", dat = DAT, das = DAS, sel = [x for x in SEL if x != "truth"])]
+
+res_das = expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS)
 
 #res_eva = expand(
 #    "outs/eva-{sim},{sco},{eva}.rds",
@@ -286,16 +288,16 @@ rule run_das:
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
-rule pef_das:
-    priority: 94
-    input:  "code/06-das.R",
-            "code/06-das-{das}.R",
-            rules.rep_dat.output
-    output: "outs/das-dat-{dat},{sel},{das}.rds"
-    log:    "logs/das-dat-{dat},{sel},{das}.Rout"
-    shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-        {input[1]} {input[2]} {output}" {input[0]} {log}'''
+#rule pef_das:
+#    priority: 94
+#    input:  "code/06-das.R",
+#            "code/06-das-{das}.R",
+#            rules.rep_dat.output
+#    output: "outs/das-dat-{dat},{sel},{das}.rds"
+#    log:    "logs/das-dat-{dat},{sel},{das}.Rout"
+#    shell: '''
+#        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+#        {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
 
 # calculate performance of detect true markers

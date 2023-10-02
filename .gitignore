@@ -13,4 +13,4 @@ code/arch/*
 code/*cache
 .snakemake/
 config.yaml
-docs/arch/*
+docs/*
