@@ -22,9 +22,9 @@ x <- computeLibraryFactors(x)
 x <- logNormCounts(x)
 
 # sample
-gid <- sample(seq_len(nrow(x)), 3000)
-cid <- sample(seq_len(ncol(x)), 5000)
-x <- x[gid, cid]
+# gid <- sample(seq_len(nrow(x)), 3000)
+# cid <- sample(seq_len(ncol(x)), 5000)
+# x <- x[gid, cid]
 
 # hvg
 tbl <- modelGeneVar(x, block = x$sample_id)
@@ -48,8 +48,8 @@ dr <- reducedDim(x, "PCA")
 g <- buildSNNGraph(x, use.dimred = "PCA")
 # x$cluster_hi <- cluster_louvain(g, resolution = 2)$membership
 # x$cluster_lo <- cluster_louvain(g, resolution = 0.1)$membership
-x$cluster_hi <- leiden(g, resolution_parameter = 2)
-x$cluster_lo <- leiden(g, resolution_parameter = 0)
+x$cluster_hi <- leiden(g, resolution_parameter = 5)
+x$cluster_lo <- leiden(g, resolution_parameter = 0.3)
 
 for (. in names(colData(x)))
     x[[.]] <- factor(x[[.]])
