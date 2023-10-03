@@ -1,0 +1,200 @@
+# splatPop
+
+## Preamble
+
+### Dependencies 
+
+```{r}
+suppressPackageStartupMessages({
+  library("splatter")
+  library("scater")
+  library("ggplot2")
+})
+set.seed(42)
+vcf <- mockVCF(n.samples = 6)
+gff <- mockGFF(n.genes = 2000)
+```
+
+
+### Type scenario
+```{r}
+params.group <- newSplatPopParams(batchCells = 50,
+                                  similarity.scale = 0,
+                                  de.prob = 0.3,
+                                  de.facLoc = 0,
+                                  de.facScale = 0.001,
+                                  group.prob = c(1/3, 1/3, 1/3),
+                                  condition.prob = c(0.5, 0.5),
+                                  cde.prob = 0.5,
+                                  cde.facLoc = 1, 
+  )
+
+sim.type <- splatPopSimulate(vcf = vcf, gff = gff, params = params.group, 
+                               sparsify = FALSE)
+
+sim.type <- logNormCounts(sim.type)
+sim.type <- runPCA(sim.type, ncomponents = 10)
+plotPCA(sim.type, colour_by = "Group", shape_by = "Condition")
+plotPCA(sim.type, colour_by = "Group", shape_by = "Sample")
+
+```
+
+### State scenario
+```{r}
+params.group <- newSplatPopParams(batchCells = 50,
+                                  similarity.scale = 0,
+                                  de.prob = 0,
+                                  de.facLoc = 0, 
+                                  de.facScale = 0,
+                                  group.prob = c(1/3, 1/3, 1/3),
+                                  condition.prob = c(0.5, 0.5),
+                                  cde.prob= 0.9,
+                                  cde.facLoc = 1, 
+                                  cde.facScale = 1)
+
+sim.state <- splatPopSimulate(vcf = vcf, gff = gff, params = params.group, 
+                               sparsify = FALSE)
+
+sim.state <- logNormCounts(sim.state)
+sim.state <- runPCA(sim.state, ncomponents = 10)
+plotPCA(sim.state, colour_by = "Group", shape_by = "Condition")
+plotPCA(sim.state, colour_by = "Group", shape_by = "Sample")
+```
+
+### State-type scenario
+
+```{r}
+set.seed(seed <- 1)
+vcf <- mockVCF(n.samples = 6, n.snps = 1200)
+gff <- mockGFF(n.genes = 4000)
+params.group <- newSplatPopParams(batchCells = c(200, 200),
+                                  batch.facScale = 0,
+                                  similarity.scale = 10,
+                                  de.prob = 0.5,
+                                  de.facScale = 0.1,
+                                  group.prob = rep(1/10,10),
+                                  condition.prob = c(0.5, 0.5),
+                                  cde.prob = 0.5,
+                                  cde.facScale = 0.8,
+                                  bcv.common = 1
+                                  )
+
+x <- splatPopSimulate(vcf = vcf, gff = gff, 
+                      params = params.group, 
+                      sparsify = FALSE)
+
+x <- logNormCounts(x)
+tbl <- modelGeneVar(x, block = x$sample_id)
+hvg <- which(tbl$bio > 0)
+x <- runPCA(x, ncomponents = 10, subset_row = hvg)
+plotPCA(x, colour_by = "Group", shape_by = "Condition")
+table(quickCluster(x, method = "hclust"), x$Condition)
+table(x$Group, x$Condition)
+```
+
+
+```{r}
+library(ideas)
+sim_data <- readRDS("~/Desktop/type-state/data/01-fil/fil-t100-s100-b1.rds")
+plotPCA(sim_data, colour_by = "cluster_id", shape_by = "sample_id")
+count_matrix = assay(sim_data, "counts")
+meta_cell    = colData(sim_data)
+meta_ind     = sim_data$meta_ind
+
+```
+
+
+# Type markers
+True marker genes as the subset of DE genes that were DE in only a single group.
+True DE genes were taken as genes with simulated DE in any group.
+```{r}
+groupDE <- data.frame(rowData(sim.type)) %>%
+                 select(GroupDE.Group1, GroupDE.Group2, GroupDE.Group3) 
+true_markers <- groupDE[rowSums(groupDE == 1) == 2, ]
+true_DE <- groupDE[rowSums(groupDE == 1) <= 2, ]
+plotHeatmap(sim.type, features = rownames(true_markers), exprs_values = "logcounts", scale = T)
+plotHeatmap(sim.type, features = rownames(sim.type), exprs_values = "logcounts")
+```
+
+### mean F stat
+```{r}
+F_stat.type <- .mean_Fstat(sim.type, assay_to_use = "logcounts", 
+                           cluster_to_use = "Group", sample_to_use = "Sample")
+F_stat.type[is.na(F_stat.type)] <- 0
+F_stat.marker <- rownames(sim.type)[order(F_stat.type, decreasing = T)][1:33]
+```
+
+### one vs rest logFC
+```{r}
+type_one_vs_res <- sapply(unique(sim.type$Sample), \(x){
+  temp <- sim.type[, which(sim.type$Sample == x)]
+  apply(.sc_one_vs_rest_logFC(temp, 
+                        cluster_to_use = temp$Group,
+                        assay_to_use = "counts"), 1, 
+                        max)
+})
+type_one_vs_res[is.na(type_one_vs_res)] <- 0
+type.max_logFC <- apply(type_one_vs_res, 1, mean)
+```
+
+### Wilcox
+```{r}
+wilcox <- .sc_wilcox_score(sim.type, assay_to_use = "logcounts", cluster_to_use = "Group")
+```
+
+
+### t-test
+```{r}
+t_score <- .sc_t_score(sim.type, cluster_to_use = "Group", assay_to_use = "logcounts")
+```
+
+
+### entropy 
+```{r}
+entropy <- .se(x = sim.type, i = "Group", assay = "logcounts", j = "Sample")
+```
+
+### evaluation
+```{r}
+sil <- .sc_silhouette(sim.type, sample_id = "Sample", cluster_id = "Group")
+
+cms.type <- cms(sim.type, group = "Group", k = 5)
+```
+
+
+### cms
+```{r}
+colnames(sim.type) <- paste0("Cell",1:length(colnames(sim.type)))
+cms.type_cluster <-.cms_score(sim.type, sample = "Sample", cluster = "Group", k = 50, n_dim = 5)
+cms.type_sample <- .cms_score(sim.type, sample = "Sample", cluster = "Group", k = 50, n_dim = 5, test = "sample")
+```
+
+
+```{r}
+ei <- .ei(sim.type, "Sample", "Condition")
+dm <- createDesignMatrix(ei, "Condition")
+cm <- createContrast(c(0, 1))
+ds_res.type <- .ds_limma(sim.type, sample = "Sample", cluster = "Group", 
+                         condition =  "Condition")
+
+ds_res.state <- .ds_limma(sim.state, sample = "Sample", cluster = "Group", 
+                         condition =  "Condition")
+names(ds_res.state) <- unique(colData(sim.state)[,"Group"])
+
+ds.state <- sapply(ds_res.state, \(x){
+  idx <- match(rownames(sim.state), rownames(x))
+  x$logFC[idx]
+})
+
+rownames(ds.state) <- rownames(sim.state)
+ConditionDE <- data.frame(rowData(sim.state)) %>%
+                 select(ConditionDE.Condition1, ConditionDE.Condition2) 
+source("scripts/02-score-DSlimma.R")
+fun(sim.state, sample = "Sample", cluster = "Group", condition = "Condition")
+```
+
+```{r}
+source("scripts/02-type_score-Entropy.R")
+fun(sim.type, cluster = "cluster", sample = "sample_id", assay = "counts")
+```
+

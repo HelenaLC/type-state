@@ -6,12 +6,19 @@ code/._.DS_Store
 .Rprofile
 logs/*Rout
 data/*rds
+<<<<<<< HEAD
 data/*/*rds
 data/*
+=======
+data/**/*rds
+>>>>>>> origin/devel
 outs/*rds
 plts/*pdf
 code/arch/*
 code/*cache
 .snakemake/
 config.yaml
+<<<<<<< HEAD
 docs/
+=======
+>>>>>>> origin/devel
