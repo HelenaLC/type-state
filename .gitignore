@@ -6,12 +6,15 @@ code/._.DS_Store
 .Rprofile
 logs/*Rout
 data/*rds
+data/*/*rds
+data/*
 data/**/*rds
 outs/*rds
 plts/*pdf
-docs/*
-docs/*html
 code/arch/*
 code/*cache
 .snakemake/
 config.yaml
+docs/
+docs/*
+
