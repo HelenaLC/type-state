@@ -1,4 +1,5 @@
 fun <- \(x) {
+
     y <- x[[1]]
     o <- order(y$bio, decreasing = TRUE)[seq_len(round(nrow(y)*0.25))]
     res <- rep(FALSE, nrow(y))
@@ -9,4 +10,5 @@ fun <- \(x) {
     # rowData(sce)$hvg_sel <- FALSE
     # rowData(sce)$hvg_sel[idx] <- TRUE
     #return(x[[1]]$hvg)
+
 }

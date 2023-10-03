@@ -7,13 +7,10 @@ suppressPackageStartupMessages({
 })
 
 df <- do.call(rbind, lapply(args[[1]], readRDS))
-<<<<<<< HEAD
+
 # df <- df %>% rename("PC1" = "1",
 #     "PC2" = "2")
-=======
-df <- df %>% rename("PC1" = "1",
-    "PC2" = "2")
->>>>>>> origin/devel
+
 
 df$id <- paste(df$cluster_id, df$group_id)
 pal <- c(

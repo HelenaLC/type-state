@@ -44,6 +44,7 @@ p1 <- lapply(unique(all$sel), \(s){
 })
 
 
+
 # out <- lapply(args[[1]], \(x) { if (str_detect(x,"dat")) readRDS(x) })
 # out  <- out[!vapply(out, is.null, logical(1))]
 # out <- lapply(out, \(.) .[c("sel", "dat", "das", "p_val", "p_adj")])
@@ -72,6 +73,7 @@ p1 <- lapply(unique(all$sel), \(s){
 
 #plt <- append(p1,p2)
 plt <- p1
+
 
 pdf(args[[2]], width = 12, height = 8, onefile = TRUE)
 for (i in seq_along(plt)) {
