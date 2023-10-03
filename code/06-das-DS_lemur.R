@@ -5,8 +5,10 @@ suppressPackageStartupMessages({
 
 fun <- \(x) {
     fit <- lemur(x, design = ~ group_id)
+
     #fit <- align_harmony(fit) # got error, why?
     #fit <- align_by_grouping(fit, "cluster_id")
+
     cd1 <- unique(x$group_id)[1]
     cd2 <- unique(x$group_id)[2]
     fit <- test_de(fit, 

@@ -27,7 +27,6 @@ gid <- sample(seq_len(nrow(x)), 3000)
 cid <- sample(seq_len(ncol(x)), 5000)
 x <- x[gid, cid]
 
-
 # hvg
 tbl <- modelGeneVar(x, block = x$sample_id)
 rowData(x)$hvg <- hvg <- tbl$bio > 0
@@ -36,11 +35,11 @@ x <- runPCA(x, subset_row = hvg, ncomponents = 10)
 x <- runUMAP(x)
 
 # batch effect correction
-pca <- HarmonyMatrix(data_mat = assay(x, "counts"), 
-    meta_data = colData(x), 
-    vars_use = "sample_id")
-names(pca) <- paste0("PC", names(pca))
-reducedDim(x, "PCA") <- pca
+# pca <- HarmonyMatrix(data_mat = assay(x, "counts"), 
+#     meta_data = colData(x), 
+#     vars_use = "sample_id")
+# names(pca) <- paste0("PC", names(pca))
+# reducedDim(x, "PCA") <- pca
 
 # table of gene/cell metadata
 # and simulation parameters
@@ -48,15 +47,11 @@ dr <- reducedDim(x, "PCA")
 
 # high- & low-resolution clustering
 g <- buildSNNGraph(x, use.dimred = "PCA")
-# x$cluster_hi <- cluster_louvain(g, resolution = 2)$membership
-# x$cluster_lo <- cluster_louvain(g, resolution = 0.1)$membership
-<<<<<<< HEAD
-x$cluster_hi <- leiden(g, resolution_parameter = 5)
-x$cluster_lo <- leiden(g, resolution_parameter = 0.3)
-=======
-x$cluster_hi <- leiden(g, resolution_parameter = 2)
-x$cluster_lo <- leiden(g, resolution_parameter = 0)
->>>>>>> origin/devel
+x$cluster_hi <- cluster_louvain(g, resolution = 2)$membership
+x$cluster_lo <- cluster_louvain(g, resolution = 0.1)$membership
+# x$cluster_hi <- leiden(g, resolution_parameter = 5)
+# x$cluster_lo <- leiden(g, resolution_parameter = 0.3)
+
 
 for (. in names(colData(x)))
     x[[.]] <- factor(x[[.]])
