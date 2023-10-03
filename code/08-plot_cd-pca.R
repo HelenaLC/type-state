@@ -8,6 +8,10 @@ suppressPackageStartupMessages({
 
 df <- do.call(rbind, lapply(args[[1]], readRDS))
 
+# df <- df %>% rename("PC1" = "1",
+#     "PC2" = "2")
+
+
 df$id <- paste(df$cluster_id, df$group_id)
 pal <- c(
     hcl.colors(8, "reds")[c(2, 4)], 
