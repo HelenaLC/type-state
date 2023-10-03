@@ -27,6 +27,7 @@ fun <- \(x) {
         }
     })
     res <- do.call(rbind, res)
+
     # if (!is.null(res)) {
     #     # average across clusters
     #     res <- group_by(res, gene)
@@ -49,6 +50,7 @@ fun <- \(x) {
             p <- res[res$gene == g, "p_adj"]
             poolr::fisher(p)$statistic
         })
+
         return(out)
     }
 }
