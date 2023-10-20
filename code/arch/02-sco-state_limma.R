@@ -7,8 +7,8 @@ suppressPackageStartupMessages({
 fun <- \(x) {
     # pseudo-bulks by cluster-sample
     y <- aggregateAcrossCells(x,
-        ids = colData(x)[c("cluster_lo", "sample_id")],
-        use.assay.type = "logcounts", statistics = "mean")
+        ids=colData(x)[c("cluster_lo", "sample_id")],
+        use.assay.type="logcounts", statistics="mean")
     # test for DS by cluster
     idx <- split(seq(ncol(y)), y$cluster_lo)
     tbl <- lapply(names(idx), \(k) {
@@ -20,16 +20,16 @@ fun <- \(x) {
             ids <- levels(z$sample_id)
             rownames(mm) <- ids
             ws <- table(z$sample_id)[ids]
-            fit <- lmFit(assay(z), design = mm, weights = ws)
+            fit <- lmFit(assay(z), design=mm, weights=ws)
             fit <- contrasts.fit(fit, c(0, 1))
-            fit <- eBayes(fit, trend = FALSE)
-            tbl <- topTable(fit, sort = "none", n = Inf)
+            fit <- eBayes(fit, trend=FALSE)
+            tbl <- topTable(fit, sort="none", n=Inf)
             rnm <- match(c("P.Value", "adj.P.Val"), names(tbl))
             names(tbl)[rnm] <- c("p_val", "p_adj")
             data.frame(
-                cluster_id = k,
-                gene = rownames(tbl), 
-                tbl, row.names = NULL)
+                cluster_id=k,
+                gene=rownames(tbl), 
+                tbl, row.names=NULL)
         }
     })
     tbl <- do.call(rbind, tbl)
