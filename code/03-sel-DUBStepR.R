@@ -1,4 +1,5 @@
 fun <- \(x) {
-    y <- x[["DUBStepR"]]
-    return(y$sco_val > 0)
+    y <- x$DUBStepR
+    y <- y[!is.na(y$sco_val), ]
+    y$gene_id[y$sel_val]
 }

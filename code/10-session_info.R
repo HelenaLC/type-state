@@ -1,8 +1,38 @@
 x <- c(
+    "dplyr",
+    "tidyr",
+    "edgeR",
+    "limma",
+    "scran",
+    "scater",
+    "scuttle",
+    "igraph",
+    "harmony",
+    "splatter",
+    "matrixStats",
+    "SingleCellExperiment",
+    # sco
+    "FEAST",
+    "scmap",
+    "prabhakarlab/DUBStepR",
+    # das
+    "lemur",
+    "miloR",
+    "miloDE",
+    # sta
+    "caret",
+    "MLVSBM",
+    "cluster",
     "bluster",
+    "PCAtools",
     "CellMixS",
-    "SingleCellExperiment"
-)
+    "variancePartition",
+    "immunogenomics/lisi",
+    # viz
+    "UpSetR",
+    "ggplot2",
+    "ggrastr",
+    "patchwork")
 
 # install dependencies
 if (!require(BiocManager))

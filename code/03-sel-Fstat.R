@@ -1,8 +1,5 @@
 fun <- \(x) {
     y <- x$type_Fstat
-    o <- order(y$sco_val, decreasing = TRUE)[seq_len(round(nrow(y)*0.25))]
-    res <- rep(FALSE, nrow(y))
-    res[o] <- TRUE
-    return(res)
+    y <- y[!is.na(y$sco_val), ]
+    y$gene_id[y$sco_val >= 0.95]
 }
-    
