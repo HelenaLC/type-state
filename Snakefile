@@ -18,7 +18,7 @@ B = [0]
 
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
 
-VAL = ["cd", "sco", "sta", "rd", "sel", "das", "ncd"]
+VAL = ["cd", "sco", "sta", "rd", "sel", "das", "ncd", "eva"]
 
 
 PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
@@ -64,11 +64,7 @@ res_sta = [expand("outs/sta-sim-{sim},{sel},{sta}.rds", sim = SIM, sel = SEL, st
 
 res_das = expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS)
 
-
-
-#res_eva = expand(
-#    "outs/eva-{sim},{sco},{eva}.rds",
-#    sim = SIM, sco = SCO, eva = EVA)
+res_eva = expand("outs/eva-sim-{sim},{sel},{eva}.rds", sim = SIM, sel = SEL, eva = EVA)
 
 res_plt = list()
 for val in PLT.keys():
@@ -89,7 +85,7 @@ res = {
     "ncd": res_ncd,
     "sta": res_sta,
     "plt": res_plt,
-#    "eva": res_eva,
+    "eva": res_eva,
     "das": res_das,
     "plt": res_plt}
 
@@ -121,7 +117,7 @@ rule all:
         # scoring & evaluation
         res_sco, res_sel, res_rep, res_ncd, res_sta,
         # downstream
-        #res_eva, 
+        res_eva, 
         res_das,
         # visualization
         res_plt
@@ -320,6 +316,18 @@ rule run_das:
 #    shell: '''
 #        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
 #        {input[2]} {output}" {input[0]} {log}'''
+
+
+#rule calc_eva:
+#    priority: 94
+#    input:  "code/07-eva.R",
+#            "code/07-eva-{eva}.R",
+#            rules.rep_sim.output
+#    output: "outs/eva-sim-{sim},{sel},{eva}.rds"
+#    log:    "logs/eva-sim-{sim},{sel},{eva}.Rout"
+#    shell: '''
+#        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+#        {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
 # VISUALIZATION ========================================================
 
