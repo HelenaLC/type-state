@@ -11,11 +11,11 @@ res <- lapply(args[[1]], \(x) { if (str_detect(x,"sim")) readRDS(x) })
 res <- res[!vapply(res, is.null, logical(1))]
 res <- do.call(rbind, res)
 
-state <- res[res$sco == "state_edgeR", ] %>%
-    rename('state_edgeR' = 'sco_val')
-type <- res[res$sco == "type_Fstat", ] 
+state <- res[res$sco == "state_PVE", ] %>%
+    rename('state_PVE' = 'sco_val')
+type <- res[res$sco == "type_PVE", ] 
 
-state$type_Fstat <- type$sco_val
+state$type_PVE <- type$sco_val
 
 ## define type marker genes
 gde <- state[grep("GroupDE", names(state))]
@@ -27,7 +27,7 @@ mg <- sapply(seq_len(ncol(gde)), \(i){
     rowMeans(mgk)
 })
 
-state$mg <- apply(abs(mg), 1, max)
+state$mg <- apply(abs(mg), 1, mean)
 
 ## define state genes
 cde <- state[grep("ConditionDE", names(state))]
@@ -38,9 +38,11 @@ cg <- sapply(seq_len(ncol(cde)), \(i){
     })
     rowMeans(cgk)
 })
-state$cg <- apply(cg, 1, max)
+state$cg <- apply(abs(cg), 1, mean)
+
+
 pal <- wes_palette("Zissou1", 10000, type = "continuous")
-gg <- ggplot(state, aes(type_Fstat, state_edgeR, col = cg )) +
+gg <- ggplot(state, aes(state_PVE, type_PVE, col = mg )) +
     geom_point(shape = 16, alpha = 0.2, size = 0.7) + 
     facet_grid(t ~ s, labeller = \(.) label_both(.)) +
     #scale_colour_gradient2() +

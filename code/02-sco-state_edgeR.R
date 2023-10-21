@@ -50,6 +50,7 @@ fun <- \(x) {
         out <- sapply(gene, \(g) {
             p <- res[res$gene == g, "p_adj"]
             poolr::fisher(p)$statistic
+            #-log(poolr::fisher(p)$p)
         })
 
 
