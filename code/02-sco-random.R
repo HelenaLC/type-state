@@ -1,3 +1,5 @@
-fun <- \(x){
-    runif(nrow(x))
+fun <- \(x) {
+    y <- runif(nrow(x))
+    names(y) <- rownames(x)
+    return(y)
 }

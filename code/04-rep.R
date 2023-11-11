@@ -1,37 +1,28 @@
+# wcs <- list(sim="t100,s0,b0", sel="DUBStepR")
 # args <- list(
-#     "data/01-fil/t0,s0,b0.rds",
-#     "outs/sel-t0,s0,b0,Entropy_Fstat.rds",
-#     "data/02-rep/0,s0,b0,Entropy_Fstat.rds")
+#     sprintf("data/01-fil/%s.rds", wcs$sim),
+#     sprintf("outs/sel-sim-%s,%s.rds", wcs$sim, wcs$sel),
+#     sprintf("data/02-rep/%s,%s.rds", wcs$sim, wcs$sel))
 
 suppressPackageStartupMessages({
     library(scran)
     library(scater)
     library(SingleCellExperiment)
-    library(harmony)
-    library(stringr)
 })
 
 sce <- readRDS(args[[1]])
-sel <- readRDS(args[[2]])
+res <- readRDS(args[[2]])
 
-rowData(sce)$sel_val <- sel$sel_val
-rowData(sce)$sel <- sel$sel
+idx <- match(rownames(sce), res$gene_id)
+rowData(sce)$sel_val <- sel <- res$sel_val[idx]
 
-sce <- runPCA(sce, subset_row = sel$sel_val)
-sce <- runUMAP(sce, dimred = "PCA")
-sce$cluster_re <- clusterCells(sce, use.dimred = "PCA")
+sce <- runPCA(sce, subset_row=sel)
+sce <- runUMAP(sce, dimred="PCA")
+sce$cluster_re <- clusterCells(sce, use.dimred="PCA")
 
-pca <- reducedDim(sce, "PCA")
-umap <- reducedDim(sce, "UMAP")
-if (str_detect(args[[1]], "fil")) {
-    cd <- data.frame(colData(sce), metadata(sce), wcs,
-        pca, umap, row.names = NULL)
-} else {
-    cd <- data.frame(colData(sce), wcs,
-        pca, umap, row.names = NULL)
-}
-
-#rd <- data.frame(rowData(sce), wcs)
+dr <- data.frame(as.list(reducedDims(sce)))
+cd <- data.frame(row.names=NULL, wcs, dr, colData(sce))
+if (!is.null(wcs$sim)) cd <- data.frame(cd, metadata(sce))
 
 saveRDS(sce, args[[3]])
 saveRDS(cd, args[[4]])

@@ -5,9 +5,7 @@ fun <- \(x) {
     o <- rank(f$sco_val)
     l <- rank(e$sco_val)
     s <- order(o - l, decreasing = TRUE)[seq_len(round(nrow(e)*0.25))]
-    res <- rep(FALSE, nrow(f))
-    res[s] <- TRUE
-    return(res)
+    f$gene_id[s]
     #s <= round(nrow(e)*0.3)
     
 }
