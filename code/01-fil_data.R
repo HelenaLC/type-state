@@ -33,6 +33,7 @@ g <- buildSNNGraph(x, use.dimred="PCA")
 x$cluster_hi <- cluster_louvain(g, resolution=2)$membership
 x$cluster_lo <- cluster_louvain(g, resolution=0)$membership
 
+
 # set cluster identifier if low-resolution
 # clusters aren't represented in both groups
 ns <- table(x$cluster_lo, x$group_id)

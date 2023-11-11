@@ -1,44 +1,56 @@
-#args <- list(list.files("outs", "^sco-.*", full.names=TRUE), "plts/sco.pdf")
-
 suppressPackageStartupMessages({
     library(dplyr)
     library(ggplot2)
+    library(patchwork)
     library(matrixStats)
+    library(stringr)
+    library(wesanderson)
 })
 
-idx <- grepl("-sim-", args[[1]])
-res <- lapply(args[[1]][idx], readRDS)
+res <- lapply(args[[1]], \(x) { if (str_detect(x,"sim")) readRDS(x) })
 res <- res[!vapply(res, is.null, logical(1))]
+res <- do.call(rbind, res)
 
-df <- bind_rows(res)
-type_Fstat <- df %>%
-    filter(sco == "type_Fstat") %>%
-    pull("sco_val")
-df <- df %>%
-    filter(sco == "state_edgeR") %>%
-    dplyr::rename(state_edgeR=sco_val) %>%
-    mutate(type_Fstat)
+state <- res[res$sco == "state_PVE", ] %>%
+    rename('state_PVE' = 'sco_val')
+type <- res[res$sco == "type_PVE", ] 
 
-# compute simulated 'type' & 'state' effects
-# (average log2-fold change across clusters/groups)
-.f <- \(df) {
-    . <- seq_len(ncol(df))
-    vapply(., \(i) 
-        vapply(setdiff(., i), \(j)
-            log2(df[, i]/df[, j]), 
-            numeric(nrow(df))) |> 
-            rowMeans(), 
-        numeric(nrow(df)))
-}
-df$lfc_t <- rowMeans(abs(.f(df[grep("^GroupDE", names(df))])))
-df$lfc_s <- rowMeans(abs(.f(df[grep("^ConditionDE", names(df))])))
+state$type_PVE <- type$sco_val
 
-ps <- lapply(paste0("lfc_", c("t", "s")), \(.)
-    ggplot(df, aes(type_Fstat, state_edgeR, col=.data[[.]])) +
-    facet_grid(t ~ s, labeller=\(.) label_both(.)) +
-    geom_point(shape=16, alpha=0.2, size=0.7) + 
-    scale_colour_gradientn(colours=hcl.colors(9, "Zissou 1")) + 
-    theme_bw(9) + theme(panel.grid=element_blank()))
+## define type marker genes
+gde <- state[grep("GroupDE", names(state))]
+mg <- sapply(seq_len(ncol(gde)), \(i){
+    not_i <- setdiff(seq_len(ncol(gde)), i)
+    mgk <- sapply(not_i, \(j) {
+        log(gde[,i]/gde[,j], base = 2)
+    })
+    rowMeans(mgk)
+})
 
-pdf(args[[2]], width=15/2.54, height=15/2.54, onefile=TRUE)
-for (p in ps) print(p); dev.off()
+state$mg <- apply(abs(mg), 1, mean)
+
+## define state genes
+cde <- state[grep("ConditionDE", names(state))]
+cg <- sapply(seq_len(ncol(cde)), \(i){
+    not_i <- setdiff(seq_len(ncol(cde)), i)
+    cgk <- sapply(not_i, \(j) {
+        log(cde[,i]/cde[,j], base = 2)
+    })
+    rowMeans(cgk)
+})
+state$cg <- apply(abs(cg), 1, mean)
+
+
+pal <- wes_palette("Zissou1", 10000, type = "continuous")
+gg <- ggplot(state, aes(state_PVE, type_PVE, col = mg )) +
+    geom_point(shape = 16, alpha = 0.2, size = 0.7) + 
+    facet_grid(t ~ s, labeller = \(.) label_both(.)) +
+    #scale_colour_gradient2() +
+    scale_colour_gradientn(colours = pal) + 
+    scale_x_continuous() +
+    scale_y_continuous() +
+     theme_bw(9) + theme(
+        #legend.position = "none",
+        panel.grid = element_blank())
+
+ggsave(args[[2]], gg, units = "cm", width = 15, height = 15)

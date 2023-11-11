@@ -33,8 +33,11 @@ fun <- \(x) {
         gene <- rownames(x)
         out <- vapply(gene, \(g) {
             p <- res[res$gene == g, "p_adj"]
-            fisher(p)$statistic
+            #fisher(p)$statistic
+            -log(fisher(p)$p)
         }, numeric(1))
         return(out)
     }
+    setNames(res, rownames(x))
+    
 }

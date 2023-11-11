@@ -2,6 +2,6 @@ fun <- \(x) {
     t <- x$type_Fstat
     s <- x$state_edgeR
     z <- rank(t$sco_val)-rank(s$sco_val)
-    z <- order(z, decreasing=TRUE)
-    t$gene_id[z <= nrow(t)/4]
+    idx <- order(z, decreasing=TRUE)[seq_len(round(nrow(t))*0.25)]
+    t$gene_id[idx]
 }

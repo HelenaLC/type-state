@@ -1,5 +1,5 @@
 fun <- \(x) {
     y <- x$FEAST
-    z <- order(y$sco_val, decreasing=TRUE)
-    y$gene_id[z <= nrow(y)/4]
+    z <- order(y$sco_val, decreasing=TRUE)[seq_len(round(nrow(y))*0.25)]
+    y$gene_id[z]
 }
