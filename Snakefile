@@ -4,67 +4,74 @@ import itertools
 configfile: "config.yaml"
 R = config["R"]
 
-DAT = glob_wildcards("code/00-get_data-{x}.R").x
+# WILDCARDS --------------------------------------------------------------------
+# tsb = simulated type/state/batch effect
+# sim = simulated/synthetic dataset identifier
+# dat = experimental/real dataset identifier
+# sco = gene-level type-/state-specificity score
+# sel = feature selection method for reprocessing
+# sta = downstream evaluation statistic
+# das = differential abundance/state method
+# ------------------------------------------------------------------------------
+
+#DAT = glob_wildcards("code/00-get_data-{x}.R").x
 SCO = glob_wildcards("code/02-sco-{x}.R").x
 SEL = glob_wildcards("code/03-sel-{x}.R").x
 STA = glob_wildcards("code/05-sta-{x}.R").x
 DAS = glob_wildcards("code/06-das-{x}.R").x
 EVA = glob_wildcards("code/07-eva-{x}.R").x
 
+# for sel in ["scmap", "FEAST", "DUBStepR"]:
+#     SEL.remove(sel)
+
+# for sta in ["cms", "pve", "pur", "lisi"]:
+#     STA.remove(sta)
+
 # magnitude of type, state & batch effect
-T = list(range(0, 120, 20))
-S = list(range(0, 120, 20))
-B = [0]
-
+T = list(range(0, 120, 20)); S = list(range(0, 120, 20)); B = [0]
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
+VAL = ["rd", "cd", "sco", "sel", "sta", "das", "ncd"]
+PLT = {val:[plt for plt in glob_wildcards("code/08-plt_" + val + "-{x}.R").x] for val in VAL}
 
-VAL = ["cd", "sco", "sta", "rd", "sel", "das", "ncd", "eva"]
-
-
-PLT = {val:[plt for plt in glob_wildcards("code/08-plot_" + val + "-{x}.R").x] for val in VAL}
-
-res_sim = expand(
-    "data/00-sim/t{t},s{s},b{b}.rds", 
-    t = T, s = S, b = B)
-res_dat = expand(
-     "data/00-dat/{dat}.rds",
-     dat = DAT
-)
-
+res_sim = expand("data/00-sim/t{t},s{s},b{b}.rds", t = T, s = S, b = B)
 res_fil = expand("data/01-fil/{sim}.rds",    sim = SIM)
 res_rd  = expand("data/01-fil/{sim}-rd.rds", sim = SIM)
 res_cd  = expand("data/01-fil/{sim}-cd.rds", sim = SIM)
 
-res_pro = expand("data/01-pro/{dat}.rds",    dat = DAT)
-res_rrd  = expand("data/01-pro/{dat}-rd.rds", dat = DAT)
-res_rcd  = expand("data/01-pro/{dat}-cd.rds", dat = DAT)
+#res_dat = expand("data/00-dat/{dat}.rds",    dat = DAT)
+#res_pro = expand("data/01-pro/{dat}.rds",    dat = DAT)
+#res_rrd = expand("data/01-pro/{dat}-rd.rds", dat = DAT)
+#res_rcd = expand("data/01-pro/{dat}-cd.rds", dat = DAT)
 
-res_sco = expand([
+res_sco = expand(
     "outs/sco-sim-{sim},{sco}.rds",
-    "outs/sco-dat-{dat},{sco}.rds"],
-    sim = SIM, dat = DAT, sco = SCO)
+   # "outs/sco-dat-{dat},{sco}.rds"],
+    sim = SIM, sco = SCO)
 
-res_sel = [expand("outs/sel-sim-{sim},{sel}.rds", sim = SIM, sel = SEL),
-        expand("outs/sel-dat-{dat},{sel}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])]
+res_sel = expand("outs/sel-sim-{sim},{sel}.rds", sim = SIM, sel = SEL)
+    #expand("outs/sel-dat-{dat},{sel}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])
+    
 
+res_rep = expand("data/02-rep/sim-{sim},{sel}.rds", sim = SIM, sel = SEL)
+    #expand("data/02-rep/dat-{dat},{sel}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])
+    
 
-res_rep = [expand("data/02-rep/sim-{sim},{sel}.rds", sim = SIM, sel = SEL),
-        expand("data/02-rep/dat-{dat},{sel}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])]
+res_ncd = expand("data/02-rep/sim-{sim},{sel}-cd.rds", sim = SIM, sel = SEL)
+    #expand("data/02-rep/dat-{dat},{sel}-cd.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])
+    
 
-res_ncd = [expand("data/02-rep/sim-{sim},{sel}-cd.rds", sim = SIM, sel = SEL),
-        expand("data/02-rep/dat-{dat},{sel}-cd.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])]
-
-
-res_sta = [expand("outs/sta-sim-{sim},{sel},{sta}.rds", sim = SIM, sel = SEL, sta = STA),
-    expand("outs/sta-dat-{dat},{sel},{sta}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"], sta = [x for x in STA if "F1" not in x])] # filter stuff beginning w F1 from STA
-
+res_sta = expand("outs/sta-sim-{sim},{sel},{sta}.rds", sim = SIM, sel = SEL, sta = STA)
+    #expand("outs/sta-dat-{dat},{sel},{sta}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"], sta = [x for x in STA if "F1" not in x])
+     # filter stuff beginning w/ F1 from STA
 
 #res_das = [expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS),
 #        expand("outs/das-dat-{dat},{sel},{das}.rds", dat = DAT, das = DAS, sel = [x for x in SEL if x != "truth"])]
 
 res_das = expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS)
 
-res_eva = expand("outs/eva-sim-{sim},{sel},{eva}.rds", sim = SIM, sel = SEL, eva = EVA)
+#res_eva = expand(
+#    "outs/eva-{sim},{sco},{eva}.rds",
+#    sim = SIM, sco = SCO, eva = EVA)
 
 res_plt = list()
 for val in PLT.keys():
@@ -72,24 +79,22 @@ for val in PLT.keys():
 
 res = {
     "sim": res_sim,
-    "dat": res_dat,
+    #"dat": res_dat,
     "fil": res_fil,
     "rd":  res_rd, 
     "cd":  res_cd,
-    "pro": res_pro,
-    "rrd": res_rrd,
-    "rcd": res_rcd,
+    #"pro": res_pro,
+    #"rrd": res_rrd,
+    #"rcd": res_rcd,
     "sco": res_sco,
     "sel": res_sel,
     "rep": res_rep,
     "ncd": res_ncd,
     "sta": res_sta,
     "plt": res_plt,
-    "eva": res_eva,
+#    "eva": res_eva,
     "das": res_das,
     "plt": res_plt}
-
-
 
 # COLLECTION ===================================================================
 
@@ -105,7 +110,7 @@ def res_sta_by_sco(wildcards):
     return expand("outs/sta-{sim},{sco},{sel},{sta}.rds",
         sim = SIM, sco = wildcards.sco, sel = SEL, sta = STA)
 
-# PREPROCESSING ================================================================
+# SETUP ========================================================================
 
 # reproducibly retrieve dataset from public source
 rule all: 
@@ -113,11 +118,11 @@ rule all:
         "session_info.txt",
         # simulation, pre- & re-processing
         res_sim, res_fil, # sim
-        res_dat, res_pro, # real
+        # res_dat, res_pro, # real
         # scoring & evaluation
         res_sco, res_sel, res_rep, res_ncd, res_sta,
         # downstream
-        res_eva, 
+        #res_eva, 
         res_das,
         # visualization
         res_plt
@@ -254,6 +259,7 @@ rule rep_dat:
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
             {input[1]} {input[2]} {output[0]} {output[1]}" {input[0]} {log}'''
+
 # calculate clustering evaluation statistics
 rule calc_sta:
     priority: 94
@@ -278,7 +284,6 @@ rule comp_sta:
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
 # differential abundance/analysis 
-
 rule run_das:
     priority: 94
     input:  "code/06-das.R",
@@ -289,7 +294,6 @@ rule run_das:
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
-
 
 #rule pef_das:
 #    priority: 94
@@ -302,44 +306,28 @@ rule run_das:
 #        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
 #        {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
-
-
 # calculate performance of detect true markers
 
 #rule calc_eva:
-#    priority: 95
-#    input:  "code/07-eva.R",
-#            "code/07-eva-nFeatures.R",
-#            rules.calc_sco.output
-#    output: "outs/eva-{sim},{sco},{eva}.rds"
-#    log:    "logs/eva-{sim},{sco},{eva}.Rout"
-#    shell: '''
-#        {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-#        {input[2]} {output}" {input[0]} {log}'''
-
-
-#rule calc_eva:
-#    priority: 94
-#    input:  "code/07-eva.R",
-#            "code/07-eva-{eva}.R",
-#            rules.rep_sim.output
-#    output: "outs/eva-sim-{sim},{sel},{eva}.rds"
-#    log:    "logs/eva-sim-{sim},{sel},{eva}.Rout"
-#    shell: '''
-#        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-#        {input[1]} {input[2]} {output}" {input[0]} {log}'''
+#   priority: 95
+#   input:  "code/07-eva.R",
+#           "code/07-eva-{eva}.R",
+#           rules.calc_sco.output
+#   output: "outs/eva-{sim},{sco},{eva}.rds"
+#   log:    "logs/eva-{sim},{sco},{eva}.Rout"
+#   shell: '''
+#       {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
+#       {input[2]} {output}" {input[0]} {log}'''
 
 # VISUALIZATION ========================================================
 
 for val in VAL:
     rule:
         priority: 49
-        input:  expand("code/08-plot_{val}-{{plt}}.R", val = val), x = res[val]
+        input:  expand("code/08-plt_{val}-{{plt}}.R", val = val), x = res[val]
         params: lambda wc, input: ";".join(input.x)
         output: expand("plts/{val}-{{plt}}.pdf", val = val)
-        log:    expand("logs/plot_{val}-{{plt}}.Rout", val = val)
+        log:    expand("logs/plt_{val}-{{plt}}.Rout", val = val)
         shell:  '''
             {R} CMD BATCH --no-restore --no-save "--args\
             {params} {output[0]}" {input[0]} {log}'''
-
-

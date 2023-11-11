@@ -1,29 +1,30 @@
+# wcs <- list(sim="t0,s100,b0", sel="hvg", das="DS_lemur")
 # args <- list(
-#     "code/06-dd-DS_miloR.R",
-#     "data/02-rep/t0,s0,b0,topEntropy.rds",
-#     "outs/dd-t0,s0,b0,topEntropy,DS_miloR.rds")
+#     sprintf("code/06-das-%s.R", wcs$das),
+#     sprintf("data/02-rep/sim-%s,%s.rds", wcs$sim, wcs$sel),
+#     sprintf("outs/dd-%s,%s,%s.rds", wcs$sim, wcs$sel, wcs$das))
+
 suppressPackageStartupMessages({
-    library(stringr)
+    library(dplyr)
+    library(SingleCellExperiment)
 })
+
 source(args[[1]])
 sce <- readRDS(args[[2]])
-
 res <- fun(sce)
+
 if (!is.null(res)) {
-    if (str_detect(args[[2]], "sim")) {
-        res <- data.frame(
-            row.names = NULL, 
-            metadata(sce), wcs, res)
-    } else {
-        res <- data.frame(
-            row.names = NULL, wcs, res)
-    }
-    
+    # store wildcards & simulation parameters
+    res <- data.frame(row.names = NULL, wcs, res)
+    if (grepl("^sim", basename(args[[2]])))
+        res <- data.frame(metadata(sce), res)
+    # fill in missing gene-cluster instances
+    # for downstream format compatibility 
     nan <- setdiff(res$gene, rownames(sce))
     if (length(nan)) {
         kid <- levels(sce$cluster_id)
-        add <- expand.grid(gene = nan, cluster_id = kid)
-        res <- dplyr::bind_rows(res, add)
+        add <- expand.grid(gene=nan, cluster_id=kid)
+        res <- bind_rows(res, add)
     }
 }
 

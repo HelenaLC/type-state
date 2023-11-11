@@ -1,11 +1,12 @@
 suppressPackageStartupMessages({
     library(FEAST)
+    library(SingleCellExperiment)
 })
 
 fun <- \(x) {
-    y <- assay(x, "counts")
-    y <- as.matrix(y)
-    con <- Consensus(Y, k = length(unique(x$cluster_id)))
-    res <- cal_F2(y, con$cluster)
-    res$F_scores
+    y <- as.matrix(assay(x, "logcounts"))
+    k <- length(unique(x$cluster_id))
+    ids <- Consensus(y, k=k)$cluster
+    res <- cal_F2(y, ids)$F_scores
+    setNames(res, rownames(x))
 }

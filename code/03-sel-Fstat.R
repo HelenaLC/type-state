@@ -1,8 +1,6 @@
 fun <- \(x) {
     y <- x$type_Fstat
-    o <- order(y$sco_val, decreasing = TRUE)[seq_len(round(nrow(y)*0.25))]
-    res <- rep(FALSE, nrow(y))
-    res[o] <- TRUE
-    return(res)
+    y <- y[!is.na(y$sco_val), ]
+    z <- order(y$sco_val, decreasing=TRUE)[seq_len(round(nrow(y))*0.25)]
+    y$gene_id[z]
 }
-    
