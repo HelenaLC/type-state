@@ -8,7 +8,9 @@ suppressPackageStartupMessages({
     library(stringr)
 })
 
-res <- lapply(args[[1]], \(x) { if (str_detect(x,"sim")) readRDS(x) })
+
+idx <- grepl("-sim-", args[[1]])
+res <- lapply(args[[1]][idx], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
 
 df <- do.call(rbind, res) 
