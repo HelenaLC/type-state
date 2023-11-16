@@ -1,6 +1,6 @@
-args <- list(
-    list.files("outs", "^sel-", full.names=TRUE),
-    "plts/sel-upset.pdf")
+# args <- list(
+#     list.files("outs", "^sel-", full.names=TRUE),
+#     "plts/sel-upset.pdf")
 
 suppressPackageStartupMessages({
     library(ggplot2)

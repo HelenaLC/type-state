@@ -20,7 +20,7 @@ sce <- runPCA(sce, subset_row=sel)
 sce <- runUMAP(sce, dimred="PCA")
 sce$cluster_re <- clusterCells(sce, use.dimred="PCA")
 
-dr <- data.frame(as.list(reducedDims(sce)))
+dr <- data.frame(unname(as.list(reducedDims(sce))))
 cd <- data.frame(row.names=NULL, wcs, dr, colData(sce))
 if (!is.null(wcs$sim)) cd <- data.frame(cd, metadata(sce))
 
