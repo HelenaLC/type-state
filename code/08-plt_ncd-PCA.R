@@ -2,7 +2,6 @@
 
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
-    library(stringr)
     library(ggplot2)
     library(dplyr)
 })
