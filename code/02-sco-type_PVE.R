@@ -15,5 +15,5 @@ fun <- \(x) {
     res[rowAlls(is.na(res)), ] <- 0
     # return variance fractions
     # separately for each variable
-    res$cluster_hi
+    setNames(res$cluster_hi, rownames(x))
 }
