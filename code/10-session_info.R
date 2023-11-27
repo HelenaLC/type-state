@@ -12,18 +12,20 @@ x <- c(
     "matrixStats",
     "SingleCellExperiment",
     # sco
-    "FEAST",
+    "poolr",
+    "FEAST",#
     "scmap",
-    "prabhakarlab/DUBStepR",
+    "prabhakarlab/DUBStepR",#
     # das
+    "poolr",
     "lemur",
     "miloR",
-    "miloDE",
+    "MarioniLab/miloDE",
     # sta
     "caret",
     "MLVSBM",
-    "cluster",
     "bluster",
+    "cluster",
     "PCAtools",
     "CellMixS",
     "variancePartition",
@@ -32,13 +34,14 @@ x <- c(
     "UpSetR",
     "ggplot2",
     "ggrastr",
-    "patchwork")
+    "patchwork",
+    "ComplexUpset")
 
 # install dependencies
 if (!require(BiocManager))
     install.packages("BiocManager")
 for (. in x)
-    if (!require(., character.only = TRUE))
+    if (!require(basename(.), character.only = TRUE))
         BiocManager::install(., ask = FALSE, update = TRUE)
 
 # capture session
