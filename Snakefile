@@ -14,7 +14,7 @@ R = config["R"]
 # das = differential abundance/state method
 # ------------------------------------------------------------------------------
 
-#DAT = glob_wildcards("code/00-get_data-{x}.R").x
+DAT = glob_wildcards("code/00-get_data-{x}.R").x
 SCO = glob_wildcards("code/02-sco-{x}.R").x
 SEL = glob_wildcards("code/03-sel-{x}.R").x
 STA = glob_wildcards("code/05-sta-{x}.R").x
@@ -38,40 +38,47 @@ res_fil = expand("data/01-fil/{sim}.rds",    sim = SIM)
 res_rd  = expand("data/01-fil/{sim}-rd.rds", sim = SIM)
 res_cd  = expand("data/01-fil/{sim}-cd.rds", sim = SIM)
 
-#res_dat = expand("data/00-dat/{dat}.rds",    dat = DAT)
-#res_pro = expand("data/01-pro/{dat}.rds",    dat = DAT)
-#res_rrd = expand("data/01-pro/{dat}-rd.rds", dat = DAT)
-#res_rcd = expand("data/01-pro/{dat}-cd.rds", dat = DAT)
+res_dat = expand("data/00-dat/{dat}.rds",    dat = DAT)
+res_pro = expand("data/01-pro/{dat}.rds",    dat = DAT)
+res_rrd = expand("data/01-pro/{dat}-rd.rds", dat = DAT)
+res_rcd = expand("data/01-pro/{dat}-cd.rds", dat = DAT)
 
-res_sco = expand(
+res_sco = expand([
     "outs/sco-sim-{sim},{sco}.rds",
-   # "outs/sco-dat-{dat},{sco}.rds"],
-    sim = SIM, sco = SCO)
+    "outs/sco-dat-{dat},{sco}.rds"],
+    dat=DAT, sim = SIM, sco = SCO)
 
-res_sel = expand("outs/sel-sim-{sim},{sel}.rds", sim = SIM, sel = SEL)
-    #expand("outs/sel-dat-{dat},{sel}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])
+# exclude ground truth selection for real data
+SEL_ = [x for x in SEL if x != "truth"]
+
+res_sel = [
+    expand("outs/sel-sim-{sim},{sel}.rds", sim = SIM, sel = SEL),
+    expand("outs/sel-dat-{dat},{sel}.rds", dat = DAT, sel = SEL_)]
+    
+res_rep = [
+    expand("data/02-rep/sim-{sim},{sel}.rds", sim = SIM, sel = SEL),
+    expand("data/02-rep/dat-{dat},{sel}.rds", dat = DAT, sel = SEL_)]
     
 
-res_rep = expand("data/02-rep/sim-{sim},{sel}.rds", sim = SIM, sel = SEL)
-    #expand("data/02-rep/dat-{dat},{sel}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])
+res_ncd = [
+    expand("data/02-rep/sim-{sim},{sel}-cd.rds", sim = SIM, sel = SEL),
+    expand("data/02-rep/dat-{dat},{sel}-cd.rds", dat = DAT, sel = SEL_)]
     
 
-res_ncd = expand("data/02-rep/sim-{sim},{sel}-cd.rds", sim = SIM, sel = SEL)
-    #expand("data/02-rep/dat-{dat},{sel}-cd.rds", dat = DAT, sel = [x for x in SEL if x != "truth"])
-    
+res_sta = [
+    expand("outs/sta-sim-{sim},{sel},{sta}.rds", sim = SIM, sel = SEL, sta = STA),
+    expand("outs/sta-dat-{dat},{sel},{sta}.rds", dat = DAT, sel = SEL_, sta = [x for x in STA if "F1" not in x])]
+    # filter stuff beginning w/ F1 from STA
 
-res_sta = expand("outs/sta-sim-{sim},{sel},{sta}.rds", sim = SIM, sel = SEL, sta = STA)
-    #expand("outs/sta-dat-{dat},{sel},{sta}.rds", dat = DAT, sel = [x for x in SEL if x != "truth"], sta = [x for x in STA if "F1" not in x])
-     # filter stuff beginning w/ F1 from STA
+res_das = [
+    expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS),
+    expand("outs/das-dat-{dat},{sel},{das}.rds", dat = DAT, das = DAS, sel = SEL_)]
 
-#res_das = [expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS),
-#        expand("outs/das-dat-{dat},{sel},{das}.rds", dat = DAT, das = DAS, sel = [x for x in SEL if x != "truth"])]
+#res_das = expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS)
 
-res_das = expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS)
-
-#res_eva = expand(
-#    "outs/eva-{sim},{sco},{eva}.rds",
-#    sim = SIM, sco = SCO, eva = EVA)
+res_eva = expand(
+   "outs/eva-{sim},{sco},{eva}.rds",
+   sim = SIM, sco = SCO, eva = EVA)
 
 res_plt = list()
 for val in PLT.keys():
@@ -79,20 +86,20 @@ for val in PLT.keys():
 
 res = {
     "sim": res_sim,
-    #"dat": res_dat,
+    "dat": res_dat,
     "fil": res_fil,
     "rd":  res_rd, 
     "cd":  res_cd,
-    #"pro": res_pro,
-    #"rrd": res_rrd,
-    #"rcd": res_rcd,
+    "pro": res_pro,
+    "rrd": res_rrd,
+    "rcd": res_rcd,
     "sco": res_sco,
     "sel": res_sel,
     "rep": res_rep,
     "ncd": res_ncd,
     "sta": res_sta,
     "plt": res_plt,
-#    "eva": res_eva,
+    "eva": res_eva,
     "das": res_das,
     "plt": res_plt}
 
@@ -118,7 +125,7 @@ rule all:
         "session_info.txt",
         # simulation, pre- & re-processing
         res_sim, res_fil, # sim
-        # res_dat, res_pro, # real
+        res_dat, res_pro, # real
         # scoring & evaluation
         res_sco, res_sel, res_rep, res_ncd, res_sta,
         # downstream
@@ -284,7 +291,7 @@ rule comp_sta:
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
 # differential abundance/analysis 
-rule run_das:
+rule run_das_simu:
     priority: 94
     input:  "code/06-das.R",
             "code/06-das-{das}.R",
@@ -295,16 +302,16 @@ rule run_das:
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
-#rule pef_das:
-#    priority: 94
-#    input:  "code/06-das.R",
-#            "code/06-das-{das}.R",
-#            rules.rep_dat.output
-#    output: "outs/das-dat-{dat},{sel},{das}.rds"
-#    log:    "logs/das-dat-{dat},{sel},{das}.Rout"
-#    shell: '''
-#        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-#        {input[1]} {input[2]} {output}" {input[0]} {log}'''
+rule run_das_real:
+   priority: 94
+   input:  "code/06-das.R",
+           "code/06-das-{das}.R",
+           rules.rep_dat.output
+   output: "outs/das-dat-{dat},{sel},{das}.rds"
+   log:    "logs/das-dat-{dat},{sel},{das}.Rout"
+   shell: '''
+       {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+       {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
 # calculate performance of detect true markers
 
