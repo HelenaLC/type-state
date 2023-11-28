@@ -11,7 +11,8 @@ fun <- \(x) {
     idx <- which(rowAnys(rd[de] != 1) & rowAlls(rd[ds] == 1))
     rd$truth <- FALSE
     rd$truth[idx] <- TRUE
-    cm <- confusionMatrix(factor(rd$sel_val), factor(rd$truth))
+    cm <- confusionMatrix(factor(rd$sel_val), factor(rd$truth),
+        positive = "TRUE")
     f1 <- cm$byClass["F1"]
     data.frame(sta_val = f1, row.names = NULL)
 }
