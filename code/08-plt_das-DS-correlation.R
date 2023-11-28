@@ -112,7 +112,7 @@ pb <- ggplot(fd, aes(DS_edgeR, DS_lemur, col=value))
 p3 <- wrap_plots(pa, pb, ncol=1) +
     plot_layout(guides="collect") & 
     facet_grid(effect~sel) &
-    geom_point_rast(shape=16, alpha=0.1, size=0.05) &
+    geom_point_rast(shape=16, alpha=0.1, size=0.5) &
     stat_cor(method="pearson", aes(label=..r.label..)) &
     scale_color_viridis_c() &
     scale_x_continuous(n.breaks=3) &
@@ -122,5 +122,5 @@ p3 <- wrap_plots(pa, pb, ncol=1) +
         axis.title=element_text(hjust=0),
         legend.key.size=unit(0.5, "lines"))
 
-pdf(args[[2]], width=15, height=7, onefile=TRUE)
+pdf(args[[2]], width=10, height=7, onefile=TRUE)
 for (p in c(ps, list(p3))) print(p); dev.off()
