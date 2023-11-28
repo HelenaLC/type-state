@@ -70,30 +70,30 @@ p1 <- ggplot(res[res$cor == "cor_t", ]) + ggtitle(sprintf(lab, "type"))
 p2 <- ggplot(res[res$cor == "cor_s", ]) + ggtitle(sprintf(lab, "state"))
 
 ps <- lapply(list(p1, p2), \(p) p + facet_grid(das ~ sel) +
-    geom_tile(col="white", aes(t, s, fill=cor_val)) +
-    scale_x_continuous("type effect", n.breaks=2) +
-    scale_y_continuous("state effect", n.breaks=2) +
-    scale_fill_distiller(NULL,
-        palette="RdYlBu", na.value="lightgrey",
-        limits=c(-1, 1), n.breaks=3, direction=-1) +
-    coord_fixed(expand=FALSE) + 
-    theme_minimal(9) + theme(
-        legend.position="bottom",
-        panel.grid=element_blank(),
-        panel.border=element_rect(fill=NA),
-        legend.key.width=unit(1, "lines"),
-        legend.key.height=unit(0.5, "lines")))
+        geom_tile(col="white", aes(t, s, fill=cor_val)) +
+        scale_x_continuous("type effect", n.breaks=2) +
+        scale_y_continuous("state effect", n.breaks=2) +
+        scale_fill_distiller(NULL,
+            palette="RdYlBu", na.value="lightgrey",
+            limits=c(-1, 1), n.breaks=3, direction=-1) +
+        coord_fixed(expand=FALSE) + 
+        theme_minimal(9) + theme(
+            legend.position="bottom",
+            panel.grid=element_blank(),
+            panel.border=element_rect(fill=NA),
+            legend.key.width=unit(1, "lines"),
+            legend.key.height=unit(0.5, "lines")))
 
 # wrangling
 fd <- df |>
     # group_by(t, s, sel, das) |>
     # mutate(
-    #     fisher=fisher-min(fisher),
-    #     fisher=fisher/max(fisher)) |>
+    #     p_adj=p_adj-min(p_adj),
+    #     p_adj=p_adj/max(p_adj)) |>
     # ungroup() |>
     mutate(
         across(all_of(c("t", "s")), 
-        ~factor(., sort(unique(.))))) |>
+            ~factor(., sort(unique(.))))) |>
     pivot_wider(
         names_from="das", values_from="p_adj",
         id_cols=setdiff(names(df), c("das", "p_adj"))) |>
@@ -112,9 +112,9 @@ pb <- ggplot(fd, aes(DS_edgeR, DS_lemur, col=value))
 p3 <- wrap_plots(pa, pb, ncol=1) +
     plot_layout(guides="collect") & 
     facet_grid(effect~sel) &
-    geom_point_rast(shape=16, alpha=0.1, size=0.01) &
+    geom_point_rast(shape=16, alpha=0.1, size=0.05) &
     stat_cor(method="pearson", aes(label=..r.label..)) &
-    scale_color_viridis_c(option="C") &
+    scale_color_viridis_c() &
     scale_x_continuous(n.breaks=3) &
     scale_y_continuous(n.breaks=3) &
     theme_linedraw(6) & theme(

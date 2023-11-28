@@ -1,0 +1,202 @@
+---
+title: "Case study on Kang18 scRNA-seq dataset - Reprocess"
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-tools: true
+    toc_float: true
+---
+
+## Dependencies
+```{r dependencies}
+suppressPackageStartupMessages({
+    source("../utils.R")
+    library(edgeR)
+    library(SingleCellExperiment)
+    library(scater)
+    library(dplyr)
+    library(igraph)
+    library(scran)
+    library(bluster)
+    library(MLVSBM)
+    library(cluster)
+    library(lisi)
+    library(UpSetR)
+    library(patchwork)
+})
+```
+
+## Without harmony
+
+### Loading data
+```{r data}
+sce <- readRDS("../../data/Kang/scored_sce.rds")
+```
+
+### Define threshold
+```{r threshold}
+# Fstat
+fs <- rep(FALSE, nrow(sce))
+ids <- which(rowData(sce)$Fstat > quantile(rowData(sce)$Fstat)[4])
+rowData(sce)$Fstat_sel <- FALSE
+rowData(sce)$Fstat_sel[ids] <- TRUE
+
+# FEAST
+ids <- which(rowData(sce)$FEAST > 1.5)
+rowData(sce)$FEAST_sel <- FALSE
+rowData(sce)$FEAST_sel[ids] <- TRUE
+
+# random
+ids <- order(rowData(sce)$random,
+      decreasing = TRUE)[seq_len(round(nrow(sce)*0.25))]
+rowData(sce)$random_sel <- FALSE
+rowData(sce)$random_sel[ids] <- TRUE
+
+# Fstat_edgeR
+ids <- which(rowData(sce)$Fstat > quantile(rowData(sce)$Fstat)[4] &
+        rowData(sce)$edgeR < 40)
+rowData(sce)$Fstat_edgeR_sel <- FALSE
+rowData(sce)$Fstat_edgeR_sel[ids] <- TRUE
+
+# Fstat_PVE 
+idx <- which(rowData(sce)$Fstat > quantile(rowData(sce)$Fstat)[3] &
+        rowData(sce)$sPVE < quantile(rowData(sce)$sPVE)[3])
+rowData(sce)$Fstat_sPVE_sel <- rep(FALSE, nrow(sce))
+rowData(sce)$Fstat_sPVE_sel[idx] <- TRUE
+
+# PVE
+idx <- which(rowData(sce)$tPVE > quantile(rowData(sce)$tPVE)[3] &
+        rowData(sce)$sPVE < quantile(rowData(sce)$sPVE)[3])
+rowData(sce)$PVE_sel <- rep(FALSE, nrow(sce))
+rowData(sce)$PVE_sel[idx] <- TRUE
+
+# hvg
+tbl <- modelGeneVar(sce, block = sce$sample_id)
+hvg <- tbl$bio
+hvg <- getTopHVGs(tbl, prop = 0.4)
+idx <- match(hvg, rownames(sce))
+rowData(sce)$hvg_sel <- FALSE
+rowData(sce)$hvg_sel[idx] <- TRUE
+```
+
+### UpSet of selected genes
+```{r upset, fig.width=7,fig.height=5}
+lst <- list(Fstat = rowData(sce)[rowData(sce)$Fstat_sel,"SYMBOL"], 
+  Fstat_edgeR = rowData(sce)[rowData(sce)$Fstat_edgeR_sel,"SYMBOL"],
+  hvg = rowData(sce)[rowData(sce)$hvg_sel,"SYMBOL"],
+  FEAST = rowData(sce)[rowData(sce)$FEAST_sel,"SYMBOL"],
+  #DUBStepR = rowData(sce)[rowData(sce)$DUBStepR_sel,"gene_id"],
+  random = rowData(sce)[rowData(sce)$random_sel,"SYMBOL"],
+  Fstat_sPVE = rowData(sce)[rowData(sce)$Fstat_sPVE_sel,"SYMBOL"],
+  PVE = rowData(sce)[rowData(sce)$PVE_sel,"SYMBOL"])
+
+upset(fromList(lst),
+        order.by = "freq",
+        nsets = length(lst),
+        set_size.show = TRUE,
+        scale.sets = "identity")
+```
+
+### Reprocess
+```{r reprocess}
+sel <- c("Fstat_edgeR_sel", "Fstat_sel", "random_sel",
+  "hvg_sel", "FEAST_sel", "Fstat_sPVE_sel", "PVE_sel")
+sces <- lapply(sel, \(s) {
+  sce <- runPCA(sce, subset_row = rowData(sce)[,s])
+  sce <- runTSNE(sce, subset_row = rowData(sce)[,s])
+  g <- buildSNNGraph(sce, use.dimred = "PCA")
+  #sce$cluster_re <- leiden(g, resolution_parameter = 0.4)
+  sce$cluster_re <- clusterCells(sce,
+    use.dimred = "PCA",
+    BLUSPARAM = NNGraphParam(cluster.fun = "louvain",
+    cluster.args = list(resolution = 0.4)))
+  return(sce)
+})
+names(sces) <- c("Fstat_edgeR", "Fstat", "random",
+  "hvg", "FEAST", "Fstat_sPVE", "PVE")
+saveRDS(sces, "../../data/Kang/reprocessed_sce.rds")
+sces <- readRDS("../../data/Kang/reprocessed_sce.rds")
+```
+
+
+::: {.panel-tabset}
+### Color by cluster_id
+```{r cid, warning=FALSE, fig.height=10, fig.width=13}
+lapply(names(sces), \(x) {
+  sce <- sces[[x]]
+  plotTSNE(sce, colour_by = "cluster_id") + 
+     ggtitle(x)
+}) |> wrap_plots(ncol = 3) +  plot_layout(guides = "collect")
+```
+
+### Color by group_id
+```{r gid, warning=FALSE, fig.height=12, fig.width=13}
+lapply(names(sces), \(x) {
+  sce <- sces[[x]]
+  plotTSNE(sce, colour_by = "group_id") + 
+     ggtitle(x)
+}) |> wrap_plots(ncol = 3) +  plot_layout(guides = "collect")
+```
+
+:::
+
+### Evaluation
+```{r}
+eva <- lapply(names(sces), \(x) {
+    sce <- sces[[x]]
+    ari <- ARI(sce$cluster_re, sce$cluster_id)
+    sil <- .sil_k(sce)
+    pur <- .pur_k(sce)
+    tlisi <- .tLISI(sce)
+    slisi <- .sLISI(sce)
+    data.frame(ARI = ari, sil = sil, 
+      pur = pur, tlisi = tlisi, slisi = slisi,
+      sel = x, harmony = FALSE)
+}) %>% bind_rows()
+
+saveRDS(eva, "../../data/Kang/eva.rds")
+```
+
+
+::: {.panel-tabset}
+
+### ARI
+```{r ari, fig.height=5, fig.width=13}
+ggplot(eva, aes(x = sel, col = sel)) +
+  geom_bar(aes(y = ARI), stat = "identity", position = "dodge", fill = "white") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+  #geom_hline(yintercept = harm_ari, linetype = "dashed", color = "black")
+```
+
+### Silouette 
+```{r sil, fig.height=5, fig.width=13}
+ggplot(eva, aes(x = sel, col = sel)) +
+  geom_bar(aes(y = sil), stat = "identity", position = "dodge", fill = "white") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+  #geom_hline(yintercept = harm_sil, linetype = "dashed", color = "black")
+```
+
+### Mixture of cell types
+```{r tlisi, fig.height=5, fig.width=13}
+ggplot(eva, aes(x = sel, col = sel)) +
+  geom_bar(aes(y = tlisi), stat = "identity", position = "dodge", fill = "white") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  facet_grid(~ harmony, labeller = \(.) label_both(.)) 
+  #geom_hline(yintercept = harm_tlisi, linetype = "dashed", color = "black")
+```
+
+### Mixture of conditions
+```{r slisi, fig.height=5, fig.width=13}
+ggplot(eva, aes(x = sel, col = sel)) +
+  geom_bar(aes(y = slisi), stat = "identity", position = "dodge", fill = "white") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  facet_grid(~ harmony, labeller = \(.) label_both(.)) 
+  #geom_hline(yintercept = harm_slisi, linetype = "dashed", color = "black")
+```
+:::
+
+
+
+
+
