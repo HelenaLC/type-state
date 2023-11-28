@@ -181,18 +181,16 @@ ggplot(eva, aes(x = sel, col = sel)) +
 ```{r tlisi, fig.height=5, fig.width=13}
 ggplot(eva, aes(x = sel, col = sel)) +
   geom_bar(aes(y = tlisi), stat = "identity", position = "dodge", fill = "white") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
-  facet_grid(~ harmony, labeller = \(.) label_both(.)) 
-  #geom_hline(yintercept = harm_tlisi, linetype = "dashed", color = "black")
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
 ```
 
 ### Mixture of conditions
 ```{r slisi, fig.height=5, fig.width=13}
 ggplot(eva, aes(x = sel, col = sel)) +
   geom_bar(aes(y = slisi), stat = "identity", position = "dodge", fill = "white") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
-  facet_grid(~ harmony, labeller = \(.) label_both(.)) 
-  #geom_hline(yintercept = harm_slisi, linetype = "dashed", color = "black")
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+
 ```
 :::
 
