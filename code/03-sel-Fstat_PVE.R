@@ -1,12 +1,20 @@
+suppressPackageStartupMessages({
+    library(matrixStats)
+})
+
 fun <- \(x) {
-    #y <- x$sco_val[x$sco == "entropy"]
-    f <- x[["type_Fstat"]]
-    e <- x[["state_PVE"]]
-    o <- rank(f$sco_val)
-    l <- rank(e$sco_val)
-    s <- order(o - l, decreasing = TRUE)[seq_len(round(nrow(e)*0.25))]
-    f$gene_id[s]
-    #res <- rep(FALSE, nrow(f))
-    #res[s] <- TRUE
-    
+    # rank by type-state score
+    t <- rank((y <- x$type_Fstat)$sco_val)
+    s <- rank(x$state_PVE$sco_val)
+    o <- order(t-s, decreasing=TRUE)
+    n <- if (!is.null(y$dat)) {
+        # if ground truth unavailable, select 2,000
+        2e3
+    } else {
+        # select number of genes that are truly DE but not DS
+        de <- grep("^GroupDE", names(y))
+        ds <- grep("^ConditionDE", names(y))
+        sum(rowAnys(y[de] != 1) & rowAlls(y[ds] == 1))
+    }
+    y$gene_id[o[seq_len(n)]]
 }
