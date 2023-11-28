@@ -1,6 +1,19 @@
+suppressPackageStartupMessages({
+    library(matrixStats)
+})
+
 fun <- \(x) {
-    y <- x$type_Fstat
-    y <- y[!is.na(y$sco_val), ]
-    z <- order(y$sco_val, decreasing=TRUE)[seq_len(round(nrow(y))*0.25)]
-    y$gene_id[z]
+    # rank by type-state score
+    t <- rank((y <- x$type_Fstat)$sco_val)
+    o <- order(t, decreasing=TRUE)
+    n <- if (!is.null(y$dat)) {
+        # if ground truth unavailable, select 2,000
+        2e3
+    } else {
+        # select number of genes that are truly DE but not DS
+        de <- grep("^GroupDE", names(y))
+        ds <- grep("^ConditionDE", names(y))
+        sum(rowAnys(y[de] != 1) & rowAlls(y[ds] == 1))
+    }
+    y$gene_id[o[seq_len(n)]]
 }
