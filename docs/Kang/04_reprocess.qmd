@@ -66,8 +66,9 @@ rowData(sce)$Fstat_sPVE_sel <- rep(FALSE, nrow(sce))
 rowData(sce)$Fstat_sPVE_sel[idx] <- TRUE
 
 # PVE
-idx <- which(rowData(sce)$tPVE > quantile(rowData(sce)$tPVE)[3] &
-        rowData(sce)$sPVE < quantile(rowData(sce)$sPVE)[3])
+# idx <- which(rowData(sce)$tPVE > quantile(rowData(sce)$tPVE)[3] &
+#         rowData(sce)$sPVE < quantile(rowData(sce)$sPVE)[3])
+idx <- which(rowData(sce)$tPVE - rowData(sce)$sPVE > 0.025)
 rowData(sce)$PVE_sel <- rep(FALSE, nrow(sce))
 rowData(sce)$PVE_sel[idx] <- TRUE
 

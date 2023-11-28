@@ -49,7 +49,7 @@ res_sco = expand([
     dat=DAT, sim = SIM, sco = SCO)
 
 # exclude ground truth selection for real data
-SEL_ = [x for x in SEL if x != "truth"]
+SEL_ = [x for x in SEL if x not in ["truth", "state_gene", "DE_DS"]]
 
 res_sel = [
     expand("outs/sel-sim-{sim},{sel}.rds", sim = SIM, sel = SEL),

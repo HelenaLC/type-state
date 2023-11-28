@@ -4,6 +4,7 @@ suppressPackageStartupMessages({
 
 fun <- \(x) {
     y <- x$random
+    o <- order(y$sco_val, decreasing=TRUE)
     n <- if (!is.null(y$dat)) {
         # if ground truth unavailable, select 2,000
         2e3
@@ -13,6 +14,5 @@ fun <- \(x) {
         ds <- grep("^ConditionDE", names(y))
         sum(rowAnys(y[de] != 1) & rowAlls(y[ds] == 1))
     }
-    o <- order(y$sco_val, decreasing=FALSE)
-    y$gene_id[o <= n]
+    y$gene_id[o[seq_len(n)]]
 }
