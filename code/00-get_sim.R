@@ -3,7 +3,7 @@ suppressPackageStartupMessages({
 })
 
 # setup
-set.seed(seed <- 7043)
+set.seed(seed <- 20233202)
 t <- as.numeric(wcs$t)/100
 s <- as.numeric(wcs$s)/100
 b <- as.numeric(wcs$b)/100
@@ -16,8 +16,8 @@ p <- newSplatPopParams(
     batch.facLoc=b,
     bcv.common=1.5,
     similarity.scale=10,
-    de.prob=0.2, 
-    cde.prob=0.2, 
+    de.prob=0.1, 
+    cde.prob=0.1, 
     batchCells=400,
     group.prob=rep(1/3, 3),
     condition.prob=c(0.5, 0.5))

@@ -1,4 +1,4 @@
-#args <- list(list.files("data/01-fil", "cd\\.rd*", full.names=TRUE), "plts/cd-pca.pdf")
+#args <- list(list.files("data/sim/01-pro", "-cd\\.rds", full.names=TRUE), "plts/cd-pca.pdf")
 
 suppressPackageStartupMessages({
     library(ggplot2)

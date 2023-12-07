@@ -1,5 +1,6 @@
-#args <- list(list.files("outs", "^sco-.*", full.names=TRUE), "plts/sco-ECDF.pdf")
+#args <- list(list.files("outs/sim", "^sco-", full.names=TRUE), "plts/sim/sco-ecdf.pdf")
 
+# dependencies
 suppressPackageStartupMessages({
     library(dplyr)
     library(ggplot2)
@@ -7,70 +8,51 @@ suppressPackageStartupMessages({
     library(matrixStats)
 })
 
-idx <- grepl("-sim-", args[[1]])
-res <- lapply(args[[1]][idx], readRDS)
+# loading
+res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
 
-ex <- c("scmap")
-df <- res |> bind_rows() |>
-    mutate(sco_val=case_when(
-        !(sco %in% ex) ~ log10(sco_val+1),
-        TRUE ~ sco_val, .default=sco_val))
-
+# wrangling
+ex <- c("random", "HVG")
+sco_ord <- c(ex, "type_Fstat", "type_PVE", "state_PVE", "state_edgeR")
+df <- bind_rows(res) |>
+    #mutate(sco_val=case_when(!sco %in% ex ~ log10(sco_val), TRUE ~ sco_val)) |>
+    mutate(sco=factor(sco, sco_ord))
 df$sco_t <- paste(df$sco, df$t, sep="_")
 df$sco_s <- paste(df$sco, df$s, sep="_")
 
-# DE genes only (according to 'splatter')
-de <- df[grep("GroupDE", names(df))]
-fd <- df[!rowAlls(as.matrix(de) == 1), ]
+# subsetting
+de <- grep("GroupDE", names(df))
+ds <- grep("ConditionDE", names(df))
+fd <- df[rowAnys(df[de] != 1) & !rowAnys(df[ds] != 1), ]
+df <- bind_rows(.id="sub", list(all=df, DEnotDS=fd))
 
-# define 'true' type genes as
-# having an average |logFC| > 1
-# (using absolute values because we
-# care about down-regulated markers)
-is <- seq_len(ncol(de))
-names(is) <- colnames(de)
-fc <- vapply(is, \(i) 
-    vapply(setdiff(is, i), \(j)
-        log(de[, i]/de[, j], base=2), 
-        numeric(nrow(de))) |> rowMeans(), 
-    numeric(nrow(de)))
-fc <- fd[rowMaxs(abs(fc)) > 1, ] 
-
-gg <- list(
+# aesthetics
+aes <- list(
     labs(y="ECDF"),
-    stat_ecdf(key_glyph="point"),
     scale_x_continuous(n.breaks=3),
-    scale_y_continuous(n.breaks=3),
-    facet_wrap(~ sco, scales="free_x", nrow=1),
-    guides(color=guide_legend(override.aes=list(size=2))))
+    scale_y_continuous(n.breaks=2),
+    facet_grid(sub ~ sco, scales="free_x"),
+    stat_ecdf(linewidth=0.4, key_glyph="point"),
+    guides(color=guide_legend(override.aes=list(size=1))),
+    theme_bw(6), theme(
+        plot.margin=margin(),
+        panel.grid=element_blank(),
+        panel.spacing=unit(2, unit="mm"),
+        legend.key.size=unit(0.25, "lines"),
+        strip.text=element_text(color="black"),
+        strip.background=element_rect(color=NA, fill="white")))
+pal_s <- scale_color_brewer(palette="Reds", "state\neffect", limits=seq(0, 1, 0.2))
+pal_t <- scale_color_brewer(palette="Blues", "type\neffect", limits=seq(0, 1, 0.2))
 
-p1 <- ggplot(df, aes(sco_val, group=sco_t, col=factor(t))) 
-p2 <- ggplot(fd, aes(sco_val, group=sco_t, col=factor(t))) 
-p3 <- ggplot(fc, aes(sco_val, group=sco_t, col=factor(t))) 
-
-p4 <- ggplot(df, aes(sco_val, group=sco_s, col=factor(s))) 
-p5 <- ggplot(fd, aes(sco_val, group=sco_s, col=factor(s)))
-p6 <- ggplot(fc, aes(sco_val, group=sco_s, col=factor(s)))
-
-thm <- theme_linedraw(9) + theme(
-    panel.grid=element_blank(),
-    axis.title.x=element_blank(),
-    legend.key.size=unit(0.5, "lines"),
-    panel.spacing=unit(2, unit="mm"),
-    strip.text=element_text(color="black", face="bold"),
-    strip.background=element_rect(color=NA, fill="white"))
-
-plt <- 
-    wrap_elements(p1 / p2/ p3 + 
-            plot_layout(guides="collect") & gg & thm & 
-            scale_color_brewer(palette="Blues", "type\neffect")) / 
-    wrap_elements(p4 / p5 / p6 + 
-            plot_layout(guides="collect") & gg & thm & 
-            scale_color_brewer(palette="Reds", "state\neffect")) + 
+# plotting
+p1 <- ggplot(df, aes(sco_val, group=sco_t, col=factor(t))) + pal_t
+p2 <- ggplot(df, aes(sco_val, group=sco_s, col=factor(s))) + pal_s
+gg <- (p1 + p2)+ plot_layout(ncol=1) &
     plot_annotation(tag_levels="a") &
-    theme(
-        plot.margin=margin(0, unit="mm"),
+    aes & theme(
+        plot.margin=margin(),
         plot.tag=element_text(size=9, face="bold"))
 
-ggsave(args[[2]], plt, units="cm", width=20, height=15)
+# saving
+ggsave(args[[2]], gg, width=15, height=8, units="cm")

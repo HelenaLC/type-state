@@ -4,11 +4,18 @@ suppressPackageStartupMessages({
 })
 
 fun <- \(x){
-    X <- reducedDim(x, "PCA")
-    meta <- colData(x)
-    lisi_g <- compute_lisi(X, meta, "group_id")
-    lisi_k <- compute_lisi(X, meta, "cluster_id")
-    rbind(
-        data.frame(sta="lisi_g", sta_val=mean(lisi_g$group_id) - 1),
-        data.frame(sta="lisi_k", sta_val=mean(lisi_k$cluster_id) - 2))
+    y <- reducedDim(x, "PCA")
+    cd <- colData(x)
+    by <- c(
+        lisi_g="group_id", 
+        lisi_k="cluster_id")
+    res <- sapply(by, \(.) {
+        res <- compute_lisi(y, cd, .)
+        n <- length(unique(cd[[.]]))
+        mean(res[[1]])-(n-1)
+    })
+    data.frame(
+        row.names=NULL, 
+        sta=names(res), 
+        sta_val=res)
 }
