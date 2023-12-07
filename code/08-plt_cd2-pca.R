@@ -1,5 +1,6 @@
-#args <- list(list.files("data/02-rep", "-cd", full.names=TRUE), "plts/ncd-PCA.pdf")
+#args <- list(list.files("data/sim/02-rep", "-cd\\.rds", full.names=TRUE), "plts/sim/cd2-pca.pdf")
 
+# dependencies
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(ggplot2)
@@ -7,15 +8,16 @@ suppressPackageStartupMessages({
     library(ggrastr)
 })
 
-# simulated data
-idx <- grepl("^sim", basename(args[[1]]))
-res <- lapply(args[[1]][idx], readRDS)
-res <- lapply(res, select, 
-    PC1, PC2, sel, t, s, b, 
-    group_id, cluster_id, cluster_re)
-df <- do.call(rbind, res)
+# loading
+res <- lapply(args[[1]], readRDS)
 
-# symmetrically round axis limits to nearest 5
+# wrangling
+df <- res |>
+    lapply(select, PC1, PC2, t, s, sel,
+    group_id, cluster_id, cluster_re) |>
+    do.call(what=rbind)
+
+# symmetrically round axiis to nearest 5
 .f <- \(.) round(max(abs(.))/5)*5
 pm <- c(-1, 1)
 xs <- pm*.f(df$PC1)
@@ -30,7 +32,8 @@ pal <- c(
     hcl.colors(n, "greens")[i])
 names(pal) <- levels(factor(df$id))
 
-p1 <- lapply(split(df, df$sel), \(fd) 
+# plotting
+ps <- lapply(split(df, df$sel), \(fd) 
     ggplot(
         fd[sample(nrow(fd)), ], 
         aes(PC1, PC2, col=id)) +
@@ -52,28 +55,6 @@ p1 <- lapply(split(df, df$sel), \(fd)
             axis.title=element_text(hjust=0),
             legend.key.size=unit(0.5, "lines")))
 
-# real data
-idx <- grepl("^dat", basename(args[[1]]))
-res <- lapply(args[[1]][idx], readRDS)
-res <- lapply(res, select, 
-    PC1, PC2, sel, dat, 
-    group_id, cluster_re)
-df <- do.call(rbind, res)
-
-p2 <- lapply(split(df, df$dat), \(fd)
-    ggplot(fd, aes(PC1, PC2, 
-        color=factor(cluster_re), 
-        shape=factor(group_id))) +
-        geom_point(alpha=0.2, size=0.6) + 
-        facet_wrap(~ sel, ncol=3, labeller=\(.) label_both(.)) + 
-        scale_x_continuous(n.breaks=3) +
-        scale_y_continuous(n.breaks=3) +
-        ggtitle(fd$dat[1]) + 
-        coord_fixed() + 
-        theme_bw(9) + theme(
-            legend.position="none",
-            plot.title=element_text(hjust=0.5, size=15),
-            panel.grid=element_blank()))
-
-pdf(args[[2]], width=8, height=8, onefile=TRUE)
-print(p1); print(p2); dev.off()
+# saving
+pdf(args[[2]], onefile=TRUE, width=15/2.54, height=16/2.54)
+for (p in ps) print(p); dev.off()

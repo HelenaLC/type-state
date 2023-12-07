@@ -7,5 +7,7 @@ fun <- \(x) {
     y <- x$random
     de <- grep("^GroupDE", names(y))
     ds <- grep("^ConditionDE", names(y))
-    y$gene_id[rowAnys(y[ds] != 1) & rowAlls(y[de] == 1)]
+    de <- rowAnys(y[de] != 1)
+    ds <- rowAnys(y[ds] != 1)
+    y$gene_id[ds & !de]
 }

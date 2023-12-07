@@ -14,125 +14,91 @@ R = config["R"]
 # das = differential abundance/state method
 # ------------------------------------------------------------------------------
 
-DAT = glob_wildcards("code/00-get_data-{x}.R").x
-SCO = glob_wildcards("code/02-sco-{x}.R").x
-SEL = glob_wildcards("code/03-sel-{x}.R").x
-STA = glob_wildcards("code/05-sta-{x}.R").x
-DAS = glob_wildcards("code/06-das-{x}.R").x
-EVA = glob_wildcards("code/07-eva-{x}.R").x
-
-# for sel in ["scmap", "FEAST", "DUBStepR"]:
-#     SEL.remove(sel)
-
-# for sta in ["cms", "pve", "pur", "lisi"]:
-#     STA.remove(sta)
-
 # magnitude of type, state & batch effect
 T = list(range(0, 120, 20)); S = list(range(0, 120, 20)); B = [0]
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
-VAL = ["rd", "cd", "sco", "sel", "sta", "das", "ncd"]
-PLT = {val:[plt for plt in glob_wildcards("code/08-plt_" + val + "-{x}.R").x] for val in VAL}
 
-res_sim = expand("data/00-sim/t{t},s{s},b{b}.rds", t = T, s = S, b = B)
-res_fil = expand("data/01-fil/{sim}.rds",    sim = SIM)
-res_rd  = expand("data/01-fil/{sim}-rd.rds", sim = SIM)
-res_cd  = expand("data/01-fil/{sim}-cd.rds", sim = SIM)
+DAT = glob_wildcards("code/00-get_dat-{x}.R").x
+SCO = glob_wildcards("code/02-sco-{x}.R").x
+SEL = glob_wildcards("code/03-sel_sim-{x}.R").x
+STA = glob_wildcards("code/05-sta-{x}.R").x
+DAS = glob_wildcards("code/06-das-{x}.R").x
 
-res_dat = expand("data/00-dat/{dat}.rds",    dat = DAT)
-res_pro = expand("data/01-pro/{dat}.rds",    dat = DAT)
-res_rrd = expand("data/01-pro/{dat}-rd.rds", dat = DAT)
-res_rcd = expand("data/01-pro/{dat}-cd.rds", dat = DAT)
+# output directories
+sim_dat = "data/sim/"; dat_dat = "data/dat/"
+sim_out = "outs/sim/"; dat_out = "outs/dat/"
 
-res_sco = expand([
-    "outs/sco-sim-{sim},{sco}.rds",
-    "outs/sco-dat-{dat},{sco}.rds"],
-    dat=DAT, sim = SIM, sco = SCO)
+# simulation
+sim = expand(sim_dat+"00-raw/t{t},s{s},b{b}.rds", t=T, s=S, b=B)
+sim_pro = expand(sim_dat+"01-pro/{sim}.rds", sim=SIM)
+sim_pro_rd = expand(sim_dat+"01-pro/{sim}-rd.rds", sim=SIM)
+sim_pro_cd = expand(sim_dat+"01-pro/{sim}-cd.rds", sim=SIM)
+sim_sco = expand(sim_out+"sco-{sim},{sco}.rds", sim=SIM, sco=SCO)
+sim_sel = expand(sim_out+"sel-{sim},{sel}.rds", sim=SIM, sel=SEL)
+sim_rep = expand(sim_dat+"02-rep/{sim},{sel}.rds", sim=SIM, sel=SEL)
+sim_rep_cd = expand(sim_dat+"02-rep/{sim},{sel}-cd.rds", sim=SIM, sel=SEL)
+sim_sta = expand(sim_out+"sta-{sim},{sel},{sta}.rds", sim=SIM, sel=SEL, sta=STA)
+sim_das = expand(sim_out+"das-{sim},{sel},{das}.rds", sim=SIM, sel=SEL, das=DAS)
 
-# exclude ground truth selection for real data
-SEL_ = [x for x in SEL if x not in ["DSnotDE", "DEgtDS", "DSgtDE", "truth"]]
+# for real data...
+# exclude simulation parameter-based selection
+SEL = glob_wildcards("code/03-sel_dat-{x}.R").x
+# exclude ground-truth based evaluation statistics
+STA = [x for x in STA if "F1" not in x]
 
-res_sel = [
-    expand("outs/sel-sim-{sim},{sel}.rds", sim = SIM, sel = SEL),
-    expand("outs/sel-dat-{dat},{sel}.rds", dat = DAT, sel = SEL_)]
-    
-res_rep = [
-    expand("data/02-rep/sim-{sim},{sel}.rds", sim = SIM, sel = SEL),
-    expand("data/02-rep/dat-{dat},{sel}.rds", dat = DAT, sel = SEL_)]
-    
+# application
+dat = expand(dat_dat+"00-raw/{dat}.rds", dat=DAT)
+dat_pro = expand(dat_dat+"01-pro/{dat}.rds", dat=DAT)
+dat_pro_rd = expand(dat_dat+"01-pro/{dat}-rd.rds", dat=DAT)
+dat_pro_cd = expand(dat_dat+"01-pro/{dat}-cd.rds", dat=DAT)
+dat_sco = expand(dat_out+"sco-{dat},{sco}.rds", dat=DAT, sco=SCO)
+dat_sel = expand(dat_out+"sel-{dat},{sel}.rds", dat=DAT, sel=SEL)
+dat_rep = expand(dat_dat+"02-rep/{dat},{sel}.rds", dat=DAT, sel=SEL)
+dat_sta = expand(dat_out+"sta-{dat},{sel},{sta}.rds", dat=DAT, sel=SEL, sta=STA)
+dat_das = expand(dat_out+"das-{dat},{sel},{das}.rds", dat=DAT, sel=SEL, das=DAS)
 
-res_ncd = [
-    expand("data/02-rep/sim-{sim},{sel}-cd.rds", sim = SIM, sel = SEL),
-    expand("data/02-rep/dat-{dat},{sel}-cd.rds", dat = DAT, sel = SEL_)]
-    
+sim_res = {
+    "sim": sim,
+    "pro": sim_pro,
+    "rd1": sim_pro_rd,
+    "cd1": sim_pro_cd,
+    "sco": sim_sco,
+    "sel": sim_sel,
+    "rep": sim_rep,
+    "cd2": sim_rep_cd,
+    "sta": sim_sta,
+    "das": sim_das}
+dat_res = {
+    "dat": dat,
+    "pro": dat_pro,
+    "sco": dat_sco,
+    "sel": dat_sel,
+    "rep": dat_rep,
+    "sta": dat_sta,
+    "das": dat_das}
 
-res_sta = [
-    expand("outs/sta-sim-{sim},{sel},{sta}.rds", sim = SIM, sel = SEL, sta = STA),
-    expand("outs/sta-dat-{dat},{sel},{sta}.rds", dat = DAT, sel = SEL_, sta = [x for x in STA if "F1" not in x])]
-    # filter stuff beginning w/ F1 from STA
+# visualization
+VAL = sim_res.keys()
+WAL = dat_res.keys()
 
-res_das = [
-    expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS),
-    expand("outs/das-dat-{dat},{sel},{das}.rds", dat = DAT, das = DAS, sel = SEL_)]
+plt = []
+for val in VAL:
+    x = glob_wildcards("code/08-plt_"+val+"-{x}.R").x
+    plt += expand("plts/sim/{val}-{plt}.pdf", val=val, plt=x)
 
-#res_das = expand("outs/das-sim-{sim},{sel},{das}.rds", sim = SIM, sel = SEL, das = DAS)
-
-res_eva = expand(
-   "outs/eva-{sim},{sco},{eva}.rds",
-   sim = SIM, sco = SCO, eva = EVA)
-
-res_plt = list()
-for val in PLT.keys():
-    res_plt += expand("plts/{val}-{plt}.pdf", val = val, plt = PLT[val])
-
-res = {
-    "sim": res_sim,
-    "dat": res_dat,
-    "fil": res_fil,
-    "rd":  res_rd, 
-    "cd":  res_cd,
-    "pro": res_pro,
-    "rrd": res_rrd,
-    "rcd": res_rcd,
-    "sco": res_sco,
-    "sel": res_sel,
-    "rep": res_rep,
-    "ncd": res_ncd,
-    "sta": res_sta,
-    "plt": res_plt,
-    "eva": res_eva,
-    "das": res_das,
-    "plt": res_plt}
-
-# COLLECTION ===================================================================
-
-def res_sco_by_sim(wildcards):
-    return expand("outs/sco-sim-{sim},{sco}.rds",
-        sim = wildcards.sim, sco = SCO)
-
-def res_sco_by_dat(wildcards):
-    return expand("outs/sco-dat-{dat},{sco}.rds",
-        dat = wildcards.dat, sco = SCO)
-
-def res_sta_by_sco(wildcards):
-    return expand("outs/sta-{sim},{sco},{sel},{sta}.rds",
-        sim = SIM, sco = wildcards.sco, sel = SEL, sta = STA)
+qlt = []
+for wal in WAL:
+    x = glob_wildcards("code/08-qlt_"+wal+"-{x}.R").x
+    qlt += expand("plts/dat/{wal}-{qlt}.pdf", wal=wal, qlt=x)
 
 # SETUP ========================================================================
 
 # reproducibly retrieve dataset from public source
 rule all: 
     input:
-        "session_info.txt",
-        # simulation, pre- & re-processing
-        res_sim, res_fil, # sim
-        res_dat, res_pro, # real
-        # scoring & evaluation
-        res_sco, res_sel, res_rep, res_ncd, res_sta,
-        # downstream
-        #res_eva, 
-        res_das,
-        # visualization
-        res_plt
+        [x for x in sim_res.values()], plt,
+        [x for x in dat_res.values()], qlt,
+        "session_info.txt"
 
 rule session_info:
     priority: 100
@@ -143,172 +109,185 @@ rule session_info:
     {R} CMD BATCH --no-restore --no-save\
     "--args {output}" {input} {log}'''
 
-# PREPROCESSING ================================================================
+# SIMULATION ===================================================================
 
-# get real data
-rule get_data:
+rule get_sim:
     priority: 99
-    input:  "code/00-get_data.R",
-            "code/00-get_data-{dat}.R"
-    output: "data/00-dat/{dat}.rds"
-    log:	"logs/get_data-{dat}.Rout"
-    shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args\
-        {input[1]} {output}" {input[0]} {log}'''    
-
-# synthetic data generation
-rule sim_data:
-    priority: 99
-    input:  "code/00-sim_data.R",
-    output: "data/00-sim/t{t},s{s},b{b}.rds"
-    log:	"logs/sim_data-t{t},s{s},b{b}.Rout"
+    input:  "code/00-get_sim.R",
+    output: sim_dat+"00-raw/t{t},s{s},b{b}.rds"
+    log:    "logs/get_sim-t{t},s{s},b{b}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args\
         wcs={wildcards} res={output}" {input[0]} {log}'''
 
-# filtering & preprocessing
-rule fil_data:
+# processing
+rule pro_sim:
     priority: 98
-    input:  "code/01-fil_data.R",
-            "data/00-sim/{sim}.rds"
-    output: "data/01-fil/{sim}.rds",
-            "data/01-fil/{sim}-rd.rds",
-            "data/01-fil/{sim}-cd.rds"
-    log:    "logs/fil_data-{sim}.Rout"
+    input:  "code/01-pro_sim.R",
+            sim_dat+"00-raw/{sim}.rds"
+    output: sim_dat+"01-pro/{sim}.rds",
+            sim_dat+"01-pro/{sim}-rd.rds",
+            sim_dat+"01-pro/{sim}-cd.rds"
+    log:    "logs/pro_sim-{sim}.Rout"
     shell:  '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-        sim={input[1]} fil={output[0]} rd={output[1]} cd={output[2]}" {input[0]} {log}'''
+        {input[1]} {output[0]} {output[1]} {output[2]}" {input[0]} {log}'''
 
-rule pro_data:
-    priority: 98
-    input:  "code/01-pro_data.R",
-            "data/00-dat/{dat}.rds"
-    output: "data/01-pro/{dat}.rds",
-            "data/01-pro/{dat}-rd.rds",
-            "data/01-pro/{dat}-cd.rds"
-    log:    "logs/pro_data-{dat}.Rout"
-    shell:  '''
-        {R} CMD BATCH --no-restore --no-save "--args\
-        dat={input[1]} pro={output[0]} rd={output[1]} cd={output[2]}" {input[0]} {log}'''
-
-
-# ANALYSIS =====================================================================
-
-# calculate variability scores
-rule calc_sco:
+# scoring
+rule sco_sim:
     priority: 97
     input:  "code/02-sco.R",
             "code/02-sco-{sco}.R",
-            "data/01-fil/{sim}.rds"
-    output: "outs/sco-sim-{sim},{sco}.rds"
-    log:    "logs/sco-sim-{sim},{sco}.Rout"
+            rules.pro_sim.output[0]
+    output: sim_out+"sco-{sim},{sco}.rds"
+    log:    "logs/sco_sim-{sim},{sco}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
-rule comp_sco:
-    priority: 97
-    input:  "code/02-sco.R",
-            "code/02-sco-{sco}.R",
-            "data/01-pro/{dat}.rds"
-    output: "outs/sco-dat-{dat},{sco}.rds"
-    log:    "logs/sco-dat-{dat},{sco}.Rout"
-    shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-        {input[1]} {input[2]} {output}" {input[0]} {log}'''
+def sco_by_sim(wildcards):
+    return expand(
+        sim_out+"sco-{sim},{sco}.rds", 
+        sim=wildcards.sim, sco=SCO)
 
-# calculate feature selection
-rule calc_sel:
+# selection
+rule sel_sim:
     priority: 96
     input:  "code/03-sel.R",
-            "code/03-sel-{sel}.R",
-            x = res_sco_by_sim
+            "code/03-sel_sim-{sel}.R",
+            x = sco_by_sim
     params: lambda wc, input: ";".join(input.x)
-    output: "outs/sel-sim-{sim},{sel}.rds"
-    log:    "logs/sel-{sim},{sel}.Rout"
+    output: sim_out+"sel-{sim},{sel}.rds"
+    log:    "logs/sel_sim-{sim},{sel}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {params} {output[0]}" {input[0]} {log}'''
 
-rule comp_sel:
-    priority: 95
-    input:  "code/03-sel.R",
-            "code/03-sel-{sel}.R",
-            x = res_sco_by_dat
-    params: lambda wc, input: ";".join(input.x)
-    output: "outs/sel-dat-{dat},{sel}.rds"
-    log:    "logs/sel-dat-{dat},{sel}.Rout"
-    shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-        {input[1]} {params} {output[0]}" {input[0]} {log}'''
-
-# reprocessing using selected features
+# reprocessing
 rule rep_sim:
     priority: 95
     input:  "code/04-rep.R",
-            "data/01-fil/{sim}.rds",
-            rules.calc_sel.output
-    output: "data/02-rep/sim-{sim},{sel}.rds",
-            "data/02-rep/sim-{sim},{sel}-cd.rds"
+            rules.pro_sim.output[0],
+            rules.sel_sim.output
+    output: sim_dat+"02-rep/{sim},{sel}.rds",
+            sim_dat+"02-rep/{sim},{sel}-cd.rds"
     log:    "logs/rep_sim-{sim},{sel}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-            {input[1]} {input[2]} {output[0]} {output[1]}" {input[0]} {log}'''
+        {input[1]} {input[2]} {output[0]} {output[1]}" {input[0]} {log}'''
 
-rule rep_dat:
-    priority: 95
-    input:  "code/04-rep.R",
-            "data/01-pro/{dat}.rds",
-            rules.comp_sel.output
-    output: "data/02-rep/dat-{dat},{sel}.rds",
-            "data/02-rep/dat-{dat},{sel}-cd.rds"
-    log:    "logs/rep_dat-{dat},{sel}.Rout"
-    shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-            {input[1]} {input[2]} {output[0]} {output[1]}" {input[0]} {log}'''
-
-# calculate clustering evaluation statistics
-rule calc_sta:
+# evaluation
+rule sta_sim:
     priority: 94
     input:  "code/05-sta.R",
             "code/05-sta-{sta}.R",
             rules.rep_sim.output
-    output: "outs/sta-sim-{sim},{sel},{sta}.rds"
-    log:    "logs/sta-sim-{sim},{sel},{sta}.Rout"
+    output: sim_out+"sta-{sim},{sel},{sta}.rds"
+    log:    "logs/sta_sim-{sim},{sel},{sta}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
-rule comp_sta:
-    priority: 94
-    input:  "code/05-sta.R",
-            "code/05-sta-{sta}.R",
-            rules.rep_dat.output
-    output: "outs/sta-dat-{dat},{sel},{sta}.rds"
-    log:    "logs/sta-dat-{dat},{sel},{sta}.Rout"
-    shell: '''
-        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-        {input[1]} {input[2]} {output}" {input[0]} {log}'''
-
-# differential abundance/analysis 
-rule run_das_simu:
-    priority: 94
+# differential
+rule das_sim:
+    priority: 93
     input:  "code/06-das.R",
             "code/06-das-{das}.R",
             rules.rep_sim.output
-    output: "outs/das-sim-{sim},{sel},{das}.rds"
-    log:    "logs/das-sim-{sim},{sel},{das}.Rout"
+    output: sim_out+"das-{sim},{sel},{das}.rds"
+    log:    "logs/das_sim-{sim},{sel},{das}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
-rule run_das_real:
-   priority: 94
+# APPLICATION ==================================================================
+
+rule get_dat:
+    priority: 49
+    input:  "code/00-get_dat.R",
+            "code/00-get_dat-{dat}.R"
+    output: dat_dat+"00-raw/{dat}.rds"
+    log:	"logs/get_dat-{dat}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args\
+        {input[1]} {output}" {input[0]} {log}'''    
+
+# processing
+rule pro_dat:
+    priority: 48
+    input:  "code/01-pro_dat.R",
+            rules.get_dat.output
+    output: dat_dat+"01-pro/{dat}.rds",
+            dat_dat+"01-pro/{dat}-rd.rds",
+            dat_dat+"01-pro/{dat}-cd.rds"
+    log:    "logs/pro_dat-{dat}.Rout"
+    shell:  '''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+        {input[1]} {output[0]} {output[1]} {output[2]}" {input[0]} {log}'''
+
+# scoring
+rule sco_dat:
+    priority: 47
+    input:  "code/02-sco.R",
+            "code/02-sco-{sco}.R",
+            rules.pro_dat.output[0]
+    output: dat_out+"sco-{dat},{sco}.rds"
+    log:    "logs/sco_dat-{dat},{sco}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+        {input[1]} {input[2]} {output}" {input[0]} {log}'''
+
+def sco_by_dat(wildcards):
+    return expand(
+        dat_out+"sco-{dat},{sco}.rds",
+        dat=wildcards.dat, sco=SCO)
+
+# selection
+rule sel_dat:
+    priority: 46
+    input:  "code/03-sel.R",
+            "code/03-sel_dat-{sel}.R",
+            x = sco_by_dat
+    params: lambda wc, input: ";".join(input.x)
+    output: dat_out+"sel-{dat},{sel}.rds"
+    log:    "logs/sel_dat-{dat},{sel}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+        {input[1]} {params} {output[0]}" {input[0]} {log}'''
+
+# reprocessing
+rule rep_dat:
+    priority: 45
+    input:  "code/04-rep.R",
+            rules.pro_dat.output[0],
+            rules.sel_dat.output
+    output: dat_dat+"02-rep/{dat},{sel}.rds",
+            dat_dat+"02-rep/{dat},{sel}-cd.rds"
+    log:    "logs/rep_dat-{dat},{sel}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+        {input[1]} {input[2]} {output[0]} {output[1]}" {input[0]} {log}'''
+
+# evaluation
+rule sta_dat:
+    priority: 44
+    input:  "code/05-sta.R",
+            "code/05-sta-{sta}.R",
+            rules.rep_dat.output
+    output: dat_out+"sta-{dat},{sel},{sta}.rds"
+    log:    "logs/sta_dat-{dat},{sel},{sta}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+        {input[1]} {input[2]} {output}" {input[0]} {log}'''
+
+# differential
+rule das_dat:
+   priority: 43
    input:  "code/06-das.R",
            "code/06-das-{das}.R",
            rules.rep_dat.output
-   output: "outs/das-dat-{dat},{sel},{das}.rds"
-   log:    "logs/das-dat-{dat},{sel},{das}.Rout"
+   output: dat_out+"das-{dat},{sel},{das}.rds"
+   log:    "logs/das_dat-{dat},{sel},{das}.Rout"
    shell: '''
        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
        {input[1]} {input[2]} {output}" {input[0]} {log}'''
@@ -330,11 +309,22 @@ rule run_das_real:
 
 for val in VAL:
     rule:
-        priority: 49
-        input:  expand("code/08-plt_{val}-{{plt}}.R", val = val), x = res[val]
+        priority: 90
+        input:  expand("code/08-plt_{val}-{{plt}}.R", val=val), x=sim_res[val]
         params: lambda wc, input: ";".join(input.x)
-        output: expand("plts/{val}-{{plt}}.pdf", val = val)
-        log:    expand("logs/plt_{val}-{{plt}}.Rout", val = val)
+        output: expand("plts/sim/{val}-{{plt}}.pdf", val=val)
+        log:    expand("logs/plt_{val}-{{plt}}.Rout", val=val)
+        shell:  '''
+            {R} CMD BATCH --no-restore --no-save "--args\
+            {params} {output[0]}" {input[0]} {log}'''
+
+for wal in WAL:
+    rule:
+        priority: 40
+        input:  expand("code/08-qlt_{wal}-{{qlt}}.R", wal=wal), x=dat_res[wal]
+        params: lambda wc, input: ";".join(input.x)
+        output: expand("plts/dat/{wal}-{{qlt}}.pdf", wal=wal)
+        log:    expand("logs/qlt_{wal}-{{qlt}}.Rout", wal=wal)
         shell:  '''
             {R} CMD BATCH --no-restore --no-save "--args\
             {params} {output[0]}" {input[0]} {log}'''

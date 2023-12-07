@@ -8,8 +8,7 @@ suppressPackageStartupMessages({
     library(ComplexUpset)
 })
 
-idx <- grepl("-sim-", args[[1]])
-res <- lapply(args[[1]][idx], readRDS)
+res <- lapply(args[[1]], readRDS)
 df <- do.call(rbind, res) 
 
 tsb <- c("t", "s", "b")
@@ -43,16 +42,16 @@ gs <- lapply(
     split(df, df$sel), 
     \(.) .$foo[.$sel_val])
 tf <- UpSetR::fromList(gs)
-tf$truth <- factor(tf$truth)
-p1 <- .p(tf, fill="truth", n=80, size=2, lwd=0.5, font=9)
+tf$DEnotDS <- factor(tf$DEnotDS)
+p1 <- .p(tf, fill="DEnotDS", n=80, size=2, lwd=0.5, font=9)
     
 p2 <- lapply(split(df, df$sim), \(fd) {
     gs <- lapply(
         split(fd, fd$sel), 
         \(.) .$gene[.$sel_val])
     tf <- UpSetR::fromList(gs)
-    tf$truth <- factor(tf$truth)
-    .p(tf, fill="truth", main=sprintf("t%s,s%s", 100*fd$t[1], 100*fd$s[1]))
+    tf$DEnotDS <- factor(tf$DEnotDS)
+    .p(tf, fill="DEnotDS", main=sprintf("t%s,s%s", 100*fd$t[1], 100*fd$s[1]))
 }) |> wrap_plots()
 
 gg <- 

@@ -1,11 +1,9 @@
-# args <- list(
-#     "code/02-sco-random.R",
-#     "data/01-fil/t100,s20,b0.rds")
-
+# dependencies
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
 })
 
+# loading
 source(args[[1]])
 sce <- readRDS(args[[2]])
 
@@ -31,4 +29,5 @@ df <- if (!is.null(sce)) {
     if (length(wcs)) df <- data.frame(df, wcs)
 }
 
+# saving
 saveRDS(df, args[[3]])

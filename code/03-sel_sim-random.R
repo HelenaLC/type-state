@@ -3,9 +3,10 @@ suppressPackageStartupMessages({
 })
 
 fun <- \(x) {
-    # select genes that are truly DE but not DS
     y <- x$random
+    o <- order(y$sco_val, decreasing=TRUE)
     de <- grep("^GroupDE", names(y))
     ds <- grep("^ConditionDE", names(y))
-    y$gene_id[rowAnys(y[de] != 1) & rowAlls(y[ds] == 1)]
+    n <- sum(rowAnys(y[de] != 1) & rowAlls(y[ds] == 1))
+    y$gene_id[o[seq_len(n)]]
 }

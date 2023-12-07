@@ -9,7 +9,7 @@ suppressPackageStartupMessages({
 })
 
 # load data
-x <- readRDS(args$sim)
+x <- readRDS(args[[1]])
 
 # filtering:
 # keep genes with count > 1 in at least 10 cells,
@@ -24,15 +24,13 @@ x <- x[gs, cs]
 # feature selection, dimension reduction
 x <- logNormCounts(x)
 tbl <- modelGeneVar(x, block=x$sample_id)
-rowData(x)$hvg <- hvg <- tbl$bio > 0
-rowData(x)$bio <- tbl$bio 
+hvg <- (rowData(x)$bio <- tbl$bio ) > 0
 x <- runPCA(x, subset_row=hvg, ncomponents=10)
 
 # high- & low-resolution clustering
 g <- buildSNNGraph(x, use.dimred="PCA")
 x$cluster_hi <- cluster_louvain(g, resolution=2)$membership
 x$cluster_lo <- cluster_louvain(g, resolution=0)$membership
-
 
 # set cluster identifier if low-resolution
 # clusters aren't represented in both groups
@@ -55,6 +53,6 @@ rd <- cbind(md, rowData(x))
 cd <- cbind(md, colData(x), dr)
 
 # save data
-saveRDS(x, args$fil)
-saveRDS(rd, args$rd)
-saveRDS(cd, args$cd)
+saveRDS(x, args[[2]])
+saveRDS(rd, args[[3]])
+saveRDS(cd, args[[4]])
