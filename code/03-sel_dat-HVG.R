@@ -1,5 +1,5 @@
 fun <- \(x) {
-    y <- x$HVG
-    z <- y$sco_val
+    y <- x$hvg
+    z <- y$bio
     y$gene_id[z > 0]
 }
