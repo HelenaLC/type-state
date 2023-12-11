@@ -15,6 +15,8 @@ res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
 
 # wrangling
+des <- c("DE", "DEnotDS", "DEgtDS", "DS", "DSnotDE", "DSgtDE")
+sel <- c("random", "HVG", "Fstat", "Fstat_edgeR", "Fstat_sPVE", "tPVE_sPVE")
 df <- lapply(res, select, 
     t, s, sel, das, p_val) |>
     do.call(what=rbind) |>
@@ -23,13 +25,12 @@ df <- lapply(res, select,
     summarise(.groups="drop",
         ks_stat=ifelse(n() >= 2, ks.test(p_val, "punif")$statistic, NA),
         p_value=ifelse(n() >= 2, ks.test(p_val, "punif")$p.value, NA)) |>
-    mutate(ks_stat=case_when(ks_stat > 0.2 ~ 0.2, TRUE ~ ks_stat)) |>
-    mutate(das=gsub("^DS_", "", das))
+    mutate(
+        das=gsub("^DS_", "", das),
+        sel=factor(sel, c(des, !!!sel)),
+        ks_stat=case_when(ks_stat > 0.2 ~ 0.2, TRUE ~ ks_stat))
 
 # split selection
-des <- c(
-    "DE", "DEnotDS", "DEgtDS",
-    "DS", "DSnotDE", "DSgtDE")
 j <- !(i <- df$sel %in% des)
 fd <- df[j, ]; df <- df[i, ]
 
@@ -43,7 +44,7 @@ aes <- list(
     scale_fill_gradientn(
         "KS stat. p-values\nuniformly distributed", 
         guide=guide_colorbar(reverse=TRUE),
-        colors=c("black", "red", "gold", "white"),
+        colors=c("black", "red", "gold", "ivory"),
         na.value="lightgrey", limits=c(0, 0.2),
         n.breaks=2, labels=c("0", ">= 0.2")),
     coord_fixed(expand=FALSE),
@@ -52,6 +53,7 @@ aes <- list(
         panel.grid=element_blank(),
         panel.border=element_rect(fill=NA),
         legend.title=element_text(vjust=1.5),
+        axis.title=element_text(hjust=0),
         legend.key.width=unit(1, "lines"),
         legend.key.height=unit(0.5, "lines"),
         axis.text.x=element_text(angle=45, hjust=1, vjust=1)))

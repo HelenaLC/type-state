@@ -5,10 +5,8 @@ suppressPackageStartupMessages({
     library(poolr)
     library(dplyr)
     library(tidyr)
-    library(ggpubr)
     library(ggrastr)
     library(ggplot2)
-    library(patchwork)
 })
 
 # loading
@@ -17,11 +15,12 @@ res <- res[!vapply(res, is.null, logical(1))]
 
 # wrangling
 df <- lapply(res, select,
-    sel, das, p_adj, gene_id) |>
+    sel, das, gene_id, p_adj) |>
     do.call(what=rbind) |>
     filter(!is.na(p_adj)) |>
     group_by(sel, das, gene_id) |>
-    summarize_at("p_adj", ~fisher(.x)$p)
+    summarize_at("p_adj", ~fisher(.x)$p) |>
+    mutate(sel=factor(sel, SEL))
 fd <- df |>
     pivot_wider(
         names_from="das", 
@@ -46,7 +45,7 @@ rng <- c(
 gg <- ggplot(fd, aes(sel, name, fill=value)) + 
     geom_tile(col="white", linewidth=0.1) +
     scale_fill_gradientn(
-        expression("corr."~X^2), 
+        expression("Cor("*X[i]^2*","~X[j]^2*")"), 
         limits=rng, breaks=rng, na.value="lightgrey", 
         colors=c("ivory", "pink", "red", "firebrick", "black")) +
     labs(x="feature selection", y="DS methods") +

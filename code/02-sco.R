@@ -11,13 +11,16 @@ df <- if (!is.null(sce)) {
     res <- fun(sce)
     # standardize output
     df <- data.frame(row.names=NULL, rowData(sce))
-    if (is.data.frame(res)) {
-        idx <- match(df$gene_id, res$gene_id)
-        df <- data.frame(df, res[idx, ])
+    if (is.list(res)) {
+        df <- lapply(names(res), \(.) {
+            i <- match(df$gene_id, names(res[[.]]))
+            df$sco <- .; df$sco_val <- res[[.]][i]; df
+        }) |> do.call(what=rbind)
     } else {
-        idx <- match(df$gene_id, names(res))
-        df$sco_val <- res[idx]
+        i <- match(df$gene_id, names(res))
+        df$sco_val <- res[i]
     }
+    df$sco_val[is.na(df$sco_val)] <- 0
     if (!is.null(wcs$sim)) {
         # stash metadata
         md <- metadata(sce)
