@@ -32,17 +32,19 @@ df$ds <- sapply(ds, \(i) {
 
 fd <- df |>
     pivot_longer(all_of(c("de", "ds"))) |>
-    mutate_at("name", factor, c("de", "ds"), c("between\ngroups", "between\nconditions"))
+    mutate_at("name", factor, c("de", "ds"), 
+        paste("between\n", c("clusters", "groups")))
 
 # aesthetics
 aes <- list(
     geom_density(linewidth=0.4, key_glyph="point"),
-    scale_x_continuous("mean |logFC|", n.breaks=3),
+    scale_x_continuous("mean |FC|", n.breaks=3),
     scale_y_continuous("scaled density", n.breaks=2),
     guides(color=guide_legend(override.aes=list(size=1))),
     theme_bw(6), theme(
         plot.margin=margin(),
         panel.grid=element_blank(),
+        axis.title=element_text(hjust=0),
         panel.spacing=unit(2, unit="mm"),
         legend.key.size=unit(0.25, "lines"),
         strip.text=element_text(color="black"),

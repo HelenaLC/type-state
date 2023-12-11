@@ -12,20 +12,18 @@ res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
 
 # wrangling
-df <- do.call(rbind, res)
-.f <- \(df) df %>%
-    group_by(t, s, b, sel, sta) %>%
-    summarise_at("sta_val", mean) %>%
-    mutate(sta_val=case_when(
-        sta_val < 0 ~ 0, 
-        .default=sta_val))
+df <- res |>
+    do.call(what=rbind) |>
+    mutate(sel=factor(sel, c(DES, SEL)))
 
 # separate ground truth selections
-gt <- c(
-    "DE", "DEnotDS", "DEgtDS",
-    "DS", "DSnotDE", "DSgtDE")
-df_des <- .f(filter(df,  sel %in% gt))
-df_sel <- .f(filter(df, !sel %in% gt))
+.f <- \(df) df |>
+    group_by(t, s, b, sel, sta) |>
+    summarise_at("sta_val", mean) |>
+    mutate(sta_val=case_when(sta_val < 0 ~ 0, TRUE ~ sta_val))
+j <- !(i <- df$sel %in% DES)
+df_des <- .f(df[i, ])
+df_sel <- .f(df[j, ])
 
 # aesthetics
 aes <- list(
@@ -33,7 +31,8 @@ aes <- list(
     geom_tile(
         aes(t, s, fill=sta_val), 
         col="white", linewidth=0.1),   
-    scale_fill_gradientn(NULL,
+    scale_fill_gradientn(
+        "statistic\nvalue",
         colors=c("ivory", "gold", "red", "navy"),
         na.value="lightgrey", limits=c(0, 1), n.breaks=2),
     labs(x="type effect", y="state effect"),
@@ -45,9 +44,9 @@ aes <- list(
         panel.grid=element_blank(),
         axis.title=element_text(hjust=0),
         panel.border=element_rect(fill=NA),
-        legend.title=element_text(vjust=1),
         legend.key.width=unit(1, "lines"),
         legend.key.height=unit(0.5, "lines"),
+        legend.title=element_text(vjust=1.5),
         plot.tag=element_text(size=9, face="bold")))
 
 # plotting

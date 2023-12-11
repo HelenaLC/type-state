@@ -13,31 +13,30 @@ res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
 
 # wrangling
-ex <- c("random", "HVG")
-sco_ord <- c(ex, "type_Fstat", "type_PVE", "state_PVE", "state_edgeR")
-df <- bind_rows(res) |>
-    #mutate(sco_val=case_when(!sco %in% ex ~ log10(sco_val), TRUE ~ sco_val)) |>
-    mutate(sco=factor(sco, sco_ord))
+df <- res|>
+    do.call(what=rbind) |>
+    mutate(sco=factor(sco, SCO))
 df$sco_t <- paste(df$sco, df$t, sep="_")
 df$sco_s <- paste(df$sco, df$s, sep="_")
-
-# subsetting
 de <- grep("GroupDE", names(df))
 ds <- grep("ConditionDE", names(df))
 fd <- df[rowAnys(df[de] != 1) & !rowAnys(df[ds] != 1), ]
-df <- bind_rows(.id="sub", list(all=df, DEnotDS=fd))
+df <- bind_rows(.id="sub", 
+    list(all=df, DEnotDS=fd)) |>
+    mutate(sub=factor(sub, c("all", "DEnotDS")))
 
 # aesthetics
 aes <- list(
-    labs(y="ECDF"),
     scale_x_continuous(n.breaks=3),
     scale_y_continuous(n.breaks=2),
+    labs(x="score value", y="ECDF"),
     facet_grid(sub ~ sco, scales="free_x"),
     stat_ecdf(linewidth=0.4, key_glyph="point"),
     guides(color=guide_legend(override.aes=list(size=1))),
     theme_bw(6), theme(
         plot.margin=margin(),
         panel.grid=element_blank(),
+        axis.title=element_text(hjust=0),
         panel.spacing=unit(2, unit="mm"),
         legend.key.size=unit(0.25, "lines"),
         strip.text=element_text(color="black"),
