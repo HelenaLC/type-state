@@ -23,14 +23,13 @@ df <- lapply(res, select,
     summarise(.groups="drop",
         ks_stat=ifelse(n() >= 2, ks.test(p_val, "punif")$statistic, NA),
         p_value=ifelse(n() >= 2, ks.test(p_val, "punif")$p.value, NA)) |>
-    mutate(ks_stat=case_when(ks_stat > 0.2 ~ 0.2, TRUE ~ ks_stat)) |>
-    mutate(das=gsub("^DS_", "", das))
+    mutate(
+        das=gsub("^DS_", "", das),
+        sel=factor(sel, c(DES, SEL)),
+        ks_stat=case_when(ks_stat > 0.2 ~ 0.2, TRUE ~ ks_stat))
 
 # split selection
-des <- c(
-    "DE", "DEnotDS", "DEgtDS",
-    "DS", "DSnotDE", "DSgtDE")
-j <- !(i <- df$sel %in% des)
+j <- !(i <- df$sel %in% DES)
 fd <- df[j, ]; df <- df[i, ]
 
 # aesthetics
@@ -45,7 +44,7 @@ aes <- list(
     scale_fill_gradientn(
         "KS stat. p-values\nuniformly distributed", 
         guide=guide_colorbar(reverse=TRUE),
-        colors=c("black", "red", "gold", "white"),
+        colors=c("black", "red", "gold", "ivory"),
         na.value="lightgrey", limits=c(0, 0.2),
         n.breaks=2, labels=c("0", ">= 0.2")),
     coord_fixed(expand=FALSE),

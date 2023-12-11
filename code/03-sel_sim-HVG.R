@@ -1,5 +1,12 @@
+suppressPackageStartupMessages({
+    library(matrixStats)
+})
+
 fun <- \(x) {
     y <- x$HVG
-    z <- y$sco_val > 0
-    y$gene_id[z]
+    de <- grep("^GroupDE", names(y))
+    ds <- grep("^ConditionDE", names(y))
+    n <- sum(rowAnys(y[de] != 1) & rowAlls(y[ds] == 1))
+    o <- order(y$sco_val, decreasing=TRUE)
+    y$gene_id[o[seq_len(n)]]
 }

@@ -13,27 +13,25 @@ res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
 
 # wrangling
-ex <- c("random", "HVG")
-sco_ord <- c(ex, "type_Fstat", "type_PVE", "state_PVE", "state_edgeR")
-df <- bind_rows(res) |>
-    #mutate(sco_val=case_when(!sco %in% ex ~ log10(sco_val), TRUE ~ sco_val)) |>
-    mutate(sco=factor(sco, sco_ord))
-
-# subsetting
+df <- res |>
+    do.call(what=rbind) |>
+    mutate(sco=factor(sco, SCO))
 de <- grep("GroupDE", names(df))
 ds <- grep("ConditionDE", names(df))
 fd <- df[rowAnys(df[de] != 1) & !rowAnys(df[ds] != 1), ]
 
 # aesthetics
 aes <- list(
-    scale_x_continuous(NULL, n.breaks=3),
-    scale_y_continuous("scaled density", n.breaks=2),
+    scale_x_continuous(n.breaks=3),
+    scale_y_continuous(n.breaks=2),
+    labs(x="score value", y="scaled density"),
     guides(color=guide_legend(override.aes=list(size=1))),
     geom_density(linewidth=0.4, key_glyph="point"),
     theme_bw(6), theme(
         plot.margin=margin(),
         panel.grid=element_blank(),
         panel.spacing=unit(2, unit="mm"),
+        axis.title=element_text(hjust=0),
         legend.key.size=unit(0.25, "lines"),
         strip.text=element_text(color="black"),
         plot.tag=element_text(size=9, face="bold"),

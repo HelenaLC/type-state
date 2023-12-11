@@ -9,9 +9,11 @@ suppressPackageStartupMessages({
 # loading
 res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
-df <- do.call(rbind, res) 
 
 # wrangling
+df <- res|>
+    do.call(what=rbind) |>
+    mutate(sco=factor(sco, SCO))
 de <- grep("GroupDE", names(df))
 ds <- grep("ConditionDE", names(df))
 
@@ -34,10 +36,7 @@ fd <- df |>
         de=cor(sco_val, de, method="spearman"),
         ds=cor(sco_val, ds, method="spearman")) |>
     pivot_longer(all_of(c("de", "ds"))) |>
-    mutate(name=factor(name, c("de", "ds"), c("type", "state"))) |>
-    mutate(sco=factor(sco, c("random", "HVG", 
-        sort(unique(grep("type", df$sco, value=TRUE))),
-        sort(unique(grep("state", df$sco, value=TRUE))))))
+    mutate(name=factor(name, c("de", "ds"), c("type", "state")))
 
 # aesthetics
 rng <- range(fd$value, na.rm=TRUE)
@@ -50,7 +49,7 @@ gg <- ggplot(fd, aes(t, s, fill=value)) +
     geom_tile(col="white", linewidth=0.1) +
     facet_grid(name~sco) + 
     scale_fill_gradient2(
-        "corr. |mean logFC|", limits=rng, breaks=c(rng, 0), 
+        "corr. |mean FC|", limits=rng, breaks=c(rng, 0), 
         na.value="lightgrey", low="blue", mid="grey95", high="red") +
     scale_x_continuous(breaks=c(0, 1)) +
     scale_y_continuous(breaks=c(0, 1)) +

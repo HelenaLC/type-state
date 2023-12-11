@@ -1,5 +1,5 @@
 fun <- \(x) {
-    y <- x$HVG
-    z <- y$sco_val
-    y$gene_id[z > 0]
+    z <- (y <- x$HVG)$sco_val
+    o <- order(z, decreasing=TRUE)
+    y$gene_id[o[seq_len(1e3)]]
 }

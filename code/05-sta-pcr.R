@@ -15,8 +15,8 @@ fun <- \(x) {
         sum(ve*r2)/sum(ve)
     }
     ids <- c(
-        pcr_g="group_id",
-        pcr_k="cluster_id")
+        PCR_g="group_id",
+        PCR_k="cluster_id")
     lapply(names(ids), \(sta) {
         sta_val <- f(x, ids[sta])
         data.frame(sta, sta_val)

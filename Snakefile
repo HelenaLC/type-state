@@ -24,6 +24,26 @@ SEL = glob_wildcards("code/03-sel_sim-{x}.R").x
 STA = glob_wildcards("code/05-sta-{x}.R").x
 DAS = glob_wildcards("code/06-das-{x}.R").x
 
+# specify scores required for selections,
+# defaulting to 'random' if left unspecified
+sco_by_sel = {
+    "HVG": ["HVG"],
+    "Fstat": ["Fstat"],
+    "tPVE_sPVE": ["PVE"],
+    "Fstat_sPVE": ["Fstat", "PVE"],
+    "Fstat_edgeR": ["Fstat", "edgeR"]}
+for sel in SEL:
+    if sel not in sco_by_sel.keys():
+        sco_by_sel[sel] = ["random"]
+
+def sco_by_sim(wildcards):
+    return expand(sim_out+"sco-{sim},{sco}.rds", 
+        sim=wildcards.sim, sco=sco_by_sel[wildcards.sel])
+
+def sco_by_dat(wildcards):
+    return expand(dat_out+"sco-{dat},{sco}.rds",
+        dat=wildcards.dat, sco=sco_by_sel[wildcards.sel])
+
 # output directories
 sim_dat = "data/sim/"; dat_dat = "data/dat/"
 sim_out = "outs/sim/"; dat_out = "outs/dat/"
@@ -68,6 +88,7 @@ sim_res = {
     "cd2": sim_rep_cd,
     "sta": sim_sta,
     "das": sim_das}
+
 dat_res = {
     "dat": dat,
     "pro": dat_pro,
@@ -144,11 +165,6 @@ rule sco_sim:
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
-
-def sco_by_sim(wildcards):
-    return expand(
-        sim_out+"sco-{sim},{sco}.rds", 
-        sim=wildcards.sim, sco=SCO)
 
 # selection
 rule sel_sim:
@@ -237,11 +253,6 @@ rule sco_dat:
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
-def sco_by_dat(wildcards):
-    return expand(
-        dat_out+"sco-{dat},{sco}.rds",
-        dat=wildcards.dat, sco=SCO)
-
 # selection
 rule sel_dat:
     priority: 46
@@ -309,7 +320,7 @@ rule das_dat:
 
 for val in VAL:
     rule:
-        priority: 90
+        priority: 99
         input:  expand("code/08-plt_{val}-{{plt}}.R", val=val), x=sim_res[val]
         params: lambda wc, input: ";".join(input.x)
         output: expand("plts/sim/{val}-{{plt}}.pdf", val=val)
@@ -320,7 +331,7 @@ for val in VAL:
 
 for wal in WAL:
     rule:
-        priority: 40
+        priority: 49
         input:  expand("code/08-qlt_{wal}-{{qlt}}.R", wal=wal), x=dat_res[wal]
         params: lambda wc, input: ";".join(input.x)
         output: expand("plts/dat/{wal}-{{qlt}}.pdf", wal=wal)
