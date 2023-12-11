@@ -7,8 +7,8 @@ fun <- \(x){
     y <- reducedDim(x, "PCA")
     cd <- colData(x)
     by <- c(
-        lisi_g="group_id", 
-        lisi_k="cluster_id")
+        LISI_g="group_id", 
+        LISI_k="cluster_id")
     res <- sapply(by, \(.) {
         res <- compute_lisi(y, cd, .)
         n <- length(unique(cd[[.]]))

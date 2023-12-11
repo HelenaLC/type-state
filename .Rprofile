@@ -1,4 +1,4 @@
-data.table::setDTthreads(threads = 1)
+source("code/09-aes.R")
 
 .get_wcs <- function(wcs) {
     wcs <- gsub("(,)(\\w+=)", ";\\2", wcs)

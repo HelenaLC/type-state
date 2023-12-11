@@ -3,7 +3,6 @@ suppressPackageStartupMessages({
 })
 
 fun <- \(x) {
-    # select genes that are truly DE but not DS
     y <- x$random
     de <- grep("^GroupDE", names(y))
     ds <- grep("^ConditionDE", names(y))

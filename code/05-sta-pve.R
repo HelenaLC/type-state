@@ -21,6 +21,6 @@ fun <- \(x) {
     # return variance fractions
     # separately for each variable
     rbind(
-        data.frame(sta="pve_g", sta_val=res$group_id),
-        data.frame(sta="pve_k", sta_val=res$cluster_id))
+        data.frame(sta="PVE_g", sta_val=res$group_id),
+        data.frame(sta="PVE_k", sta_val=res$cluster_id))
 }

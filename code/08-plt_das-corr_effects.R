@@ -60,26 +60,32 @@ fd <- lapply(dfs, \(df) {
     mutate(das=gsub("^DS_", "", das))
 
 # split selections
-des <- c(
-    "DE", "DEnotDS", "DEgtDS",
-    "DS", "DSnotDE", "DSgtDE")
+fd <- mutate(fd, sel=factor(sel, c(DES, SEL)))
 
 . <- filter(fd, cor == "cor_t")
-j <- !(i <- .$sel %in% des)
+j <- !(i <- .$sel %in% DES)
 df_t <- .[i, ]; fd_t <- .[j, ]
+rng_t <- range(.$cor_val, na.rm=TRUE)
 
 . <- filter(fd, cor == "cor_s")
-j <- !(i <- .$sel %in% des)
+j <- !(i <- .$sel %in% DES)
 df_s <- .[i, ]; fd_s <- .[j, ]
+rng_s <- range(.$cor_val, na.rm=TRUE)
 
 # aesthetics
+rng_t <- c(floor(rng_t[1]*10)/10, ceiling(rng_t[2]*10)/10)
+rng_s <- c(floor(rng_s[1]*10)/10, ceiling(rng_s[2]*10)/10)
+
+pal_t <- scale_fill_gradient2(limits=rng_t, breaks=c(rng_t, 0),
+    na.value="lightgrey", low="blue", mid="ivory", high="red")
+pal_s <- scale_fill_gradient2(limits=rng_s, breaks=c(rng_s, 0),
+    na.value="lightgrey", low="blue", mid="ivory", high="red")
+
 aes <- list(
     facet_grid(das ~ sel),
     coord_fixed(expand=FALSE),
     scale_x_continuous("type effect", n.breaks=2),
     scale_y_continuous("state effect", n.breaks=2),
-    scale_fill_gradient2(limits=c(-1, 1), n.breaks=3,
-        low="blue", high="red", na.value="lightgrey"),
     geom_tile(col="white", linewidth=0.1, aes(t, s, fill=cor_val)),
     theme_minimal(6), theme(
         plot.margin=margin(),
@@ -91,14 +97,14 @@ aes <- list(
         legend.key.height=unit(0.5, "lines")))
 
 # plotting
-lab <- "corr. mean\n%s logFC"
-lab_t <- sprintf(lab, "type")
-lab_s <- sprintf(lab, "state")
+lab_t <- expression("Cor("*X^2*", logFC"[type]*")")
+lab_s <- expression("Cor("*X^2*", logFC"[state]*")")
 p1 <- 
-    ggplot(df_t) + ggplot(fd_t) +
+    ggplot(df_t) + ggplot(fd_t) + 
     plot_layout(ncol=1, guides="collect") &
     plot_annotation(tag_levels="a") &
-    labs(fill=lab_s) & aes & theme(
+    pal_t & labs(fill=lab_s) & 
+    aes & theme(
         plot.margin=margin(), 
         legend.position="bottom",
         plot.tag=element_text(size=9, face="bold"))
@@ -106,7 +112,8 @@ p2 <-
     ggplot(df_s) + ggplot(fd_s) +
     plot_layout(ncol=1, guides="collect") &
     plot_annotation(tag_levels="a") &
-    labs(fill=lab_t) & aes & theme(
+    pal_s & labs(fill=lab_t) & 
+    aes & theme(
         plot.margin=margin(), 
         legend.position="bottom",
         plot.tag=element_text(size=9, face="bold"))
