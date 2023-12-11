@@ -16,4 +16,4 @@ code/*cache
 config.yaml
 docs/
 docs/*
-
+outs/*
