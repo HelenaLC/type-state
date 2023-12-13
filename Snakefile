@@ -24,26 +24,6 @@ SEL = glob_wildcards("code/03-sel_sim-{x}.R").x
 STA = glob_wildcards("code/05-sta-{x}.R").x
 DAS = glob_wildcards("code/06-das-{x}.R").x
 
-# specify scores required for selections,
-# defaulting to 'random' if left unspecified
-sco_by_sel = {
-    "HVG": ["HVG"],
-    "Fstat": ["Fstat"],
-    "tPVE_sPVE": ["PVE"],
-    "Fstat_sPVE": ["Fstat", "PVE"],
-    "Fstat_edgeR": ["Fstat", "edgeR"]}
-for sel in SEL:
-    if sel not in sco_by_sel.keys():
-        sco_by_sel[sel] = ["random"]
-
-def sco_by_sim(wildcards):
-    return expand(sim_out+"sco-{sim},{sco}.rds", 
-        sim=wildcards.sim, sco=sco_by_sel[wildcards.sel])
-
-def sco_by_dat(wildcards):
-    return expand(dat_out+"sco-{dat},{sco}.rds",
-        dat=wildcards.dat, sco=sco_by_sel[wildcards.sel])
-
 # output directories
 sim_dat = "data/sim/"; dat_dat = "data/dat/"
 sim_out = "outs/sim/"; dat_out = "outs/dat/"
@@ -74,6 +54,8 @@ dat_pro_cd = expand(dat_dat+"01-pro/{dat}-cd.rds", dat=DAT)
 dat_sco = expand(dat_out+"sco-{dat},{sco}.rds", dat=DAT, sco=SCO)
 dat_sel = expand(dat_out+"sel-{dat},{sel}.rds", dat=DAT, sel=SEL)
 dat_rep = expand(dat_dat+"02-rep/{dat},{sel}.rds", dat=DAT, sel=SEL)
+dat_rep_cd = expand(dat_dat+"02-rep/{dat},{sel}-cd.rds", dat=DAT, sel=SEL)
+dat_eva = expand(dat_out+"eva-{dat},{sel}.rds", dat=DAT, sel=SEL)
 dat_sta = expand(dat_out+"sta-{dat},{sel},{sta}.rds", dat=DAT, sel=SEL, sta=STA)
 dat_das = expand(dat_out+"das-{dat},{sel},{das}.rds", dat=DAT, sel=SEL, das=DAS)
 
@@ -88,15 +70,18 @@ sim_res = {
     "cd2": sim_rep_cd,
     "sta": sim_sta,
     "das": sim_das}
-
+#sim_res = {}
 dat_res = {
     "dat": dat,
     "pro": dat_pro,
     "sco": dat_sco,
     "sel": dat_sel,
     "rep": dat_rep,
+    "cd2": dat_rep_cd,
     "sta": dat_sta,
-    "das": dat_das}
+    "eva": dat_eva,
+    "das": dat_das
+    }
 
 # visualization
 VAL = sim_res.keys()
@@ -165,6 +150,11 @@ rule sco_sim:
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
+
+def sco_by_sim(wildcards):
+    return expand(
+        sim_out+"sco-{sim},{sco}.rds", 
+        sim=wildcards.sim, sco=SCO)
 
 # selection
 rule sel_sim:
@@ -253,6 +243,11 @@ rule sco_dat:
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
+def sco_by_dat(wildcards):
+    return expand(
+        dat_out+"sco-{dat},{sco}.rds",
+        dat=wildcards.dat, sco=SCO)
+
 # selection
 rule sel_dat:
     priority: 46
@@ -265,6 +260,7 @@ rule sel_dat:
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {params} {output[0]}" {input[0]} {log}'''
+
 
 # reprocessing
 rule rep_dat:
@@ -279,9 +275,23 @@ rule rep_dat:
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output[0]} {output[1]}" {input[0]} {log}'''
 
+# determine the optimal number of genes
+rule eva_dat:
+    priority: 44
+    input:  "code/07-eva.R",
+            "code/07-eva_dat-{sel}.R",
+            rules.pro_dat.output[0],
+            x = sco_by_dat
+    params: lambda wc, input: ";".join(input.x)
+    output: dat_out+"eva-{dat},{sel}.rds"
+    log:    "logs/eva_dat-{dat},{sel}.Rout"
+    shell: '''
+        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+        {input[1]} {input[2]} {params} {output[0]}" {input[0]} {log}'''
+
 # evaluation
 rule sta_dat:
-    priority: 44
+    priority: 43
     input:  "code/05-sta.R",
             "code/05-sta-{sta}.R",
             rules.rep_dat.output
@@ -291,17 +301,19 @@ rule sta_dat:
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {output}" {input[0]} {log}'''
 
+
 # differential
-rule das_dat:
-   priority: 43
-   input:  "code/06-das.R",
-           "code/06-das-{das}.R",
-           rules.rep_dat.output
-   output: dat_out+"das-{dat},{sel},{das}.rds"
-   log:    "logs/das_dat-{dat},{sel},{das}.Rout"
-   shell: '''
-       {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-       {input[1]} {input[2]} {output}" {input[0]} {log}'''
+#rule das_dat:
+#   priority: 42
+#   input:  "code/06-das.R",
+#           "code/06-das-{das}.R",
+#           rules.rep_dat.output
+#   output: dat_out+"das-{dat},{sel},{das}.rds"
+#   log:    "logs/das_dat-{dat},{sel},{das}.Rout"
+#   shell: '''
+#       {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+#       {input[1]} {input[2]} {output}" {input[0]} {log}'''
+    
 
 # calculate performance of detect true markers
 
@@ -310,8 +322,8 @@ rule das_dat:
 #   input:  "code/07-eva.R",
 #           "code/07-eva-{eva}.R",
 #           rules.calc_sco.output
-#   output: "outs/eva-{sim},{sco},{eva}.rds"
-#   log:    "logs/eva-{sim},{sco},{eva}.Rout"
+#   output: "outs/eva-{dat},{sco},{eva}.rds"
+#   log:    "logs/eva-{dat},{sco},{eva}.Rout"
 #   shell: '''
 #       {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
 #       {input[2]} {output}" {input[0]} {log}'''
@@ -320,7 +332,7 @@ rule das_dat:
 
 for val in VAL:
     rule:
-        priority: 99
+        priority: 90
         input:  expand("code/08-plt_{val}-{{plt}}.R", val=val), x=sim_res[val]
         params: lambda wc, input: ";".join(input.x)
         output: expand("plts/sim/{val}-{{plt}}.pdf", val=val)
@@ -331,7 +343,7 @@ for val in VAL:
 
 for wal in WAL:
     rule:
-        priority: 49
+        priority: 40
         input:  expand("code/08-qlt_{wal}-{{qlt}}.R", wal=wal), x=dat_res[wal]
         params: lambda wc, input: ";".join(input.x)
         output: expand("plts/dat/{wal}-{{qlt}}.pdf", wal=wal)
