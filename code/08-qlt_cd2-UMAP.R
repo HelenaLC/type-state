@@ -4,6 +4,8 @@
 suppressPackageStartupMessages({
     library(ggplot2)
     library(ggrastr)
+    library(patchwork)
+    library(RColorBrewer)
 })
 
 # loading
@@ -15,6 +17,8 @@ df <- res[, -grep("PC[0-9]+$", names(res))]
 names(df) <- gsub("\\.1", "", names(df))
 df$sel <- factor(df$sel, SEL)
 df <- df[sample(nrow(df)), ]
+if(any(c("X1", "X2") %in% names(df)))
+    names(df)[match(c("X1","X2"),names(df))] <- c("UMAP1", "UMAP2")
 
 # aesthetics
 aes <- list(

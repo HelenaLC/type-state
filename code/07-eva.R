@@ -1,10 +1,20 @@
-# wcs <- list(sim="t40,s20,b0", sco="random", eva="F1_de")
-# args <- list(
-#     sprintf("code/07-eva-%s.R", wcs$eva),
-#     sprintf("outs/sco-sim-%s,%s.rds", wcs$sim, wcs$sco),
-#     sprintf("outs/sta-sim-%s,%s,%s.rds", wcs$sim, wcs$sel, wcs$sta))
+suppressPackageStartupMessages({
+    library(SingleCellExperiment)
+})
+
+sco <- lapply(args[[3]], readRDS)
+sce <- readRDS(args[[2]])
 
 source(args[[1]])
-sco <- readRDS(args[[2]])
-eva <- data.frame(wcs, fun(sco))
-saveRDS(res, args[[3]])
+
+sco <- lapply(sco, \(.) {
+    if (length(unique(.$sco)) > 1) 
+        split(., .$sco) else list(.)
+})
+sco <- unlist(sco, recursive=FALSE)
+names(sco) <- sapply(sco, \(.) .$sco[1])
+ns <- round(seq(0.1,1,0.1)*nrow(sce))
+
+df <- fun(sce, sco, ns)
+res <- data.frame(df, wcs)
+saveRDS(res, args[[4]])
