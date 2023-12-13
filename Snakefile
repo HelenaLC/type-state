@@ -303,16 +303,16 @@ rule sta_dat:
 
 
 # differential
-#rule das_dat:
-#   priority: 42
-#   input:  "code/06-das.R",
-#           "code/06-das-{das}.R",
-#           rules.rep_dat.output
-#   output: dat_out+"das-{dat},{sel},{das}.rds"
-#   log:    "logs/das_dat-{dat},{sel},{das}.Rout"
-#   shell: '''
-#       {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
-#       {input[1]} {input[2]} {output}" {input[0]} {log}'''
+rule das_dat:
+   priority: 42
+   input:  "code/06-das.R",
+           "code/06-das-{das}.R",
+           rules.rep_dat.output
+   output: dat_out+"das-{dat},{sel},{das}.rds"
+   log:    "logs/das_dat-{dat},{sel},{das}.Rout"
+   shell: '''
+       {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
+       {input[1]} {input[2]} {output}" {input[0]} {log}'''
     
 
 # calculate performance of detect true markers
