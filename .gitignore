@@ -13,4 +13,4 @@ code/*cache
 .snakemake/
 docs/
 docs/*
-
+outs/*

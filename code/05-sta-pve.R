@@ -16,7 +16,7 @@ fun <- \(x) {
     # drop residuals & re-scale proportions
     tmp <- as.matrix(res <- res[, -ncol(res)])
     res <- sweep(tmp, 1, rowSums(tmp), `/`)
-    res[rowAlls(is.na(res)), ] <- 0
+    res[rowAlls(is.na(res), useNames = TRUE), ] <- 0
     res <- data.frame(res)
     # return variance fractions
     # separately for each variable
