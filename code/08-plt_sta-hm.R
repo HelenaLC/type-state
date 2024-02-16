@@ -19,8 +19,7 @@ df <- res |>
 # separate ground truth selections
 .f <- \(df) df |>
     group_by(t, s, b, sel, sta) |>
-    summarise_at("sta_val", mean) |>
-    mutate(sta_val=case_when(sta_val < 0 ~ 0, TRUE ~ sta_val))
+    summarise_at("sta_val", mean) 
 j <- !(i <- df$sel %in% DES)
 df_des <- .f(df[i, ])
 df_sel <- .f(df[j, ])
