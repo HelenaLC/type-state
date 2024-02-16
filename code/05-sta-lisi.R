@@ -12,7 +12,8 @@ fun <- \(x){
     res <- sapply(by, \(.) {
         res <- compute_lisi(y, cd, .)
         n <- length(unique(cd[[.]]))
-        mean(res[[1]])-(n-1)
+        #mean(res[[1]])-(n-1)
+        (mean(res[[1]])-1)/(n-1)
     })
     data.frame(
         row.names=NULL, 

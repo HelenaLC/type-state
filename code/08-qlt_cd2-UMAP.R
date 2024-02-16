@@ -6,19 +6,23 @@ suppressPackageStartupMessages({
     library(ggrastr)
     library(patchwork)
     library(RColorBrewer)
+    library(ggpubr)
 })
 
 # loading
-res <- lapply(args[[1]], readRDS)
-res <- do.call(rbind, res)
+res <- lapply(args[[1]], \(x) {
+  df <- readRDS(x)
+  df[,c("dat", "sel", "cluster_id", "group_id", "UMAP1", "UMAP2")]
+})
+df <- do.call(rbind, res)
 
 # wrangling
-df <- res[, -grep("PC[0-9]+$", names(res))]
-names(df) <- gsub("\\.1", "", names(df))
+#df <- res[, -grep("PC[0-9]+$", names(res))]
+#names(df) <- gsub("\\.1", "", names(df))
 df$sel <- factor(df$sel, SEL)
 df <- df[sample(nrow(df)), ]
-if(any(c("X1", "X2") %in% names(df)))
-    names(df)[match(c("X1","X2"),names(df))] <- c("UMAP1", "UMAP2")
+#if(any(c("X1", "X2") %in% names(df)))
+#    names(df)[match(c("X1","X2"),names(df))] <- c("UMAP1", "UMAP2")
 
 # aesthetics
 aes <- list(
@@ -38,19 +42,24 @@ aes <- list(
         legend.key.size=unit(0.25, "lines")))
 
 # plotting
-gg <- 
-    ggplot(df, aes(col=group_id)) +
+ps <- lapply(split(df, df$dat), \(fd) {
+  nCells <- length(unique(fd$cluster_id))
+  ggplot(fd, aes(col=group_id)) +
     scale_color_manual(values=c("royalblue", "tomato")) +
-    ggplot(df, aes(col=cluster_id)) +
-    scale_color_manual(values=brewer.pal(12, "Paired")) +
+    ggplot(fd, aes(col=cluster_id)) +
+    scale_color_manual(values=get_palette("Paired",k=nCells)) +
     plot_layout(nrow=1, guides="collect") & 
-    plot_annotation(tag_levels="a") &
+    plot_annotation(fd$dat[1],tag_levels="a") &
     aes & theme(
-        plot.margin=margin(),
-        legend.position="bottom",
-        legend.justification=c(0.5, 1),
-        legend.box.spacing=unit(0, "pt"),
-        plot.tag=element_text(size=9, face="bold"))
+      plot.margin=margin(),
+      legend.position="bottom",
+      legend.justification=c(0.5, 1),
+      legend.box.spacing=unit(0, "pt"),
+      plot.tag=element_text(size=9, face="bold")) 
+    
+})
+
 
 # saving
-ggsave(args[[2]], gg, width=15, height=13, units="cm")
+pdf(args[[2]], onefile=TRUE, width=8, height=6)
+for (p in ps) print(p); dev.off()

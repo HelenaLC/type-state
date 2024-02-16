@@ -1,36 +1,36 @@
-#args <- list(list.files("outs/dat", "^das-", full.names=TRUE), "plts/dat/das-upset.pdf")
+#args <- list(list.files("outs/dat", "^eva-", full.names=TRUE), "plts/dat/eva-line.pdf")
 
 suppressPackageStartupMessages({
     library(reshape2)
     library(ggplot2)
     library(patchwork)
+    library(dplyr)
+    library(ggh4x)
 })
 
 res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
 df <- do.call(rbind, res)
-df <- reshape2::melt(df, id = c("sel", "nGenes", "dat"))
-names(df)[which(names(df)=="variable")] <- "sta"
-names(df)[which(names(df)=="value")] <- "sta_val"
+df <- df %>% distinct(dat, num, sta, sel, sta_val, .keep_all = TRUE) %>%
+  group_by(dat, num, sta, sel, nGenes) %>% 
+  summarize(sta_val=mean(sta_val))
 
 
-ps <- lapply(split(df, df$dat), \(fd) {
-    ggplot(fd, aes(x = nGenes, y = sta_val, col = sel)) + 
+gg <- ggplot(df, aes(x = nGenes, y = sta_val, col = sel, group = sel)) + 
         geom_line(stat = "identity", alpha=0.8) +
         geom_point(stat = "identity", alpha=0.8, size = 0.5) +
-        facet_wrap(~sta, ncol=2, scales="free") +
         xlab("number of selected genes") + 
         theme_minimal() +
-        scale_color_brewer(palette = "Set1") & theme(
-            plot.margin=margin(),
+        ggh4x::facet_grid2(sta ~ dat, scales = "free", independent = "y") +
+        scale_color_brewer(palette = "Paired") & theme(
             legend.position="bottom",
             legend.justification=c(0.5, 1),
             legend.box.spacing=unit(0, "pt"),
             panel.grid.minor=element_blank(), 
-            plot.tag=element_text(size=9, face="bold"))
-})
+            panel.border=element_rect(fill=NA),
+            plot.tag=element_text(size=9, face="bold"),
+            axis.text.x=element_text(angle=45, hjust=1, vjust=1))
 
 
 
-pdf(args[[2]], onefile=TRUE, width=10, height=8)
-for (p in ps) print(p); dev.off()
+ggsave(args[[2]], gg, width=16, height=28, units="cm")

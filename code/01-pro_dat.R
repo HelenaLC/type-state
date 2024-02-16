@@ -19,6 +19,8 @@ x <- logNormCounts(x)
 
 # selection
 tbl <- modelGeneVar(x, block=x$sample_id)
+tb <- modelGeneCV2(x, block=x$sample_id)
+rowData(x)$ratio <- tb$ratio
 table(hvg <- (rowData(x)$bio <- tbl$bio) > 0)
 
 # reduction
@@ -36,7 +38,7 @@ reducedDim(x, "HARMONY") <- y
 # high- & low-resolution clustering
 g <- buildSNNGraph(x, use.dimred = "PCA")
 x$cluster_hi <- cluster_louvain(g, resolution=2)$membership
-x$cluster_lo <- cluster_louvain(g, resolution=0.1)$membership
+x$cluster_lo <- cluster_louvain(g, resolution=0)$membership
 
 # table of gene/cell metadata
 # and simulation parameters

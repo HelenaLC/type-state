@@ -17,6 +17,7 @@ R = config["R"]
 # magnitude of type, state & batch effect
 T = list(range(0, 120, 20)); S = list(range(0, 120, 20)); B = [0]
 SIM = ["t{},s{},b{}".format(t,s,b) for t in T for s in S for b in B]
+NUM = list(range(1, 10, 1))
 
 DAT = glob_wildcards("code/00-get_dat-{x}.R").x
 SCO = glob_wildcards("code/02-sco-{x}.R").x
@@ -55,9 +56,9 @@ dat_sco = expand(dat_out+"sco-{dat},{sco}.rds", dat=DAT, sco=SCO)
 dat_sel = expand(dat_out+"sel-{dat},{sel}.rds", dat=DAT, sel=SEL)
 dat_rep = expand(dat_dat+"02-rep/{dat},{sel}.rds", dat=DAT, sel=SEL)
 dat_rep_cd = expand(dat_dat+"02-rep/{dat},{sel}-cd.rds", dat=DAT, sel=SEL)
-dat_eva = expand(dat_out+"eva-{dat},{sel}.rds", dat=DAT, sel=SEL)
 dat_sta = expand(dat_out+"sta-{dat},{sel},{sta}.rds", dat=DAT, sel=SEL, sta=STA)
 dat_das = expand(dat_out+"das-{dat},{sel},{das}.rds", dat=DAT, sel=SEL, das=DAS)
+dat_eva = expand(dat_out+"eva-{dat},{sel},{sta},{num}.rds", dat=DAT, sel=SEL, sta=STA, num=NUM)
 
 sim_res = {
     "sim": sim,
@@ -102,7 +103,7 @@ for wal in WAL:
 # reproducibly retrieve dataset from public source
 rule all: 
     input:
-        [x for x in sim_res.values()], plt,
+        #[x for x in sim_res.values()], plt,
         [x for x in dat_res.values()], qlt,
         "session_info.txt"
 
@@ -279,15 +280,16 @@ rule rep_dat:
 rule eva_dat:
     priority: 44
     input:  "code/07-eva.R",
-            "code/07-eva_dat-{sel}.R",
+            "code/05-sta-{sta}.R",
             rules.pro_dat.output[0],
             x = sco_by_dat
     params: lambda wc, input: ";".join(input.x)
-    output: dat_out+"eva-{dat},{sel}.rds"
-    log:    "logs/eva_dat-{dat},{sel}.Rout"
+    output: dat_out+"eva-{dat},{sel},{sta},{num}.rds"
+    log:    "logs/eva_dat-{dat},{sel},{sta},{num}.Rout"
     shell: '''
         {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
         {input[1]} {input[2]} {params} {output[0]}" {input[0]} {log}'''
+
 
 # evaluation
 rule sta_dat:
@@ -314,19 +316,6 @@ rule das_dat:
        {R} CMD BATCH --no-restore --no-save "--args wcs={wildcards}\
        {input[1]} {input[2]} {output}" {input[0]} {log}'''
     
-
-# calculate performance of detect true markers
-
-#rule calc_eva:
-#   priority: 95
-#   input:  "code/07-eva.R",
-#           "code/07-eva-{eva}.R",
-#           rules.calc_sco.output
-#   output: "outs/eva-{dat},{sco},{eva}.rds"
-#   log:    "logs/eva-{dat},{sco},{eva}.Rout"
-#   shell: '''
-#       {R} CMD BATCH --no-restore --no-save "--args {input[1]}\
-#       {input[2]} {output}" {input[0]} {log}'''
 
 # VISUALIZATION ========================================================
 

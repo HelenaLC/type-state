@@ -10,21 +10,25 @@ df <- do.call(rbind, res)
 # wrangling
 .f <- \(df) df %>%
     group_by(dat, sel, sta) %>%
-    summarise_at("sta_val", mean) %>%
-    mutate(sta_val=case_when(
-        sta_val < 0 ~ 0, 
-        .default=sta_val))
+    summarise_at("sta_val", mean) 
 df <- .f(df)
 
-ps <- lapply(split(df, df$dat), \(fd) {
-    ggplot(fd, aes(x = factor(sta), y = sta_val, color = factor(sel))) +
+gg <- ggplot(df, aes(x = sel, y = sta_val, color = sel)) +
         scale_fill_brewer(palette="Dark2")+
         geom_bar(stat="identity", fill="white", position=position_dodge())+
-        ggtitle(fd$dat[1]) + 
         xlab("Evaluation metrics") +
         ylab("Metric values") +
-        labs(color="Feature selection")
-})
+        labs(color="Feature selection") + 
+        facet_grid(dat ~ sta) + 
+        scale_color_brewer(palette = "Paired") & theme(
+            legend.position="bottom",
+            legend.justification=c(0.5, 1),
+            legend.box.spacing=unit(0, "pt"),
+            panel.grid.minor=element_blank(), 
+            panel.border=element_rect(fill=NA),
+            plot.tag=element_text(size=9, face="bold"),
+            axis.text.x=element_text(angle=45, hjust=1, vjust=1))
 
-pdf(args[[2]], onefile=TRUE, width=12, height=6)
-for (p in ps) print(p); dev.off()
+
+ggsave(args[[2]], gg, width=30, height=15, units="cm")
+
