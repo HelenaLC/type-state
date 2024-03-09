@@ -2,6 +2,7 @@ suppressPackageStartupMessages({
     library(dplyr)
     library(ggplot2)
     library(patchwork)
+    library(ggh4x)
 })
 
 res <- lapply(args[[1]], readRDS)
@@ -14,12 +15,12 @@ df <- do.call(rbind, res)
 df <- .f(df)
 
 gg <- ggplot(df, aes(x = sel, y = sta_val, color = sel)) +
-        scale_fill_brewer(palette="Dark2")+
         geom_bar(stat="identity", fill="white", position=position_dodge())+
         xlab("Evaluation metrics") +
         ylab("Metric values") +
         labs(color="Feature selection") + 
-        facet_grid(dat ~ sta) + 
+        facet_grid2(dat ~ sta, scales = "free", independent = "y") +
+        theme_bw() +
         scale_color_brewer(palette = "Paired") & theme(
             legend.position="bottom",
             legend.justification=c(0.5, 1),

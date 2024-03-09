@@ -21,7 +21,7 @@ gg <- ggplot(df, aes(x = nGenes, y = sta_val, col = sel, group = sel)) +
         geom_point(stat = "identity", alpha=0.8, size = 0.5) +
         xlab("number of selected genes") + 
         theme_minimal() +
-        ggh4x::facet_grid2(sta ~ dat, scales = "free", independent = "y") +
+        ggh4x::facet_grid2(dat ~ sta, scales = "free", independent = "all") +
         scale_color_brewer(palette = "Paired") & theme(
             legend.position="bottom",
             legend.justification=c(0.5, 1),
@@ -33,4 +33,4 @@ gg <- ggplot(df, aes(x = nGenes, y = sta_val, col = sel, group = sel)) +
 
 
 
-ggsave(args[[2]], gg, width=16, height=28, units="cm")
+ggsave(args[[2]], gg, width=35, height=16, units="cm")

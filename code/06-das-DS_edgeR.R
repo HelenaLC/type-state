@@ -9,7 +9,7 @@ fun <- \(x) {
     ids <- colData(x)[c("sample_id", "cluster_re")]
     y <- aggregateAcrossCells(x, ids)
     idx <- split(seq(ncol(y)), y$cluster_re)
-    lapply(names(idx), \(k) {
+    res <- lapply(names(idx), \(k) {
         z <- y[, idx[[k]]]
         gs <- unique(z$group_id)
         if (length(gs) == 2 & length(idx[[k]]) > 2) {
@@ -25,11 +25,22 @@ fun <- \(x) {
             old <- c("logFC", "PValue", "FDR")
             new <- c("lfc", "p_val", "p_adj")
             names(tbl)[match(old, names(tbl))] <- new
-            cell_id <- I(rep(list(idx[[k]]), nrow(tbl)))
+            pbCell_id <- I(rep(list(idx[[k]]), nrow(tbl)))
             data.frame(
                 row.names=NULL,
                 gene_id=rownames(tbl), 
-                cell_id, cluster_re=k, tbl)
+                pbCell_id, cluster_re=k, tbl)
         }
     }) |> do.call(what=rbind)
+    if (!is.null(res)) {
+      #cd <- colData(x)
+      res$cell_id <- sapply(res$cluster_re, 
+        \(i) list(which(colData(x)$cluster_re==i)))
+      res$prop <- sapply(res$cell_id, 
+        \(i) max(prop.table(table(colData(x)[i, "group_id"]))))
+      res$nCells <- sapply(res$cell_id, length)
+      res$nSubpop <- length(unique(res$cluster_re))
+      res$cell_id <- NULL
+    }
+    return(res)
 }

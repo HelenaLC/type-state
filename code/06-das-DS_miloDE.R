@@ -1,6 +1,7 @@
 suppressPackageStartupMessages({
     library(miloDE)
     library(SingleCellExperiment)
+    library(miloR)
 })
 
 fun <- \(x) {
@@ -15,6 +16,13 @@ fun <- \(x) {
         new <- c("p_val", "p_adj", "gene_id")
         idx <- match(old, names(res))
         names(res)[idx] <- new
+        res$cell_id <- sapply(res$Nhood, \(i) list(which(nhoods(y)[,i]==1)))
+        res$prop <- sapply(res$cell_id, 
+          \(i) max(prop.table(table(colData(x)[i, "group_id"]))))
+        res$nCells <- sapply(res$cell_id, length)
+        res$nSubpop <- length(unique(res$Nhood))
+        res$cell_id <- NULL
+        res
     }
     return(res)
 }

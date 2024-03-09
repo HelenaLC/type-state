@@ -20,7 +20,8 @@ df <- lapply(res, select,
     do.call(what=rbind) |>
     filter(!is.na(p_adj)) |>
     group_by(sel, das, gene_id, dat) |>
-    summarize_at("p_adj", ~fisher(.x)$p) |>
+    summarize_at("p_adj", min) |> 
+    #summarize_at("p_adj", ~fisher(.x)$p) |>
     mutate(sel=factor(sel, SEL))
 
 fd <- df |>
@@ -41,10 +42,10 @@ fd <- df |>
     mutate(name=gsub("_", "\n", name))
 
 # aesthetics
-rng <- range(fd$value, na.rm=TRUE)
-rng <- c(
-    floor(rng[1]*10)/10, 
-    ceiling(rng[2]*10)/10)
+# rng <- range(fd$value, na.rm=TRUE)
+# rng <- c(
+#     floor(rng[1]*10)/10, 
+#     ceiling(rng[2]*10)/10)
 
 # plotting
 gg <- lapply(split(fd, fd$dat), \(d) {

@@ -29,7 +29,7 @@ if (length(sel)==2) {
   o <- order(t, decreasing=TRUE)
 }
 res <- rowData(sce)$gene_id[o[seq_len(num)]]
-rowData(sce)$sel_val <- sel_val <-rowData(sce)$gene_id %in% res
+rowData(sce)$sel_val <- sel_val <- rowData(sce)$gene_id %in% res
 sce <- runPCA(sce, subset_row=sel_val)
 sce$cluster_re <- clusterCells(sce,
   use.dimred = "PCA",

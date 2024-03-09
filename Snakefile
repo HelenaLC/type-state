@@ -25,6 +25,27 @@ SEL = glob_wildcards("code/03-sel_sim-{x}.R").x
 STA = glob_wildcards("code/05-sta-{x}.R").x
 DAS = glob_wildcards("code/06-das-{x}.R").x
 
+# specify scores required for selections,
+# defaulting to 'random' if left unspecified
+sco_by_sel = {
+    "HVG": ["HVG"],
+    "Fstat": ["Fstat"],
+    "tPVE_sPVE": ["PVE"],
+    "Fstat_sPVE": ["Fstat", "PVE"],
+    "Fstat_edgeR": ["Fstat", "edgeR"]}
+for sel in SEL:
+    if sel not in sco_by_sel.keys():
+        sco_by_sel[sel] = ["random"]
+
+def sco_by_sim(wildcards):
+    return expand(sim_out+"sco-{sim},{sco}.rds", 
+        sim=wildcards.sim, sco=sco_by_sel[wildcards.sel])
+
+def sco_by_dat(wildcards):
+    return expand(dat_out+"sco-{dat},{sco}.rds",
+        dat=wildcards.dat, sco=sco_by_sel[wildcards.sel])
+
+
 # output directories
 sim_dat = "data/sim/"; dat_dat = "data/dat/"
 sim_out = "outs/sim/"; dat_out = "outs/dat/"
@@ -103,7 +124,7 @@ for wal in WAL:
 # reproducibly retrieve dataset from public source
 rule all: 
     input:
-        #[x for x in sim_res.values()], plt,
+        [x for x in sim_res.values()], plt,
         [x for x in dat_res.values()], qlt,
         "session_info.txt"
 

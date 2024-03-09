@@ -76,9 +76,9 @@ rng_s <- range(.$cor_val, na.rm=TRUE)
 rng_t <- c(floor(rng_t[1]*10)/10, ceiling(rng_t[2]*10)/10)
 rng_s <- c(floor(rng_s[1]*10)/10, ceiling(rng_s[2]*10)/10)
 
-pal_t <- scale_fill_gradient2(limits=rng_t, breaks=c(rng_t, 0),
+pal_t <- scale_fill_gradient2(limits=rng_t, #breaks=c(rng_t, 0),
     na.value="lightgrey", low="blue", mid="ivory", high="red")
-pal_s <- scale_fill_gradient2(limits=rng_s, breaks=c(rng_s, 0),
+pal_s <- scale_fill_gradient2(limits=rng_s, #breaks=c(rng_s, 0),
     na.value="lightgrey", low="blue", mid="ivory", high="red")
 
 aes <- list(
@@ -103,7 +103,7 @@ p1 <-
     ggplot(df_t) + ggplot(fd_t) + 
     plot_layout(ncol=1, guides="collect") &
     plot_annotation(tag_levels="a") &
-    pal_t & labs(fill=lab_s) & 
+    pal_t & labs(fill=lab_t) & 
     aes & theme(
         plot.margin=margin(), 
         legend.position="bottom",
@@ -112,7 +112,7 @@ p2 <-
     ggplot(df_s) + ggplot(fd_s) +
     plot_layout(ncol=1, guides="collect") &
     plot_annotation(tag_levels="a") &
-    pal_s & labs(fill=lab_t) & 
+    pal_s & labs(fill=lab_s) & 
     aes & theme(
         plot.margin=margin(), 
         legend.position="bottom",
@@ -121,3 +121,6 @@ p2 <-
 # saving
 pdf(args[[2]], onefile=TRUE, width=12/2.54, height=14/2.54)
 for (p in list(p1, p2)) print(p); dev.off()
+
+
+
