@@ -19,8 +19,6 @@ x <- logNormCounts(x)
 
 # selection
 tbl <- modelGeneVar(x, block=x$sample_id)
-tb <- modelGeneCV2(x, block=x$sample_id)
-rowData(x)$ratio <- tb$ratio
 table(hvg <- (rowData(x)$bio <- tbl$bio) > 0)
 
 # reduction
