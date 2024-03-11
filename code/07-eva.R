@@ -14,8 +14,8 @@ num <- round((as.numeric(wcs$num)/10)*nrow(sce))
 source(args[[1]])
 
 sco <- lapply(sco, \(.) {
-    if (length(unique(.$sco)) > 1) 
-        split(., .$sco) else list(.)
+  if (length(unique(.$sco)) > 1) 
+    split(., .$sco) else list(.)
 })
 sco <- unlist(sco, recursive=FALSE)
 names(sco) <- sapply(sco, \(.) .$sco[1])
@@ -29,7 +29,7 @@ if (length(sel)==2) {
   o <- order(t, decreasing=TRUE)
 }
 res <- rowData(sce)$gene_id[o[seq_len(num)]]
-rowData(sce)$sel_val <- sel_val <-rowData(sce)$gene_id %in% res
+rowData(sce)$sel_val <- sel_val <- rowData(sce)$gene_id %in% res
 sce <- runPCA(sce, subset_row=sel_val)
 sce$cluster_re <- clusterCells(sce,
   use.dimred = "PCA",

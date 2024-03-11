@@ -21,7 +21,8 @@ df <- lapply(res, select, t, s,
     do.call(what=rbind) |>
     filter(!is.na(p_adj)) |>
     group_by(t, s, sel, das, gene_id) |>
-    summarize_at("p_adj", ~fisher(.x)$p)
+    summarize_at("p_adj", min)
+    #summarize_at("p_adj", ~fisher(.x)$p)
 
 # simulations
 rd <- list.files("data/sim/01-pro", "-rd\\.rds", full.names=TRUE)
