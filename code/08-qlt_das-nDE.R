@@ -2,24 +2,27 @@
 
 # dependencies
 suppressPackageStartupMessages({
-  library(dplyr)
-  library(tidyr)
-  library(ggrastr)
-  library(ggplot2)
-  library(patchwork)
-  library(ggh4x)
+    library(dplyr)
+    library(tidyr)
+    library(ggrastr)
+    library(ggplot2)
+    library(patchwork)
+    library(poolr)
+    library(ggh4x)
 })
 
 # loading
 res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
 df <- lapply(res, select, 
-  das, dat, sel, gene_id, p_adj) |>
-  do.call(what=rbind) |>
-  group_by(das, dat, sel, gene_id) |>
-  summarise_at("p_adj", min) |>
-  group_by(das, dat, sel) |>
-  summarize(nDE = as.numeric(sum(p_adj < 0.05)), .groups = "drop") 
+    das, dat, sel, gene_id, p_adj) |>
+    do.call(what=rbind) |>
+    group_by(das, dat, sel, gene_id) |>
+    summarise_at("p_adj", min) |>
+    #summarize_at("p_adj", ~fisher(.x)$p) |>
+    group_by(das, dat, sel) |>
+    summarize(nDE = as.numeric(sum(p_adj < 0.05)), .groups = "drop") |>
+    mutate(sel=factor(sel, SEL))
 
 
 gg <- ggplot(df, aes(sel,nDE,col=sel)) +
@@ -36,4 +39,4 @@ gg <- ggplot(df, aes(sel,nDE,col=sel)) +
     axis.text.x=element_text(angle=45, hjust=1, vjust=1))
 
 # saving
-ggsave(args[[2]], gg, width=15, height=15, units="cm")
+ggsave(args[[2]], gg, width=15, height=7, units="cm")

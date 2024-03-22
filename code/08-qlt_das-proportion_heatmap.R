@@ -14,10 +14,11 @@ res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
 df <- lapply(res, select, 
   das, dat, sel, prop, nCells) |>
-  do.call(what=rbind) |>
-  distinct(das, dat, sel, nCells, prop) |>
-  group_by(das, dat, sel) |>
-  summarise_at("prop", median)
+    do.call(what=rbind) |>
+    distinct(das, dat, sel, nCells, prop) |>
+    group_by(das, dat, sel) |>
+    summarise_at("prop", median) |>
+    mutate(sel=factor(sel, SEL))
 
 aes <- list(
   scale_fill_gradientn(
@@ -41,10 +42,10 @@ aes <- list(
 # plotting
 gg <- ggplot(df) +
   geom_tile(
-    aes(das, sel, fill=prop), 
+    aes(sel, das, fill=prop), 
     col="white", linewidth=0.1) +
   facet_grid(~dat) +
   aes
 
 # saving
-ggsave(args[[2]], gg, width=12, height=7, units="cm")
+ggsave(args[[2]], gg, width=13, height=6, units="cm")

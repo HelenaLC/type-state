@@ -57,4 +57,4 @@ gg <- lapply(split(df, df$dat), \(fd) {
 
 
 # saving
-ggsave(args[[2]], gg, width=15, height=15, units="cm")
+ggsave(args[[2]], gg, width=15, height=6, units="cm")
