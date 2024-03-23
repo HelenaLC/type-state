@@ -14,9 +14,10 @@ suppressPackageStartupMessages({
 res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
 df <- lapply(res, select, 
-  das, dat, sel, prop, nCells) |>
-  do.call(what=rbind) |>
-  distinct(das, dat, sel, nCells, prop)
+    das, dat, sel, prop, nCells) |>
+    do.call(what=rbind) |>
+    distinct(das, dat, sel, nCells, prop) |>
+    mutate(sel=factor(sel, SEL))
 
 gg <- ggplot(df, aes(das, nCells, col=das)) + 
   geom_violin_rast(position = position_dodge(width = 0.8), trim = FALSE) + 
@@ -27,4 +28,4 @@ gg <- ggplot(df, aes(das, nCells, col=das)) +
   facet_grid2(sel~dat, scales="free", independent = "y") +
   scale_color_brewer(palette = "Paired")
 
-ggsave(args[[2]], gg, width=23, height=26, units="cm")
+ggsave(args[[2]], gg, width=8, height=20, units="cm")

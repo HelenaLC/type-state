@@ -18,7 +18,14 @@ res <- fun(sce)
 if (!is.null(res)) {
     # store wildcards & simulation parameters
     res <- data.frame(row.names=NULL, wcs, res)
-    if (!is.null(wcs$sim)) res <- data.frame(metadata(sce), res)
+    if (!is.null(wcs$sim)) {
+        rd <- rowData(sce)
+        de <- grep("^GroupDE", names(rd))
+        ds <- grep("^ConditionDE", names(rd))
+        rd <- rd[,c(de,ds)]
+        idx <- match(res$gene_id, rownames(rd))
+        res <- data.frame(metadata(sce), rd[idx,], res) 
+        }
     # fill in missing gene-cluster instances
     # for downstream format compatibility 
     nan <- setdiff(res$gene, rownames(sce))

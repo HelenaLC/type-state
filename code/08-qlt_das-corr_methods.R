@@ -20,7 +20,8 @@ df <- lapply(res, select,
     do.call(what=rbind) |>
     filter(!is.na(p_adj)) |>
     group_by(sel, das, gene_id, dat) |>
-    summarize_at("p_adj", ~fisher(.x)$p) |>
+    #summarize_at("p_adj", ~fisher(.x)$p) |>
+    summarize_at("p_adj", min) |>
     mutate(sel=factor(sel, SEL))
 
 fd <- df |>
@@ -66,9 +67,9 @@ gg <- lapply(split(fd, fd$dat), \(d) {
         legend.title=element_text(vjust=1),
         legend.key.size=unit(0.5, "lines"),
         axis.text.x=element_text(angle=45, hjust=1, vjust=1)) +
-    ggtitle(d$dat[1])}) |> wrap_plots(ncol=3)
+    ggtitle(d$dat[1])}) |> wrap_plots(ncol=1)
 
 
 # saving
-ggsave(args[[2]], gg, width=15, height=4, units="cm")
+ggsave(args[[2]], gg, width=6, height=5, units="cm")
 

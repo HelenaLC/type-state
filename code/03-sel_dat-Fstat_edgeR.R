@@ -3,7 +3,6 @@ suppressPackageStartupMessages({
 })
 
 fun <- \(x) {
-    #n <- sum(sco$ratio$sco_val>1)
     n <- 2e3
     t <- rank((y <- x$Fstat)$sco_val)
     s <- rank(x$edgeR$sco_val)
