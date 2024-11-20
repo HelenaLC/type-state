@@ -20,25 +20,25 @@ df <- lapply(res, select,
     do.call(what=rbind) |>
     filter(!is.na(p_adj)) |>
     group_by(sel, das, gene_id, dat) |>
-    #summarize_at("p_adj", ~fisher(.x)$p) |>
     summarize_at("p_adj", min) |>
     mutate(sel=factor(sel, SEL))
 
+das <- paste(DAS, collapse="|")
 fd <- df |>
     pivot_wider(
-        names_from="das", 
-        values_from="p_adj",
+        names_from="das", values_from="p_adj",
         id_cols=c("sel", "gene_id", "dat")) |>
+    rename_with(\(.) gsub("^DS_", "", .), matches(das)) |>
     group_by(sel, dat) |>
     summarise(
         .groups="drop",
-        edgeR_lemur=cor(DS_edgeR, DS_lemur, 
+        edgeR_lemur=cor(muscat, lemur, 
           method="spearman", use="pairwise.complete.obs"),
-        edgeR_miloDE=cor(DS_edgeR, DS_miloDE, 
+        edgeR_miloDE=cor(muscat, miloDE, 
           method="spearman", use="pairwise.complete.obs"),
-        lemur_miloDE=cor(DS_lemur, DS_miloDE, 
+        lemur_miloDE=cor(lemur, miloDE, 
           method="spearman", use="pairwise.complete.obs")) |>
-    pivot_longer(matches("edgeR|lemur|miloDE")) |>
+    pivot_longer(matches(das)) |>
     mutate(name=gsub("_", "\n", name))
 
 # aesthetics

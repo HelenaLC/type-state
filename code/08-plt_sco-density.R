@@ -15,7 +15,8 @@ res <- res[!vapply(res, is.null, logical(1))]
 # wrangling
 df <- res |>
     do.call(what=rbind) |>
-    mutate(sco=factor(sco, SCO))
+    mutate(sco=factor(sco, SCO)) |>
+    mutate()
 de <- grep("GroupDE", names(df))
 ds <- grep("ConditionDE", names(df))
 fd <- df[rowAnys(df[de] != 1) & !rowAnys(df[ds] != 1), ]
@@ -40,8 +41,8 @@ aes <- list(
 .labs <- \(.) label_both(., multi_line=FALSE)
 fac_s <- facet_grid(s ~ sco, labeller=.labs, scales="free") 
 fac_t <- facet_grid(t ~ sco, labeller=.labs, scales="free") 
-pal_s <- scale_color_brewer(palette="Reds", "state\neffect", limits=seq(0, 1, 0.2))
-pal_t <- scale_color_brewer(palette="Blues", "type\neffect", limits=seq(0, 1, 0.2))
+pal_s <- scale_color_brewer(palette="Reds", "state\neffect", breaks=seq(0, 1, 0.2))
+pal_t <- scale_color_brewer(palette="Blues", "type\neffect", breaks=seq(0, 1, 0.2))
 
 # plotting
 p1 <- ggplot(df, aes(x=sco_val, y=..scaled.., col=factor(t))) + fac_s + pal_t

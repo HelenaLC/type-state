@@ -1,7 +1,6 @@
 x <- c(
     "dplyr",
     "tidyr",
-    "edgeR",
     "limma",
     "scran",
     "scater",
@@ -11,13 +10,9 @@ x <- c(
     "splatter",
     "matrixStats",
     "SingleCellExperiment",
-    # sco
-    "poolr",
-    "FEAST",#
-    "scmap",
-    "prabhakarlab/DUBStepR",#
     # das
     "poolr",
+    "edgeR",
     "lemur",
     "miloR",
     "MarioniLab/miloDE",
@@ -26,7 +21,6 @@ x <- c(
     "MLVSBM",
     "bluster",
     "cluster",
-    "PCAtools",
     "CellMixS",
     "variancePartition",
     "immunogenomics/lisi",

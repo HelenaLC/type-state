@@ -25,22 +25,18 @@ fun <- \(x) {
       old <- c("logFC", "PValue", "FDR")
       new <- c("lfc", "p_val", "p_adj")
       names(tbl)[match(old, names(tbl))] <- new
-      pbCell_id <- I(rep(list(idx[[k]]), nrow(tbl)))
       data.frame(
         row.names=NULL,
         gene_id=rownames(tbl), 
-        pbCell_id, cluster_re=k, tbl)
+        cluster_re=k, tbl)
     }
   }) |> do.call(what=rbind)
   if (!is.null(res)) {
-    #cd <- colData(x)
-    res$cell_id <- sapply(res$cluster_re, 
-      \(i) list(which(colData(x)$cluster_re==i)))
-    res$prop <- sapply(res$cell_id, 
-      \(i) max(prop.table(table(colData(x)[i, "group_id"]))))
-    res$nCells <- sapply(res$cell_id, length)
-    res$nSubpop <- length(unique(res$cluster_re))
-    res$cell_id <- NULL
+    fq <- prop.table(table(x$cluster_re, x$group_id), 1)
+    res$n_cells <- table(x$cluster_re)[res$cluster_re]
+    res$n_nhood <- length(unique(x$cluster_re))
+    res$p_nhood <- rowMaxs(fq)[res$cluster_re]
+    res$i_nhood <- res$cluster_re
   }
   return(res)
 }

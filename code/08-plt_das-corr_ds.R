@@ -1,6 +1,5 @@
 # dependencies
 suppressPackageStartupMessages({
-    library(poolr)
     library(dplyr)
     library(tidyr)
     library(ggplot2)
@@ -18,19 +17,20 @@ df <- lapply(res, select, t, s,
     filter(!is.na(p_adj)) |>
     group_by(t, s, sel, das, gene_id) |>
     summarize_at("p_adj", min)
-    #summarize_at("p_adj", ~fisher(.x)$p)
 
+das <- paste(DAS, collapse="|")
 fd <- df |>
     pivot_wider(
         names_from="das", values_from="p_adj",
         id_cols=c("t", "s", "sel", "gene_id")) |>
+    rename_with(\(.) gsub("^DS_", "", .), matches(das)) |>
     group_by(t, s, sel) |>
     summarise(
         .groups="drop",
-        edgeR_lemur=cor(DS_edgeR, DS_lemur, method="spearman"),
-        edgeR_miloDE=cor(DS_edgeR, DS_miloDE, method="spearman"),
-        lemur_miloDE=cor(DS_lemur, DS_miloDE, method="spearman")) |>
-    pivot_longer(matches("edgeR|lemur|miloDE")) |>
+        muscat_lemur=cor(muscat, lemur, method="spearman"),
+        muscat_miloDE=cor(muscat, miloDE, method="spearman"),
+        lemur_miloDE=cor(lemur, miloDE, method="spearman")) |>
+    pivot_longer(matches(das)) |>
     mutate(
         name=gsub("_", "\n", name),
         value=case_when(value < 0 ~ 0, TRUE ~ value))
@@ -44,7 +44,7 @@ df_sel <- fd[j, ]
 aes <- list(
     facet_grid(sel~name),
     scale_fill_gradientn(
-        expression("Cor("*X[i]^2*","~X[j]^2*")"), 
+        "corr. min(adj. p-value)",
         colors=c("ivory", "pink", "red", "firebrick", "black"),
         na.value="lightgrey", labels=c("<= 0", 1), limits=c(0, 1), n.breaks=2),
     geom_tile(col="white", linewidth=0.1, aes(t, s, fill=value)),

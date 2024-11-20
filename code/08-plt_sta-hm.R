@@ -1,4 +1,4 @@
-args <- list(list.files("outs/sim", "^sta-.*", full.names=TRUE), "plts/sim/sta-hm.pdf")
+#args <- list(list.files("outs/sim", "^sta-.*", full.names=TRUE), "plts/sim/sta-hm.pdf")
 
 # dependencies
 suppressPackageStartupMessages({
@@ -19,7 +19,7 @@ df <- res |>
 # separate ground truth selections
 .f <- \(df) df |>
     group_by(t, s, b, sel, sta) |>
-    summarise_at("sta_val", mean) 
+    summarise_at("sta_val", mean)
 j <- !(i <- df$sel %in% DES)
 df_des <- .f(df[i, ])
 df_sel <- .f(df[j, ])

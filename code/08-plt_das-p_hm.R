@@ -1,4 +1,4 @@
-# args <- list(list.files("outs/sim", "^das-", full.names=TRUE), "plts/sim/das-nCluster.pdf")
+#args <- list(list.files("outs/sim", "^das.*", full.names = TRUE), "plts/sim/das-p_hm.pdf")
 
 # dependencies
 suppressPackageStartupMessages({
@@ -12,24 +12,32 @@ suppressPackageStartupMessages({
 # loading
 res <- lapply(args[[1]], readRDS)
 res <- res[!vapply(res, is.null, logical(1))]
-df <- lapply(res, select, 
-  t, s, b, sel, das, gene_id, p_adj) |>
+
+# wrangling
+df <- lapply(res, select, t, s, 
+  das, sel, i_nhood, p_nhood) |>
   do.call(what=rbind) |>
-  group_by(t, s, b, sel, das, gene_id) |>
-  summarise_at("p_adj", min) |>
-  group_by(t, s, b, sel, das) |>
-  summarize(nDE = as.numeric(sum(p_adj < 0.05)), .groups = "drop") 
+  distinct(t, s, das, sel, 
+    i_nhood, .keep_all=TRUE) |>
+  group_by(t, s, das, sel) |>
+  summarize_at("p_nhood", mean) |>
+  mutate(sel=factor(sel, c(DES, SEL)))
+j <- !(i <- df$sel %in% DES)
+df_des <- df[i, ]
+df_sel <- df[j, ]
 
-
+# aesthetics
+ls <- range(df$p_nhood, na.rm=TRUE)
+ls <- c(floor(ls[1]/(. <- 0.1))*., ceiling(ls[2]/.)*.)
 aes <- list(
   geom_tile(
-    aes(t, s, fill=nDE), 
+    aes(t, s, fill=p_nhood), 
     col="white", linewidth=0.1),
   facet_grid(sel~das),
   scale_fill_gradientn(
-    "# of DE genes",
-    colors=c("ivory", "gold", "red", "navy"),
-    na.value="lightgrey", n.breaks=2),
+    "mean group prop.\nper cluster/nhood.",
+    limits=ls, breaks=ls, na.value="lightgrey", 
+    colors=c("ivory", "pink", "red", "firebrick", "black")),
   labs(x="type effect", y="state effect"),
   scale_x_continuous(breaks=c(0, 1)),
   scale_y_continuous(breaks=c(0, 1)),
@@ -39,15 +47,9 @@ aes <- list(
     panel.grid=element_blank(),
     axis.title=element_text(hjust=0),
     panel.border=element_rect(fill=NA),
-    legend.key.width=unit(1, "lines"),
-    legend.key.height=unit(0.5, "lines"),
+    legend.key.size=unit(0.5, "lines"),
     legend.title=element_text(vjust=1.5),
     plot.tag=element_text(size=9, face="bold")))
-
-df <- mutate(df, sel=factor(sel, c(DES, SEL)))
-j <- !(i <- df$sel %in% DES)
-df_des <- df[i, ]
-df_sel <- df[j, ]
 
 # plotting
 gg <- ggplot(df_des) + ggplot(df_sel) + 

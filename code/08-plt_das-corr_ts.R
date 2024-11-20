@@ -1,6 +1,4 @@
-# args <- list(
-#     list.files("outs/sim", "^das-", full.names=TRUE),
-#     "plts/sim/das-corr_effects.pdf")
+#args <- list(list.files("outs/sim", "^das-", full.names=TRUE), "plts/sim/das-corr_ts.pdf")
 
 # dependencies
 suppressPackageStartupMessages({
@@ -22,7 +20,6 @@ df <- lapply(res, select, t, s,
     filter(!is.na(p_adj)) |>
     group_by(t, s, sel, das, gene_id) |>
     summarize_at("p_adj", min)
-    #summarize_at("p_adj", ~fisher(.x)$p)
 
 # simulations
 rd <- list.files("data/sim/01-pro", "-rd\\.rds", full.names=TRUE)
@@ -93,13 +90,14 @@ aes <- list(
         panel.grid=element_blank(),
         axis.title=element_text(hjust=0),
         panel.border=element_rect(fill=NA),
-        legend.title=element_text(vjust=1),
+        legend.title.position="top",
+        legend.title=element_text(hjust=0.5),
         legend.key.width=unit(1, "lines"),
         legend.key.height=unit(0.5, "lines")))
 
 # plotting
-lab_t <- expression("Cor("*X^2*", logFC"[type]*")")
-lab_s <- expression("Cor("*X^2*", logFC"[state]*")")
+lab_t <- expression("Cor(min. adj. p-value, mean logFC"[type]*")")
+lab_s <- expression("Cor(min. adj. p-value, mean logFC"[state]*")")
 p1 <- 
     ggplot(df_t) + ggplot(fd_t) + 
     plot_layout(ncol=1, guides="collect") &

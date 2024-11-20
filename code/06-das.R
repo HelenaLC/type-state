@@ -22,9 +22,9 @@ if (!is.null(res)) {
         rd <- rowData(sce)
         de <- grep("^GroupDE", names(rd))
         ds <- grep("^ConditionDE", names(rd))
-        rd <- rd[,c(de,ds)]
+        rd <- rd[, c(de, ds)]
         idx <- match(res$gene_id, rownames(rd))
-        res <- data.frame(metadata(sce), rd[idx,], res) 
+        res <- data.frame(metadata(sce), rd[idx, ], res) 
         }
     # fill in missing gene-cluster instances
     # for downstream format compatibility 

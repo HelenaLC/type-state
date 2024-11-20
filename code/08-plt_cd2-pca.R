@@ -34,12 +34,12 @@ ys <- pm*.f(df$PC2)
 ps <- lapply(split(df, df$sel), \(fd) 
     ggplot(fd[sample(nrow(fd)), ], aes(PC1, PC2, col=i)) +
         scale_color_manual(NULL, values=pal) +
-        geom_point(shape=16, alpha=0.2, size=0.1) + 
         facet_grid(t ~ s, labeller=\(.) label_both(.)) +
+        geom_point_rast(shape=16, alpha=0.2, size=0.1, dpi=300) + 
         guides(col=guide_legend(nrow=2, override.aes=list(alpha=1, size=2))) +
         scale_x_continuous("1st principal component", n.breaks=3, limits=xs) +
         scale_y_continuous("2nd principal component", n.breaks=3, limits=ys) +
-        ggtitle(fd$sel[1]) + theme_bw(6) + theme(
+        ggtitle(fd$sel[1]) + theme_bw(9) + theme(
             legend.position="bottom",
             panel.grid.minor=element_blank(),
             axis.title=element_text(hjust=0),

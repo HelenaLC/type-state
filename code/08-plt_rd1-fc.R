@@ -33,12 +33,13 @@ df$ds <- sapply(ds, \(i) {
 fd <- df |>
     pivot_longer(all_of(c("de", "ds"))) |>
     mutate_at("name", factor, c("de", "ds"), 
-        paste("between\n", c("clusters", "groups")))
+        paste("between\n", c("clusters", "conditions")))
 
 # aesthetics
 aes <- list(
+    coord_cartesian(xlim=c(0, 2)),
     geom_density(linewidth=0.4, key_glyph="point"),
-    scale_x_continuous("mean |FC|", n.breaks=3),
+    scale_x_continuous("mean |logFC|", n.breaks=3),
     scale_y_continuous("scaled density", n.breaks=2),
     guides(color=guide_legend(override.aes=list(size=1))),
     theme_bw(6), theme(
@@ -52,8 +53,8 @@ aes <- list(
 .labs <- labeller(name=label_value, s=label_both, t=label_both)
 fac_s <- facet_grid(name ~ s, labeller=.labs, scales="free")
 fac_t <- facet_grid(name ~ t, labeller=.labs, scales="free")
-pal_s <- scale_color_brewer(palette="Reds", "state\neffect", limits=seq(0, 1, 0.2))
-pal_t <- scale_color_brewer(palette="Blues", "type\neffect", limits=seq(0, 1, 0.2))
+pal_s <- scale_color_brewer(palette="Reds", "state\neffect", breaks=seq(0, 1, 0.2))
+pal_t <- scale_color_brewer(palette="Blues", "type\neffect", breaks=seq(0, 1, 0.2))
 
 # plotting
 p1 <- ggplot(fd, aes(value, ..scaled.., col=factor(t))) + pal_t + fac_s + aes

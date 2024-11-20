@@ -3,8 +3,8 @@ suppressPackageStartupMessages({
 })
 
 fun <- \(x) {
-    s <- rank(x$sPVE$sco_val)
-    t <- rank((y <- x$Fstat)$sco_val)
+    t <- rank((y <- x$tF)$sco_val)
+    s <- rank(x$sPBDS$sco_val)
     o <- order(t-s, decreasing=TRUE)
     de <- grep("^GroupDE", names(y))
     ds <- grep("^ConditionDE", names(y))

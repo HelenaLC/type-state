@@ -36,7 +36,8 @@ fd <- df |>
         de=cor(sco_val, de, method="spearman"),
         ds=cor(sco_val, ds, method="spearman")) |>
     pivot_longer(all_of(c("de", "ds"))) |>
-    mutate(name=factor(name, c("de", "ds"), c("type", "state")))
+    mutate(name=factor(name, c("de", "ds"), 
+        c("type effect", "state effect")))
 
 # aesthetics
 rng <- range(fd$value, na.rm=TRUE)
@@ -61,9 +62,9 @@ gg <- ggplot(fd, aes(t, s, fill=value)) +
         legend.margin=margin(),
         panel.grid=element_blank(),
         axis.title=element_text(hjust=0),
-        legend.title=element_text(vjust=1),
         legend.key.width=unit(1, "lines"),
         legend.key.height=unit(0.5, "lines"),
+        legend.title=element_text(vjust=0.75),
         panel.border=element_rect(fill=NA, linewidth=0.2))
 
 # saving

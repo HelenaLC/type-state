@@ -10,7 +10,10 @@ outs/*
 logs/*Rout
 plts/**/*pdf
 code/*cache
+code/arch
 .snakemake/
 docs/
 docs/*
 outs/*
+*svg
+*png

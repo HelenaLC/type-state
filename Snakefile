@@ -29,10 +29,10 @@ DAS = glob_wildcards("code/06-das-{x}.R").x
 # defaulting to 'random' if left unspecified
 sco_by_sel = {
     "HVG": ["HVG"],
-    "Fstat": ["Fstat"],
+    "Fstat": ["tF"],
     "tPVE_sPVE": ["PVE"],
-    "Fstat_sPVE": ["Fstat", "PVE"],
-    "Fstat_edgeR": ["Fstat", "edgeR"]}
+    "tF_sPVE": ["tF", "PVE"],
+    "tF_sPBDS": ["tF", "sPBDS"]}
 for sel in SEL:
     if sel not in sco_by_sel.keys():
         sco_by_sel[sel] = ["random"]
@@ -92,7 +92,7 @@ sim_res = {
     "cd2": sim_rep_cd,
     "sta": sim_sta,
     "das": sim_das}
-#sim_res = {}
+
 dat_res = {
     "dat": dat,
     "pro": dat_pro,
@@ -102,8 +102,7 @@ dat_res = {
     "cd2": dat_rep_cd,
     "sta": dat_sta,
     "eva": dat_eva,
-    "das": dat_das
-    }
+    "das": dat_das}
 
 # visualization
 VAL = sim_res.keys()
@@ -124,9 +123,9 @@ for wal in WAL:
 # reproducibly retrieve dataset from public source
 rule all: 
     input:
+        "session_info.txt",
         [x for x in sim_res.values()], plt,
-        [x for x in dat_res.values()], qlt,
-        "session_info.txt"
+        [x for x in dat_res.values()], qlt
 
 rule session_info:
     priority: 100

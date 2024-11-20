@@ -11,7 +11,7 @@
 
 - `<x>` denotes a wildcard, namely: `t`ype, `s`tate, `b`atch,  
   `sim`ulation, `sco`re, `sel`ection, `sta`tistic,   
-  `das` = differential abundance/state method
+  `das` = differential state analysis method
 
 - `00-sim_data.R`
   - **out:** `data/00-sim/t<t>,s<s>,b<b>.rds`<br>

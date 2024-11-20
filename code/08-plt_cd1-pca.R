@@ -38,7 +38,7 @@ gg <- ggplot(
     guides(col=guide_legend(nrow=2, override.aes=list(alpha=1, size=2))) +
     scale_x_continuous("1st principal component", n.breaks=3, limits=xs) +
     scale_y_continuous("2nd principal component", n.breaks=3, limits=ys) +
-    theme_bw(6) + theme(
+    theme_bw(9) + theme(
         legend.position="bottom",
         panel.grid.minor=element_blank(),
         axis.title=element_text(hjust=0),

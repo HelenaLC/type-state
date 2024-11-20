@@ -1,6 +1,5 @@
 suppressPackageStartupMessages({
     library(edgeR)
-    library(poolr)
     library(scuttle)
 })
 
@@ -30,14 +29,9 @@ fun <- \(x) {
     })
     res <- do.call(rbind, res)
     if (!is.null(res)) {
-        gene <- rownames(x)
-        out <- vapply(gene, \(g) {
-            p <- res[res$gene == g, "p_adj"]
-            #fisher(p)$statistic
-            -log(fisher(p)$p)
-        }, numeric(1))
-        return(out)
+        ps <- split(res$p_adj, res$gene)
+        ps <- vapply(ps, min, numeric(1))
+        return(-log(ps)[rownames(x)])
     }
     setNames(res, rownames(x))
-    
 }
