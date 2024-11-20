@@ -4,10 +4,11 @@
   **R v4.4.1 with Bioc 3.20, and Python v3.11.3 with Snakemake v7.26.0**
 - R version and library have to be specified in the `config.yaml` file  
   (e.g., `R: "R_LIBS_USER=/path/to/library /path/to/R/executable"`)
-- `logs` captures `.Rout` files from `R CMD BATCH` executions
-- `data` contains any synthetic and real data
-- intermediate results are generated in `outs` 
-- visualizations are generated in `plts`
+- `.Rprofile` is used for handling and printing command line arguments
+- `logs/` capture `.Rout` files from `R CMD BATCH` executions
+- `data/` contains any synthetic and real data
+- intermediate results are generated in `outs/` 
+- visualizations are generated in `plts/`
 
 ### workflow
 
