@@ -1,0 +1,382 @@
+---
+title: "Investigating the Relationship Between Harmony Integration and Feature Selection Methods"
+
+format:
+  html:
+    toc: true
+    self-contained: true
+    code-fold: true
+    code-tools: true
+    toc_float: true
+    
+author: 
+  Jiayi Wang$^*$, Helena L. Crowell$^*$, and Mark D. Robinson 
+  Institute for Molecular Life Sciences, University of Zurich, Switzerland;  
+  SIB Swiss Institute of Bioinformatics, University of Zurich, Switzerland  
+  
+---
+
+
+
+## Dependencies
+```{r}
+suppressPackageStartupMessages({
+    library(SingleCellExperiment)
+    library(harmony)
+    library(igraph)
+    library(patchwork)
+    library(ggplot2)
+    library(scater)
+    library(scran)
+    library(tidyr)
+    library(lisi)
+    library(knitr)
+    library(DT)
+    library(data.table)
+    library(rstudioapi)
+})
+
+```
+
+```{r setup, include=FALSE}
+set.seed(123)
+knitr::opts_knit$set(root.dir = "/Users/jiayi/type-state")
+```
+
+```{r function}
+
+# plot
+.plot <- \(sce, sel) {
+    p1 <- plotPCA(sce, color_by = "cluster_id") + ggtitle(sel) +
+    plotPCA(sce, color_by = "group_id") + 
+    scale_color_brewer(palette = "Set1") +
+    labs(col = "group_id")
+
+    p2 <- plotReducedDim(sce, dimred = "HARMONY", color_by = "cluster_id") +
+        ggtitle(paste0(sel, " + Harmony")) + 
+        plotReducedDim(sce, dimred = "HARMONY", color_by = "group_id") + 
+        scale_color_brewer(palette = "Set1")  + labs(col = "group_id")
+    
+    p1 / p2
+}
+
+# LISI 
+.lisi <- \(x, rd){
+    y <- reducedDim(x, rd)
+    cd <- colData(x)
+    by <- c(
+        LISI_g="group_id", 
+        LISI_k="cluster_id")
+    res <- sapply(by, \(.) {
+        res <- compute_lisi(y, cd, .)
+        n <- length(unique(cd[[.]]))
+        (mean(res[[1]])-1)/(n-1)
+    })
+    data.frame(
+        row.names=NULL, 
+        sta=names(res), 
+        sta_val=res)
+}
+
+.compute_lisi <- \(sce, sel) {
+    lisi1 <- .lisi(sce, "PCA")
+    lisi2 <- .lisi(sce, "HARMONY")
+    lisi1$method <- sel
+    lisi2$method <- paste0(sel, "+Harmony")
+    tbl <- rbind(lisi1, lisi2)
+    colnames(tbl) <- c("metric", "value", "method")
+    tbl %>% 
+        pivot_wider(names_from = metric, values_from = value)
+}
+```
+
+## Simulated data
+
+We selected one simulated dataset (t = 1, s = 1) to illustrate the relationship between type-not-state feature selection and data integration. For this example, we used Harmony integration. First, we compared dimensionality reduction results (PCA) based on different feature selection strategies, both before and after integration.
+
+We then used the `LISI` score (as implemented in Harmony) to quantify the mixing of cell types or clusters (`LISI_k`) and cell states or groups (`LISI_g`). A higher `LISI_g` score indicates better mixing of cell states, while a lower `LISI_k` score reflects better separation of clusters.
+
+
+### HVG vs. HVG + Harmony
+
+```{r sim_hvg, fig.width = 10, fig.height = 10, warning=FALSE, message=FALSE}
+# HVG 
+sce <- readRDS("data/sim/02-rep/t100,s100,b0,HVG.rds")
+sel <- "HVG"
+# HVG + harmony
+sce <- RunHarmony(sce,
+  group.by.vars = "sample_id",
+  reduction.use = "PCA",
+  verbose = FALSE)
+
+.plot(sce,sel)
+df1 <- .compute_lisi(sce, sel)
+df1
+```
+
+### Random vs. Random + Harmony
+
+```{r sim_random, fig.width = 10, fig.height = 10, warning=FALSE, message=FALSE}
+# random 
+sce <- readRDS("data/sim/02-rep/t100,s100,b0,random.rds")
+sel <- "Random"
+# random + harmony
+sce <- RunHarmony(sce,
+  group.by.vars = "sample_id",
+  reduction.use = "PCA",
+  verbose = FALSE)
+
+.plot(sce,sel)
+df2 <- .compute_lisi(sce, sel)
+df2
+```
+
+
+### tF vs. tF + Harmony
+```{r  sim_tF, fig.width = 10, fig.height = 10, warning=FALSE, message=FALSE}
+sce <- readRDS("data/sim/02-rep/t100,s100,b0,tF.rds")
+sel <- "tF"
+# random + harmony
+sce <- RunHarmony(sce,
+  group.by.vars = "sample_id",
+  reduction.use = "PCA",
+  verbose = FALSE)
+
+.plot(sce,sel)
+df3 <- .compute_lisi(sce, sel)
+df3
+```
+
+
+### tF_sPBDS vs. tF_sPBDS + Harmony
+
+```{r sim_tF_sPBDS, fig.width = 10, fig.height = 10, message=FALSE}
+sce <- readRDS("data/sim/02-rep/t100,s100,b0,tF_sPBDS.rds")
+sel <- "tF_sPBDS"
+# random + harmony
+sce <- RunHarmony(sce,
+  group.by.vars = "sample_id",
+  reduction.use = "PCA",
+  verbose = FALSE)
+
+.plot(sce,sel)
+df4 <- .compute_lisi(sce, sel)
+df4
+```
+
+
+### LISI score overall comparison
+
+Here we summarized the LISI scores for all feature selection methods, with and without Harmony integration. Among all tested methods, tF_sPBDS+Harmony consistently achieved the best trade-off, with the highest LISI_g (0.87) and low LISI_k (0.04). Notably, tF_sPBDS alone (without Harmony) already substantially improved group mixing, outperforming random+Harmony and all other feature selections without integration. However, its type separation was suboptimal without integration, suggesting that integration remains necessary for optimal performance. 
+
+
+```{r}
+df <- do.call(rbind, list(df1,df2,df3,df4))
+setDT(df)
+datatable(df, options = list(pageLength = 10), rownames = FALSE)
+```
+
+
+```{r fig.height=6, fig.width=4.5}
+df[, feature_selection := gsub("\\+Harmony", "", method)]
+df[, Harmony := ifelse(grepl("Harmony", method), "Yes", "No")]
+# pal <- c(
+#   "HVG" = "#FDB863",           # light orange
+#   "HVG+Harmony" = "#E66101",  # dark orange
+#   "Random" = "#B2ABD2",        # light lavender
+#   "Random+Harmony" = "#5E3C99",# dark purple
+#   "tF" = "#A6DBA0",            # light green
+#   "tF+Harmony" = "#1B7837",   # dark green
+#   "tF_sPBDS" = "#c6dbef",      # pale blue
+#   "tF_sPBDS+Harmony" = "#3182bd" # darker blue
+# )
+# df$method <- factor(df$method, levels=df$method)
+# names(pal) <- df$method
+# ggplot(df, aes(x = reorder(method, -LISI_g), y=LISI_g, fill = method)) +
+#   geom_bar(stat = "identity") +
+#   scale_fill_manual(values = pal) +
+#   theme_bw() +
+#   labs(x = NULL, y = "LISI_g", fill = "Method") +
+#   theme(axis.text.x = element_blank(),
+#         axis.ticks = element_blank()) +
+#   ggtitle("Mixing of cell states/groups")
+
+pal <- c(
+  "#F4894B", 
+  "#FAED6D",  
+  "#D35FB7", 
+  "#54C4DA"   
+)
+
+p1 <- ggplot(df, aes(x = reorder(feature_selection, LISI_g), y = LISI_g, 
+               fill = feature_selection, alpha = Harmony)) +
+  geom_bar(stat = "identity", 
+           position = position_dodge2(preserve = "single")) +
+  scale_fill_manual(values = pal) +
+  theme_bw() +
+  labs(x = NULL, y = "LISI_g", fill = "Method") +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  ggtitle("Mixing of cell states/conditions") +
+  scale_alpha_manual(values = c("No" = 0.6, "Yes" = 1)) 
+
+
+p2 <- ggplot(df, aes(x = reorder(feature_selection, -LISI_k), y = LISI_k, 
+               fill = feature_selection, alpha = Harmony)) +
+  geom_bar(stat = "identity", 
+           position = position_dodge2(preserve = "single")) +
+  scale_fill_manual(values = pal) +
+  theme_bw() +
+  labs(x = NULL, y = "LISI_k", fill = "Method") +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  ggtitle("Mixing of cell types/clusters") +
+  scale_alpha_manual(values = c("No" = 0.6, "Yes" = 1)) 
+
+
+p1 / p2 + plot_layout(guides="collect")
+```
+
+
+## Kang's datatset
+
+We performed a similar comparison using Kang’s dataset, but visualized the results with UMAPs.
+
+### HVG vs. HVG + Harmony
+
+```{r kang_hvg, fig.width = 10, fig.height = 8, warning=FALSE, message=FALSE}
+## HVG
+sce <- readRDS("data/dat/01-pro/Kang18.rds")
+.f <- \(sce, sel) {
+    p1 <- plotUMAP(sce, color_by = "cluster_id") + ggtitle(sel) +
+    plotUMAP(sce, color_by = "group_id") + 
+        scale_color_brewer(palette = "Set1") +
+        labs(col = "group_id")
+
+
+    ## HVG + Harmony
+    sce <- RunHarmony(sce,
+      group.by.vars = "sample_id",
+      reduction.use = "PCA",
+      verbose = FALSE)
+    sce <- runUMAP(sce, dimred = "HARMONY")
+    
+    
+    p2 <- plotUMAP(sce, color_by = "cluster_id") + ggtitle(paste0(sel, " + Harmony")) +
+        plotUMAP(sce, color_by = "group_id") +
+            scale_color_brewer(palette = "Set1") +
+            labs(col = "group_id")
+    
+    p <- p1 / p2
+    
+    ## LISI score
+    lisi1 <- .lisi(sce, "PCA")
+    lisi2 <- .lisi(sce, "HARMONY")
+    lisi1$method <- sel
+    lisi2$method <- paste0(sel,"+Harmony")
+    
+    
+    tbl <- rbind(lisi1, lisi2)
+    colnames(tbl) <- c("metric", "value", "method")
+    df <- tbl %>% 
+      pivot_wider(names_from = metric, values_from = value)
+    return(list(p=p, df=df))
+}
+res <- .f(sce, "HVG")
+res$p
+df1 <- res$df
+df1
+```
+
+### Random vs. random + Harmony
+```{r kang_random, fig.width = 10, fig.height = 8, warning=FALSE, message=FALSE}
+sce <- readRDS("data/dat/02-rep/Kang18,random.rds")
+res <- .f(sce, "Random")
+res$p
+df2 <- res$df
+df2
+```
+
+### tF vs. tF + Harmony
+
+```{r kang_tf, fig.width = 10, fig.height = 8, warning=FALSE, message=FALSE}
+sce <- readRDS("data/dat/02-rep/Kang18,tF.rds")
+res <- .f(sce, "tF")
+res$p
+df3 <- res$df
+df3
+```
+
+
+### tF_sPBDS vs. tF_sPBDS + Harmony 
+
+```{r kang_tF_sPBDS, fig.width = 10, fig.height = 8, message=FALSE}
+## tF_sPBDS
+sce <- readRDS("data/dat/02-rep/Kang18,tF_sPBDS.rds")
+res <- .f(sce, "tF_sPBDS")
+res$p
+df4 <- res$df
+df4
+```
+
+### LISI score overall comparison
+
+Here, the performance gains with integration were even more pronounced. `tF_sPBDS+Harmony` outperformed standard `HVG+Harmony` and `tF_sPBDS`, achieving higher group mixing (`LISI_g` = 0.64) with comparable type separation (`LISI_k` = 0.028). We noticed that the performance gain was even larger than in the simulated dataset. This is likely because our simulated data did not explicitly include technical or sample-specific effects, whereas real dataset probably contains technical variation that Harmony is designed to correct. 
+
+In conclusion, we proposed that type-not-state feature selection is complementary to integration. By selecting biologically relevant features, `tF_sPBDS` provides a better input embedding for integration.
+
+```{r}
+df <- do.call(rbind, list(df1,df2,df3,df4))
+setDT(df)
+datatable(df, options = list(pageLength = 10), rownames = FALSE)
+```
+
+```{r fig.height=6, fig.width=4.5}
+df[, feature_selection := gsub("\\+Harmony", "", method)]
+df[, Harmony := ifelse(grepl("Harmony", method), "Yes", "No")]
+pal <- c(
+  "#F4894B", 
+  "#FAED6D",  
+  "#D35FB7", 
+  "#54C4DA"   
+)
+
+p1 <- ggplot(df, aes(x = reorder(feature_selection, LISI_g), y = LISI_g, 
+               fill = feature_selection, alpha = Harmony)) +
+  geom_bar(stat = "identity", 
+           position = position_dodge2(preserve = "single")) +
+  scale_fill_manual(values = pal) +
+  theme_bw() +
+  labs(x = NULL, y = "LISI_g", fill = "Method") +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  ggtitle("Mixing of cell states/groups") +
+  scale_alpha_manual(values = c("No" = 0.6, "Yes" = 1)) 
+
+
+p2 <- ggplot(df, aes(x = reorder(feature_selection, -LISI_k), y = LISI_k, 
+               fill = feature_selection, alpha = Harmony)) +
+  geom_bar(stat = "identity", 
+           position = position_dodge2(preserve = "single")) +
+  scale_fill_manual(values = pal) +
+  theme_bw() +
+  labs(x = NULL, y = "LISI_k", fill = "Method") +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  ggtitle("Mixing of cell types/clusters") +
+  scale_alpha_manual(values = c("No" = 0.6, "Yes" = 1)) 
+
+
+p1 / p2 + plot_layout(guides="collect")
+```
+
+
+## Session Info
+```{r}
+sessionInfo()
+```
+
