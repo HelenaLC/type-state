@@ -1,8 +1,15 @@
 **Supplementary docs:**
 
-[DEMO](supp/demo.html)
-[integration](supp/integration.html)
-[neighborhoods](supp/neighborhoods.html)
+- [DEMO](supp/demo.html): 
+  quick-guide demonstrating how to perform 
+  various feature scoring and selection strategies,
+  including visual comparison of the resulting PCs
+- [integration](supp/integration.html):
+  comparison of cluster/group mixing (LISI_k/g) across
+  feature selections, before and after integration
+- [neighborhoods](supp/neighborhoods.html):
+  comparison of clusters (muscat) and neighborhoods (miloDE)
+  obtained for the Kang dataset using different feature selection
 
 ### setup
 
