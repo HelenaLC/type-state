@@ -1,15 +1,22 @@
 ---
-title: "Compare neighbourhoods and clusters"
-
+title: "Neighborhoods vs. clusters"
+author: 
+- name: Jiayi Wang*
+  affiliation:
+  - &DMLS Department for Molecular Life Sciences, University of Zurich, Switzerland
+  - &SIB SIB Swiss Institute of Bioinformatics, University of Zurich, Switzerland
+- name: Helena L. Crowell*
+  affiliation:
+  - *DMLS
+- name: Mark D. Robinson
+  affiliation:
+  - *DMLS
+  - *SIB
 format:
   html:
     toc: true
-    self-contained: true
-    code-fold: true
-    code-tools: true
     toc_float: true
-    
-author: Jiayi Wang*, Helena L. Crowell* and Mark Robinson
+    self-contained: true
 ---
 
 ## Dependencies
@@ -20,7 +27,6 @@ suppressPackageStartupMessages({
     library(miloDE)
     library(miloR)
     library(tidyr)
-    library(ggh4x)
     library(patchwork) 
     library(tidytext) 
     library(stringr)
@@ -92,8 +98,6 @@ nh_id <- lapply(df_ds, lapply, \(.) {
     id <- nh[, .N, by = .(neighborhood, cluster_id, size)]
     re[, proportion := N / size]
     id[, proportion := N / size]
-    # re[, neighborhood := as.factor(neighborhood)]
-    # id[, neighborhood := as.factor(neighborhood)]
     setnames(re, "cluster_re", "cluster")
     setnames(id, "cluster_id", "cluster")
     re[,type:="cluster_re"]
@@ -109,9 +113,10 @@ nh_id <- lapply(df_ds, lapply, \(.) {
  head(td)
 ```
 
-```{r, fig.width=14, fig.height=4}
+## miloDE nhoods vs. muscat clusters
+
+```{r, fig.width=12, fig.height=6}
 gg <- by(td, td$sel, function(dt) {
-    #dt <- td[td$sel == "HVG", ]
     id <- dt$sel[1]
     print(length(unique(dt$cluster)))
     print(length(unique(dt$neighborhood)))
@@ -125,7 +130,7 @@ gg <- by(td, td$sel, function(dt) {
     xo <- colnames(my)[hclust(dist(t(my), n), m)$order]
     yo <- rownames(my)[hclust(dist(my, n))$order]
     # concordance
-    p <- ggplot(dt, aes(cluster, neighborhood, fill=proportion)) + geom_tile() +
+    ggplot(dt, aes(cluster, neighborhood, fill=proportion)) + geom_tile() +
         scale_fill_gradient2(limits=c(0, 1), n.breaks=2, low="ivory", high="navy") +
         coord_equal(20/length(yo), expand=FALSE) +
         scale_y_discrete(limits=yo) +
@@ -135,22 +140,18 @@ gg <- by(td, td$sel, function(dt) {
             axis.ticks=element_blank(),
             plot.title=element_text(hjust=0.5),
             legend.key.width=unit(0.2, "lines"),
-            legend.key.height=unit(0.4, "lines")) 
-    # maxima
-    nn <- length(unique(dt$neighborhood))
-    df <- data.frame(cluster=names(val <- 1-apply(my, 2, max)), val)
-    q <- ggplot(df, aes(cluster, 0, fill=val)) + 
-        geom_tile(col="white", linewidth=0.1) + 
-        theme_void() + theme(legend.position="none") + 
-        scale_fill_gradient2(low="ivory", high="firebrick")
-    # arrangement
-    wrap_plots(p, q, ncol=1, heights=c(nn, 1)) & scale_x_discrete(limits=xo)
+            legend.key.height=unit(0.4, "lines"))
 }) |> wrap_plots(nrow=1) + plot_layout(guides="collect") 
+gg
+```
+
+```{r echo=FALSE}
 ggsave("Kang_cm.pdf", gg, width=8/2.54, height=6/2.54)
 ```
 
-## miloDE vs. cluster_id
-```{r, warning=FALSE, fig.width=12, fig.height=4}
+## miloDE nhoods vs. author annotations
+
+```{r, warning=FALSE, fig.width=12, fig.height=6}
 tt <-  dt[dt$type == "cluster_id", ]
 tt[, cluster:= factor(cluster, levels=unique(cluster))]
 gg <- by(tt, tt$sel, function(dt) {
@@ -177,8 +178,5 @@ gg <- by(tt, tt$sel, function(dt) {
             axis.text.x=element_text(angle=45, hjust=1))
 }) |> wrap_plots(nrow=1) + 
     plot_layout(guides="collect") 
-ggsave("Kang_cm2.pdf", gg, width=7/2.54, height=5/2.54)
+gg
 ```
-
-
-
