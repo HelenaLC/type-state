@@ -1,3 +1,9 @@
+**Supplementary docs:**
+
+[DEMO](supp/demo.html)
+[integration](supp/integration.html)
+[neighborhoods](supp/neighborhoods.html)
+
 ### setup
 
 - workflow was implemented and last executed successfully with<br>
