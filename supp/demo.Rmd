@@ -1,0 +1,233 @@
+---
+title: "Demo"
+author:
+- name: Jiayi Wang*
+  affiliation:
+  - &IMLS Institute for Molecular Life Sciences, University of Zurich, Switzerland
+  - &SIB SIB Swiss Institute of Bioinformatics, University of Zurich, Switzerland
+- name: Helena L Crowell*
+  affiliation:
+  - *IMLS
+  - *SIB
+- name: Mark D Robinson
+  affiliation:
+  - *IMLS
+  - *SIB
+output: 
+  html_document:
+    theme: simplex
+    toc: true
+    toc_depth: 2
+    toc_float: true
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
+```
+
+# preamble
+
+## dependencies
+
+```{r load-libs, message=FALSE, warning=FALSE}
+library(scran)
+library(scater)
+library(igraph)
+library(UpSetR)
+library(ggplot2)
+library(patchwork)
+```
+
+## simulation
+
+In this demo, we will use synthetic data comprising 400 cells per sample (3 per 
+2 conditions), 3 clusters, and 2,000 genes. We here source a script to simulate 
+this scenario, but any data with analogous design could serve as input instead.
+
+```{r sim}
+# simulation
+wcs <- list(t=80, s=80, b=0)
+sim_rds <- tempfile(fileext=".rds")
+args <- list(res=sim_rds)
+source("code/00-get_sim.R")
+(sim <- readRDS(args$res))
+```
+
+## processing
+
+Next, we perform minimal filtering (excluding low-quality genes and cells) and
+preprocessing steps (normalization, principal component analysis), as well as 
+low- and high-resolution graph-based clustering. The resulting `cluster_lo/hi` 
+(stored as `colData`) assignments, and biological variance component estimates
+(`rowData` slot `bio`) are used by different feature scores/selections below.
+
+```{r pro}
+# keep genes with count > 1 in at least 10 cells,
+# and cells with at least 10 detected genes
+y <- counts(sim)
+gs <- rowSums(y > 1) >= 10
+cs <- colSums(y > 0) >= 10
+sim <- sim[gs, cs]
+
+# log-library size normalization, 
+# feature selection, dimension reduction
+sim <- logNormCounts(sim)
+tbl <- modelGeneVar(sim, block=sim$sample_id)
+hvg <- (rowData(sim)$bio <- tbl$bio ) > 0
+sim <- runPCA(sim, subset_row=hvg, ncomponents=10)
+
+# high- & low-resolution clustering
+g <- buildSNNGraph(sim, use.dimred="PCA")
+lo <- cluster_louvain(g, resolution=0)
+hi <- cluster_louvain(g, resolution=2)
+sim$cluster_lo <- factor(lo$membership)
+sim$cluster_hi <- factor(hi$membership)
+```
+
+```{r plt-pcs, echo=FALSE, fig.width=8, fig.height=3}
+plotPCA(sim, point_size=0.2, colour_by="group_id") +
+      scale_color_manual("condition/group", values=c("royalblue", "tomato")) +
+plotPCA(sim, point_size=0.2, colour_by="cluster_id") +
+    scale_color_manual("cell type/cluster", values=c("cyan", "magenta", "gold")) +
+plot_layout(nrow=1) & coord_equal() &
+    guides(col=guide_legend(override.aes=list(alpha=1, size=2)))
+```
+
+# analysis
+
+## scoring
+
+We first source feature scoring scripts. Each defines a function that 
+takes as input a `SingleCellExperiment`, and returns a score for each gene.
+
+```{r get-sco}
+# source scoring functions & assign to variables
+sco <- list.files("code", "02-sco-", full.names=TRUE)
+(ids <- gsub(".*-(.*)\\..*", "\\1", sco))
+names(sco) <- names(sco_ids) <- sco_ids <- ids
+for (. in sco_ids) { source(sco[.]); assign(., fun) }
+# view exemplary function definition
+HVG
+```
+
+Looping through these, we can compute a set of gene scores; here, using 
+all strategies. In reality, only one or two scores would be sufficient.
+
+```{r run-sco}
+# run scoring
+sco_res <- lapply(sco_ids, \(.) get(.)(sim))
+# consolidate into table
+names(sco_res)[2] <- ""
+sco_res <- data.frame(sco_res)
+# view results for a few genes
+head(sco_res)
+```
+
+## selection
+
+Analogous to above, we next source feature selection scripts. 
+Each of these functions relies the above scores to select 2,000 genes. 
+Specifically, selections with a `_` are based on the rank difference 
+of two scores; remaining selections rely on one score only. 
+
+```{r get-sel}
+# source scoring functions & assign to variables
+sel <- list.files("code", "03-sel_dat-", full.names=TRUE)
+(ids <- gsub(".*-(.*)\\..*", "\\1", sel))
+names(sel) <- names(sel_ids) <- sel_ids <- ids
+for (. in sel_ids) { source(sel[.]); assign(., fun) }
+# view exemplary function definition
+tF_sPBDS
+```
+
+Again, we loop through all selection strategies to obtain a set of genes of each.
+These functions default to selecting the top-2,000 ranked genes, which might be
+reasonable in experimental data. However, because this is synthetic data and we
+only simulated 2,000 genes, we subset selections to the top-200 ranked genes.
+
+```{r run-sel}
+# selection scripts expects a list of
+# - gene_id = feature identifiers
+# - sco_val = score values
+sco_ret <- lapply(
+    asplit(sco_res, 2), \(.) 
+    list(gene_id=names(.), sco_val=.))
+# run selections
+sel_res <- lapply(sel_ids, \(.) get(.)(sco_ret)[seq_len(200)])
+# view first couple features
+sapply(sel_res, head)
+```
+
+## visuals
+
+We here refrain from any quantitative evaluation and instead, briefly,
+qualitatively/visually compare different feature selection strategies.
+
+### agreement
+
+The arguably simplest comparison is to compute and visualize, for all 
+sets of strategies, the number of features unique/common between them.
+E.g., we can observe that *random* selection results in the least overlaps,
+and selections involvins *tF* and *sPVE*, respectively, share a few genes.
+
+```{r plt-set, fig.width=6, fig.height=4}
+# count how many genes are in common 
+# between different selection strategies
+upset(fromList(sel_res), sets=sel_ids, nintersects=20)
+```
+
+### reduction
+
+Lastly, we can use feature subsets for principal component analysis (PCA) that, 
+in practice, may underlie downstream analyses such as integration and clustering.
+We also visually compare the top-2 PCs colored by group/experiment condition
+and cluster/cell type, respectively. Ideally, we would like to observe that 
+clusters are well separated but not groups. E.g., we can observe that HVGs lead
+do to some extend separate clusters but also groups, while type- and type-state-
+based selection result in a better separation of clusters and well-mixed groups.
+
+```{r run-pca}
+# do principal component analysis
+# using different feature selections
+sim_ <- lapply(sel_res, \(.) runPCA(sim, subset_row=.))
+```
+
+```{r plt-qcs, fig.width=12, fig.height=4}
+# plotting
+ps <- lapply(names(sim_), \(.) {
+    p <- plotPCA(sim_[[.]], 
+        # coloring by condition/group
+        point_size=0.2, colour_by="group_id") +
+        scale_color_manual(
+            "condition/group", 
+            values=c("royalblue", "tomato"))
+    q <- plotPCA(sim_[[.]], 
+        # coloring by cell type/cluster
+        point_size=0.2, colour_by="cluster_id") +
+        scale_color_manual(
+            "cell type/cluster", 
+            values=c("cyan", "magenta", "gold"))
+    list(p+ggtitle(.), q)
+}) |> Reduce(f=c)
+# aesthetics
+wrap_plots(ps) +
+    plot_layout(nrow=2, byrow=FALSE, guides="collect") &
+    guides(col=guide_legend(override.aes=list(alpha=1, size=2))) &
+    coord_equal() & theme(
+        legend.key.size=unit(0, "pt"),
+        plot.title=element_text(hjust=0.5))
+```
+
+# appendix
+
+::: {.callout-note icon=false, collapse=true}
+
+## session
+
+```{r sess-info}
+#| code-fold: false
+sessionInfo()
+```
+
+:::

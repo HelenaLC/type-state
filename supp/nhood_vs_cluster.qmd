@@ -1,0 +1,184 @@
+---
+title: "Compare neighbourhoods and clusters"
+
+format:
+  html:
+    toc: true
+    self-contained: true
+    code-fold: true
+    code-tools: true
+    toc_float: true
+    
+author: Jiayi Wang*, Helena L. Crowell* and Mark Robinson
+---
+
+## Dependencies
+```{r package}
+suppressPackageStartupMessages({
+    library(ggplot2)
+    library(dplyr)
+    library(miloDE)
+    library(miloR)
+    library(tidyr)
+    library(ggh4x)
+    library(patchwork) 
+    library(tidytext) 
+    library(stringr)
+    library(ComplexHeatmap)
+    library(gridExtra)
+    library(data.table)
+})
+```
+
+
+```{r setup, include=FALSE}
+set.seed(123)
+knitr::opts_knit$set(root.dir = "~/projects/type-state")
+```
+
+This vignette evaluates how muscat’s non-overlapping clusters correspond to miloDE’s overlapping neighborhoods. We do this by calculating, for each neighborhood, the proportion of cells assigned to each muscat cluster, using the Kang dataset as a case study. The subpopulations analyzed were derived using highly variable genes (HVG) and type-not-state feature selection (tF_sPBDS).
+
+## Data loading
+
+```{r data}
+hvg <- readRDS("data/dat/02-rep/Kang18,HVG.rds")
+tns <- readRDS("data/dat/02-rep/Kang18,tF_sPBDS.rds")
+```
+
+## miloDE vs. cluster_re 
+
+```{r}
+# get clusters/neighborhoods that 
+# underwent differential testing
+df_ds <- list(
+    HVG=list(
+        muscat="outs/dat/das-Kang18,HVG,DS_muscat.rds",
+        miloDE="outs/dat/das-Kang18,HVG,DS_miloDE.rds"),
+    tF_sPBDS=list(
+        muscat="outs/dat/das-Kang18,tF_sPBDS,DS_muscat.rds",
+        miloDE="outs/dat/das-Kang18,tF_sPBDS,DS_miloDE.rds"))
+nh_id <- lapply(df_ds, lapply, \(.) {
+    . <- unique(readRDS(.)$i_nhood)
+    print(length(.)); return(.) })
+```
+
+```{r}
+.prop <- \(x, sel) {
+    # assign cells to neighborhoods
+    #x <- hvg; sel <- "HVG"
+    y <- assign_neighbourhoods(x, reducedDim_name="PCA")
+    nh <- as.data.table(as.matrix(nhoods(y)))
+    cols <- names(nh)
+    nh$cluster_re <- x$cluster_re
+    nh$cluster_id <- x$cluster_id
+    nh$cell_id <- seq_len(nrow(nh))
+    # quantify overlap between clusters & neighborhoods
+    # (relative abundance of clusters in each neighborhood)
+    nh <- melt(nh, 
+        measure.vars = cols,
+        id.vars = c("cluster_re", "cluster_id"), 
+        variable.name = "neighborhood", value.name = "in_nn")
+    ns <- seq_len(nlevels(unique(nh$neighborhood)))
+    nh$neighborhood <- factor(nh$neighborhood, labels=ns)
+    # filter for cells assigned to groups
+    # that underwent differential testing
+    i <- nh$cluster_re %in% nh_id[[sel]]$muscat
+    j <- nh$neighborhood %in% nh_id[[sel]]$miloDE
+    nh <- nh[(i & j) & nh$in_nn == 1, ] 
+    nh$cluster_re <- droplevels(nh$cluster_re)
+    nh$neighborhood <- droplevels(nh$neighborhood)
+    nh[, size := .N, by = neighborhood]
+    re <- nh[, .N, by = .(neighborhood, cluster_re, size)]
+    id <- nh[, .N, by = .(neighborhood, cluster_id, size)]
+    re[, proportion := N / size]
+    id[, proportion := N / size]
+    # re[, neighborhood := as.factor(neighborhood)]
+    # id[, neighborhood := as.factor(neighborhood)]
+    setnames(re, "cluster_re", "cluster")
+    setnames(id, "cluster_id", "cluster")
+    re[,type:="cluster_re"]
+    id[,type:="cluster_id"]
+    dt <- rbind(re,id)
+    dt[, sel := sel]
+    dt
+}
+ dt1 <- .prop(hvg,"HVG")
+ dt2 <- .prop(tns,"tF_sPBDS")
+ dt <- rbind(dt1,dt2)
+ td <- dt[type=="cluster_re"]
+ head(td)
+```
+
+```{r, fig.width=14, fig.height=4}
+gg <- by(td, td$sel, function(dt) {
+    #dt <- td[td$sel == "HVG", ]
+    id <- dt$sel[1]
+    print(length(unique(dt$cluster)))
+    print(length(unique(dt$neighborhood)))
+    dt <- select(dt, neighborhood, cluster, proportion)
+    mx <- pivot_wider(dt, 
+        names_from=cluster, 
+        values_from=proportion, 
+        values_fill=0)
+    my <- `rownames<-`(as.matrix(mx[, -1]), mx[[1]])
+    n <- "euclidean"; m <- "complete"
+    xo <- colnames(my)[hclust(dist(t(my), n), m)$order]
+    yo <- rownames(my)[hclust(dist(my, n))$order]
+    # concordance
+    p <- ggplot(dt, aes(cluster, neighborhood, fill=proportion)) + geom_tile() +
+        scale_fill_gradient2(limits=c(0, 1), n.breaks=2, low="ivory", high="navy") +
+        coord_equal(20/length(yo), expand=FALSE) +
+        scale_y_discrete(limits=yo) +
+        ggtitle(id) + theme_bw(6) + theme(
+            axis.text=element_blank(),
+            panel.grid=element_blank(),
+            axis.ticks=element_blank(),
+            plot.title=element_text(hjust=0.5),
+            legend.key.width=unit(0.2, "lines"),
+            legend.key.height=unit(0.4, "lines")) 
+    # maxima
+    nn <- length(unique(dt$neighborhood))
+    df <- data.frame(cluster=names(val <- 1-apply(my, 2, max)), val)
+    q <- ggplot(df, aes(cluster, 0, fill=val)) + 
+        geom_tile(col="white", linewidth=0.1) + 
+        theme_void() + theme(legend.position="none") + 
+        scale_fill_gradient2(low="ivory", high="firebrick")
+    # arrangement
+    wrap_plots(p, q, ncol=1, heights=c(nn, 1)) & scale_x_discrete(limits=xo)
+}) |> wrap_plots(nrow=1) + plot_layout(guides="collect") 
+ggsave("Kang_cm.pdf", gg, width=8/2.54, height=6/2.54)
+```
+
+## miloDE vs. cluster_id
+```{r, warning=FALSE, fig.width=12, fig.height=4}
+tt <-  dt[dt$type == "cluster_id", ]
+tt[, cluster:= factor(cluster, levels=unique(cluster))]
+gg <- by(tt, tt$sel, function(dt) {
+    id <- dt$sel[1]
+    dt <- select(dt, neighborhood, cluster, proportion)
+    mx <- pivot_wider(dt, names_from=cluster, 
+        values_from=proportion, values_fill=0)
+    my <- `rownames<-`(as.matrix(mx[, -1]), mx[[1]])
+    xo <- colnames(my)[hclust(dist(t(my)))$order]
+    yo <- rownames(my)[hclust(dist(my))$order]
+    ggplot(dt, aes(cluster, neighborhood, fill=proportion)) + geom_tile(col=NA) +
+        scale_fill_gradient2("prop.", limits=c(0, 1), n.breaks=2, low="ivory", high="navy") +
+        scale_x_discrete(limits=paste(xo)) +
+        scale_y_discrete(limits=paste(yo)) +
+        coord_equal(expand=FALSE) +
+        ggtitle(id) + 
+        theme_bw(6) + theme(
+            aspect.ratio=1,
+            panel.grid=element_blank(),
+            axis.text.y=element_blank(),
+            axis.ticks.y=element_blank(),
+            legend.key.width=unit(0.2, "lines"),
+            legend.key.height=unit(0.4, "lines"),
+            axis.text.x=element_text(angle=45, hjust=1))
+}) |> wrap_plots(nrow=1) + 
+    plot_layout(guides="collect") 
+ggsave("Kang_cm2.pdf", gg, width=7/2.54, height=5/2.54)
+```
+
+
+
